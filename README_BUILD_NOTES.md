@@ -1,31 +1,43 @@
-# IRON KINGDOMS: SKY FORTRESS COMMAND — v0.26.06.17.0400
+# IRON KINGDOMS: SKY FORTRESS COMMAND — v0.26.06.17.0500
 
-Focused tutorial-completion, direct-travel polish, faction-gate roadmap patch.
+Focused first-loop safety, tutorial polish, gate-locked travel, and Storm Keel foundation patch.
 
-## Changed
+## Version Consistency
 
-- Updated displayed build label, VERSION constant, SAVE_KEY, standalone filename, package folder, and build notes to v0.26.06.17.0400.
-- Added proper Captain's Orders completion state and Open Command suggestions after 7/7 tutorial objectives.
-- Delayed early upgrade nudges so they no longer compete with the first travel tutorial.
-- Added direct engine travel confirmation for medium/long, costly, risky, or low-hull direct routes.
-- Added low-hull direct-travel warnings.
-- Added faction-controlled gate policy foundation: owner, standing, toll, permit/inspection risk, blockade risk, event risk.
-- Added route toll handling and fallback messaging if a toll cannot be afforded.
-- Expanded route events with faction-flavored outcomes.
-- Improved enemy fleet naming by faction.
-- Added compact route legend to the selected-location panel.
-- Fixed the hex mesh orientation to match the pointy-top axial hex coordinate math, eliminating the large triangular gaps between tiles.
+- Displayed version: v0.26.06.17.0500
+- VERSION constant: v0.26.06.17.0500
+- Save key: IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0500
+- Package folder: IRON_KINGDOMS_SKY_FORTRESS_COMMAND_v0.26.06.17.0500
+
+## Major Changes
+
+- Gate-locked early travel: strategic overworld movement now requires charted Current Gate / Jet Stream routes.
+- No-charted-current destinations now explain that Storm Keel technology is required for future temporary conduit creation.
+- Route graph generation now builds a connected charted sky-road network so the campaign remains navigable without freeform direct travel.
+- First field salvage event is protected from forced ambushes.
+- Later salvage ambushes now present a choice: engage, retreat before contact, or hide/pay off scavengers.
+- Early ambush danger is capped before the first low-danger hostile contact.
+- Retreating or escaping a low-danger ambush now satisfies the adapted hostile-contact tutorial step.
+- Right-side upgrade emphasis is softened before the first travel/reward loop.
+- Selected-location panel scroll now resets after travel and context changes.
+- Added Storm Keel Engine locked foundation card as a mid/late-game research goal.
+- Storm Keel prototype can be researched only after major requirements, but full temporary current creation remains a future patch.
+- Empty hex tiles are slightly more solid to support a physical tabletop-board read.
 
 ## Known Limitations
 
-- Current Gates are still a foundation layer, not the full final route-network diplomacy system.
-- Blockades/permits are warning-and-event based; they do not yet create full strategic locks or negotiation flows.
-- Direct travel still exists as a prototype fallback.
-- Storm Keel temporary-current creation is not implemented yet.
-- Fortress hex module building is not implemented yet.
-- Tactical 3rd-person fortress flight is not implemented yet.
-- Older saves use previous version save keys and will not auto-load.
+- Storm Keel does not yet create temporary currents or new route links.
+- Faction gate policies remain lightweight.
+- Route events are still log/modal outcomes, not full encounters.
+- Combat is still panel-based.
+- Fortress hex module construction is not implemented yet.
+- Tactical 3rd-person location flight is not implemented yet.
+- Older saves use a different save key and will not auto-load.
 
 ## Recommended Next Patch
 
-Continue with either Storm Keel / temporary current unlock foundation, deeper gate diplomacy, richer route events, or the first fortress hex module builder foundation.
+Continue with one focused roadmap pillar:
+
+1. Full Storm Keel short-range temporary-current creation foundation, or
+2. Deeper route-event and faction gate diplomacy, or
+3. First fortress hex module builder foundation.

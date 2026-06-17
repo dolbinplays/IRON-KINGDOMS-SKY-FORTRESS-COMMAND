@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.17.0400</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.17.0500</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <style>
     :root {
@@ -781,6 +781,36 @@
       color: #ffe4aa;
     }
 
+    .noChartedCurrentBox {
+      border: 1px solid rgba(181,134,255,0.62);
+      background: rgba(81,55,124,0.18);
+      color: #eadcff;
+      border-radius: 10px;
+      padding: 8px;
+      margin: 8px 0;
+      font-size: 12px;
+      line-height: 1.32;
+    }
+
+    .stormKeelCard {
+      border: 1px solid rgba(181,134,255,0.42);
+      background: linear-gradient(180deg, rgba(68,48,94,0.25), rgba(0,0,0,0.20));
+      border-radius: 10px;
+      padding: 9px;
+      margin: 10px 0 7px;
+      box-shadow: inset 0 0 0 1px rgba(181,134,255,0.08);
+    }
+    .stormKeelCard.locked { opacity: 0.86; }
+    .requirementList {
+      margin: 6px 0 0 0;
+      padding-left: 17px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.32;
+    }
+    .requirementList .met { color: #b7ffbd; }
+    .requirementList .missing { color: #ffd0c9; }
+
     .clearedBox {
       border: 1px solid rgba(127,209,132,0.62);
       background: rgba(127,209,132,0.10);
@@ -917,7 +947,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.17.0400</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.17.0500</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -988,7 +1018,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.17.0400 · Single-file HTML · Three.js CDN build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.17.0500 · Single-file HTML · Three.js CDN build</p>
     </div>
   </div>
 </div>
@@ -999,8 +1029,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.17.0400';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0400';
+const VERSION = 'v0.26.06.17.0500';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0500';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -1048,6 +1078,8 @@ const UPGRADE_DATA = {
   repairs: { name: 'Repair Systems', max: 3, desc: 'Tracked gantries, trained damage teams, and patch boilers.', baseCost: { steel: 24, gold: 20 }, benefit: '+Emergency repair power' },
   hangarCap: { name: 'Hangar Capacity', max: 3, desc: 'More skiffs, better winches, and trained launch crews.', baseCost: { steel: 26, gold: 32 }, benefit: '+Air wing combat power' }
 };
+
+const STORM_KEEL_RESEARCH_COST = { steel: 120, gold: 140 };
 
 const LOCATION_COLORS = {
   skyport: 0xd9a441,
@@ -1268,8 +1300,13 @@ function createNewState() {
       earnedReward: false,
       upgradedOrRepaired: false,
       foughtLowDanger: false,
+      survivedHostileContact: false,
       returnedForService: false,
-      manualUpgradePrompted: false
+      manualUpgradePrompted: false,
+      firstFieldEventComplete: false,
+      stormRouteExplored: false,
+      gateContractComplete: false,
+      stormKeelPrototype: false
     }
   };
 
@@ -1383,39 +1420,76 @@ function generateHexTilesFromLocations(locations) {
 
 
 function generateCurrentRoutes(rng, locations) {
-  // Current Gate / Jet Stream foundation: a lightweight route network layered on top of the hex board.
+  // Current Gate / Jet Stream foundation: early-game strategic travel is gate-network locked.
+  // Players must ride charted currents until the mid/late Storm Keel system eventually allows temporary current creation.
   const byId = Object.fromEntries(locations.map(l => [l.id, l]));
-  const routeSpecs = [
-    ['loc_home', 'loc_1', 'Brassgate Trade Current', 'trade', 'steam'],
-    ['loc_home', 'loc_2', 'Wreckfield Service Current', 'safe', 'steam'],
-    ['loc_home', 'loc_3', 'Green Shelf Current', 'safe', 'thorn'],
-    ['loc_home', 'loc_4', 'Saint Rivet Courier Current', 'trade', 'priest'],
-    ['loc_1', 'loc_5', 'Outer Patrol Current', 'safe', 'sky'],
-    ['loc_1', 'loc_6', 'Frostjaw Storm Current', 'storm', 'frost']
-  ];
   const routes = [];
-  routeSpecs.forEach((s, idx) => {
-    const [fromId, toId, name, type, owner] = s;
-    if (!byId[fromId] || !byId[toId]) return;
+
+  function addRoute(fromId, toId, name, type, owner) {
+    if (!byId[fromId] || !byId[toId] || getRouteBetweenIds(routes, fromId, toId)) return;
     byId[fromId].hasGate = true;
     byId[toId].hasGate = true;
-    routes.push(makeCurrentRoute(idx, fromId, toId, name, type, owner, byId[fromId], byId[toId]));
-  });
+    routes.push(makeCurrentRoute(routes.length, fromId, toId, name, type, owner, byId[fromId], byId[toId]));
+  }
+  function routeTypeFor(a, b) {
+    if (a.type === 'storm' || b.type === 'storm') return 'storm';
+    if (a.type === 'enemy' || b.type === 'enemy') return rng() < 0.55 ? 'pirate' : 'safe';
+    if (a.type === 'settlement' || b.type === 'settlement' || a.type === 'skyport' || b.type === 'skyport' || a.type === 'contract' || b.type === 'contract') return 'trade';
+    return 'safe';
+  }
+  function ownerFor(a, b, type) {
+    if (type === 'pirate') return rng() < 0.64 ? 'pirates' : (a.faction || b.faction || 'dusk');
+    if (type === 'storm') return (a.faction === 'frost' || b.faction === 'frost') ? 'frost' : (a.faction || b.faction || 'frost');
+    return a.faction || b.faction || 'steam';
+  }
+  function routeNameFor(a, b, type) {
+    if (type === 'pirate') return `${shortRouteName(a.name)} Slipstream`;
+    if (type === 'storm') return `${shortRouteName(a.name)} Storm Current`;
+    if (type === 'trade') return `${shortRouteName(a.name)} Trade Current`;
+    return `${shortRouteName(a.name)} Service Current`;
+  }
 
-  // Expand the charted route web so Current Gates matter more while preserving direct travel as a fallback.
-  const candidates = locations.filter(l => l.id !== 'loc_home' && ['settlement','skyport','contract','ruins','storm','enemy','salvage','resource'].includes(l.type));
-  for (let i = 0; i < candidates.length && routes.length < 22; i++) {
-    const a = candidates[i];
-    const nearbyList = candidates
+  // Guaranteed starting lanes: the tutorial always has safe charted routes.
+  addRoute('loc_home', 'loc_1', 'Brassgate Trade Current', 'trade', 'steam');
+  addRoute('loc_home', 'loc_2', 'Wreckfield Service Current', 'safe', 'steam');
+  addRoute('loc_home', 'loc_3', 'Green Shelf Current', 'safe', 'thorn');
+  addRoute('loc_home', 'loc_4', 'Saint Rivet Courier Current', 'trade', 'priest');
+  addRoute('loc_1', 'loc_5', 'Outer Patrol Current', 'safe', 'sky');
+  addRoute('loc_1', 'loc_6', 'Frostjaw Storm Current', 'storm', 'frost');
+
+  // Build a connected charted sky-road graph so disabling direct travel does not strand the campaign.
+  const connected = new Set(['loc_home']);
+  routes.forEach(r => { if (connected.has(r.fromId)) connected.add(r.toId); if (connected.has(r.toId)) connected.add(r.fromId); });
+  let safety = 0;
+  while (connected.size < locations.length && safety++ < 200) {
+    let best = null;
+    for (const a of locations) {
+      if (!connected.has(a.id)) continue;
+      for (const b of locations) {
+        if (connected.has(b.id) || a.id === b.id || getRouteBetweenIds(routes, a.id, b.id)) continue;
+        const hd = hexDistance(a.q, a.r, b.q, b.r);
+        const score = hd * 10 + distance2D(a, b) * 0.1 + rng() * 4;
+        if (!best || score < best.score) best = { a, b, hd, score };
+      }
+    }
+    if (!best) break;
+    const type = routeTypeFor(best.a, best.b);
+    addRoute(best.a.id, best.b.id, routeNameFor(best.a, best.b, type), type, ownerFor(best.a, best.b, type));
+    connected.add(best.b.id);
+  }
+
+  // Extra local links create roundabout route planning and alternate paths.
+  const all = [...locations];
+  for (let i = 0; i < all.length; i++) {
+    const a = all[i];
+    const nearby = all
       .filter(b => b.id !== a.id && !getRouteBetweenIds(routes, a.id, b.id) && hexDistance(a.q, a.r, b.q, b.r) <= 2)
       .sort((x, y) => distance2D(a, x) - distance2D(a, y))
-      .slice(0, 2);
-    nearbyList.forEach(nearby => {
-      if (!nearby || routes.length >= 22 || rng() > 0.68) return;
-      const type = a.type === 'storm' || nearby.type === 'storm' ? 'storm' : (a.type === 'enemy' || nearby.type === 'enemy' ? 'pirate' : (a.type === 'settlement' || nearby.type === 'settlement' ? 'trade' : 'safe'));
-      const owner = a.faction || nearby.faction || 'steam';
-      a.hasGate = true; nearby.hasGate = true;
-      routes.push(makeCurrentRoute(routes.length, a.id, nearby.id, `${shortRouteName(a.name)} Current`, type, owner, a, nearby));
+      .slice(0, 3);
+    nearby.forEach(b => {
+      if (routes.length >= 46 || rng() > 0.46) return;
+      const type = routeTypeFor(a, b);
+      addRoute(a.id, b.id, routeNameFor(a, b, type), type, ownerFor(a, b, type));
     });
   }
   return routes;
@@ -1451,11 +1525,11 @@ function routeGatePolicy(route) {
   const standing = relationStatus(relation);
   let toll = 0;
   if (route.type === 'trade') toll = 8;
-  else if (route.type === 'safe') toll = 3;
+  else if (route.type === 'safe') toll = 0;
   else if (route.type === 'pirate') toll = 0;
   else if (route.type === 'storm') toll = 0;
-  if (standing === 'Friendly') toll = Math.max(0, Math.floor(toll * 0.35));
-  if (standing === 'Hostile') toll = toll ? Math.ceil(toll * 2.25) : (route.type === 'safe' || route.type === 'trade' ? 10 : 0);
+  if (standing === 'Friendly') toll = 0;
+  if (standing === 'Hostile') toll = toll ? Math.ceil(toll * 2.25) : (route.type === 'trade' ? 10 : 0);
   const permitRequired = standing === 'Hostile' && (route.type === 'safe' || route.type === 'trade');
   const blockadeRisk = standing === 'Hostile' || route.type === 'pirate' || !!route.blockaded;
   const eventRisk = route.type === 'pirate' ? 'High' : route.type === 'storm' ? 'Moderate' : blockadeRisk ? 'Moderate' : 'Low';
@@ -1478,7 +1552,7 @@ function routeLegendMiniHTML() {
     <span style="--swatch:#f4cf78">Trade Current</span>
     <span style="--swatch:#b586ff">Storm Current</span>
     <span style="--swatch:#5de2df">Pirate Slipstream</span>
-    <span style="--swatch:#8f7645">Direct fallback</span>
+    <span style="--swatch:#8f7645">No Charted Current</span>
   </div>`;
 }
 
@@ -1510,9 +1584,10 @@ function routePreviewHTML(loc, cur) {
   if (!game || !loc || !cur || loc.id === cur.id) return '';
   const route = getRouteBetween(cur.id, loc.id);
   if (!route) {
-    const strain = directTravelStrainPreview(cur, loc);
-    const strainText = strain.chance ? `Long uncharted routes may cause ${strain.min}–${strain.max} hull strain. Strain risk: ${strain.label}.` : 'Short direct hops have no strain risk.';
-    return `<div class="routePreview directRouteWarn"><strong>Direct Engine Travel</strong><br/>No charted Jet Stream Current is known for this leg yet. Direct travel costs about 30% more fuel than a current route. ${strainText}</div>`;
+    return `<div class="noChartedCurrentBox"><strong>No Charted Current</strong><br/>
+      Brasswake cannot make strategic inter-section jumps under engine power at the start of a campaign. Use connected Current Gates, trade lanes, storm currents, or pirate slipstreams to reach this region.<br/>
+      <span class="gateBadge">Storm Keel Required</span><br/>
+      Mid/late Storm Keel technology will eventually allow temporary current creation, but it is not available yet.</div>`;
   }
   const meta = CURRENT_ROUTE_TYPES[route.type] || CURRENT_ROUTE_TYPES.safe;
   const owner = FACTIONS[route.owner]?.name || 'Unclaimed';
@@ -1660,7 +1735,7 @@ function createHexMaterial(type, loc) {
     contract: 0x7e6826
   };
   const color = loc?.depleted ? 0x303238 : (colors[type] || colors.empty);
-  const opacity = type === 'empty' ? 0.40 : loc?.depleted ? 0.44 : 0.72;
+  const opacity = type === 'empty' ? 0.52 : loc?.depleted ? 0.46 : 0.74;
   return new THREE.MeshStandardMaterial({
     color,
     transparent: true,
@@ -1668,7 +1743,7 @@ function createHexMaterial(type, loc) {
     metalness: 0.14,
     roughness: 0.86,
     emissive: color,
-    emissiveIntensity: type === 'empty' ? 0.018 : 0.055,
+    emissiveIntensity: type === 'empty' ? 0.026 : 0.055,
     depthWrite: false
   });
 }
@@ -1898,27 +1973,9 @@ function drawCurrentRoutes() {
 }
 
 function drawDirectFallbackLines() {
-  const current = getLocation(game.currentLocationId);
-  const stats = computeStats();
-  const reachable = game.locations
-    .filter(loc => game.discovered[loc.id] && loc.id !== current.id && !getRouteBetween(current.id, loc.id))
-    .map(loc => ({ loc, d: distance2D(current, loc) }))
-    .filter(x => x.d <= stats.travelRange + 2)
-    .sort((a, b) => a.d - b.d)
-    .slice(0, 7);
-
-  reachable.forEach(({ loc }) => {
-    const danger = loc.type === 'enemy' ? loc.danger || 1 : loc.type === 'storm' ? loc.danger || 1 : 0;
-    const lineColor = loc.depleted ? 0x62666b : danger >= 3 ? 0xe15f4f : loc.type === 'storm' ? 0xb586ff : 0x8f7645;
-    const material = new THREE.LineDashedMaterial({ color: lineColor, transparent: true, opacity: loc.depleted ? 0.04 : 0.08, dashSize: 1.1, gapSize: 1.6 });
-    const geo = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(current.x, 0.10, current.z),
-      new THREE.Vector3(loc.x, 0.10, loc.z)
-    ]);
-    const fallbackLine = new THREE.Line(geo, material);
-    fallbackLine.computeLineDistances();
-    lineGroup.add(fallbackLine);
-  });
+  // Gate-locked early travel: direct inter-section fallback lines are intentionally hidden.
+  // Future Storm Keel / temporary current creation will add a separate route preview layer instead of freeform bypass travel.
+  return;
 }
 
 // =============================================================
@@ -1998,7 +2055,10 @@ function renderSelectedPanel() {
   const d = distance2D(cur, loc);
   const stats = computeStats();
   const route = getRouteBetween(cur.id, loc.id);
-  const cost = routeTravelCost(cur, loc, route);
+  const cost = loc.id === cur.id ? 0 : (route ? routeTravelCost(cur, loc, route) : 0);
+  const costDisplay = loc.id === cur.id ? '0' : (route ? String(cost) : 'No Route');
+  const contextKey = `${game.selectedLocationId}|${game.currentLocationId}|${loc.depleted ? 'D' : 'A'}|${game.day}`;
+  const priorContext = panel.dataset.contextKey || '';
   const statusTags = [];
   statusTags.push(`<span class="tag blue">${prettyType(loc.type)}</span>`);
   if (loc.faction) statusTags.push(`<span class="tag" style="border-color:${FACTIONS[loc.faction].accent}; color:${FACTIONS[loc.faction].accent}">${FACTIONS[loc.faction].name}</span>`);
@@ -2014,7 +2074,7 @@ function renderSelectedPanel() {
     <div class="desc">${loc.desc}</div>
     <div class="statGrid" style="margin-bottom:8px;">
       <div class="statCard"><div class="k">Distance</div><div class="v">${Math.round(d)}</div></div>
-      <div class="statCard"><div class="k">Fuel Cost</div><div class="v">${loc.id === cur.id ? 0 : cost}</div></div>
+      <div class="statCard"><div class="k">Fuel Cost</div><div class="v">${costDisplay}</div></div>
     </div>
     ${routePreviewHTML(loc, cur)}
     ${routeLegendMiniHTML()}
@@ -2022,16 +2082,26 @@ function renderSelectedPanel() {
     ${getLocationNudgeHTML(loc)}
     ${actionHtml}
   `;
+  if (priorContext !== contextKey) {
+    panel.dataset.contextKey = contextKey;
+    requestAnimationFrame(() => { panel.scrollTop = 0; });
+  }
 }
 
 function locationActionButtons(loc, cur, cost, d) {
   const atLoc = loc.id === cur.id;
   if (!atLoc) {
     const route = getRouteBetween(cur.id, loc.id);
+    if (!route) {
+      return `<div class="buttonStack">
+        <button class="btn" disabled>No Charted Current</button>
+        <div class="smallNote">Strategic travel is gate-network locked. Plot through connected Current Gates, or unlock mid/late Storm Keel technology later to create temporary conduits.</div>
+        <button class="btn ghost" onclick="centerCameraOnSelected()">Center Camera</button>
+      </div>`;
+    }
     const canTravel = game.resources.fuel >= cost && d <= computeStats().travelRange && !isTraveling;
-    const verb = route ? 'Ride Current to' : 'Travel to';
     return `<div class="buttonStack">
-      <button class="btn primary" ${canTravel ? '' : 'disabled'} onclick="travelToSelected()">${verb} ${shortName(loc.name)} (${cost} Fuel)</button>
+      <button class="btn primary" ${canTravel ? '' : 'disabled'} onclick="travelToSelected()">Ride Current to ${shortName(loc.name)} (${cost} Fuel)</button>
       ${!canTravel ? `<div class="smallNote">${travelBlockReason(cost, d)}</div>` : ''}
       <button class="btn ghost" onclick="centerCameraOnSelected()">Center Camera</button>
     </div>`;
@@ -2086,18 +2156,63 @@ function setRightTab(tab) {
 function renderUpgradePanel() {
   const panel = document.getElementById('rightPanel');
   const affordable = affordableUpgradeKeys();
-  panel.innerHTML = `<h2>Fortress Upgrades ${affordable.length ? '<span class="tag good">Upgrade Available</span>' : ''}</h2><p class="smallNote">Upgrades are the main Phase 1 progression track. Every upgrade changes real stats.</p>` +
+  const showUpgradeEmphasis = !!(game.flags?.earnedReward || game.flags?.resolvedEvent || game.flags?.upgradedOrRepaired);
+  const headerTag = affordable.length ? (showUpgradeEmphasis ? '<span class="tag good">Upgrade Available</span>' : '<span class="tag warn">Optional Preparation</span>') : '';
+  panel.innerHTML = `<h2>Fortress Upgrades ${headerTag}</h2><p class="smallNote">Upgrades are available, but first-time captains should travel a charted Current and complete a field event before focusing on refits.</p>` +
     Object.entries(UPGRADE_DATA).map(([key,u]) => {
       const level = game.upgrades[key] || 0;
       const maxed = level >= u.max;
       const cost = upgradeCost(key);
       const can = !maxed && canAfford(cost);
+      const readyTag = can ? (showUpgradeEmphasis ? ' <span class="tag good">Ready</span>' : ' <span class="tag warn">Optional</span>') : '';
+      const pulse = can && showUpgradeEmphasis ? 'pulse' : '';
       return `<div class="upgradeCard ${can ? 'affordable' : ''}">
-        <div class="cardTitle"><span>${u.name} <span class="tag blue">Lv ${level}/${u.max}</span>${can ? ' <span class="tag good">Ready</span>' : ''}</span><span class="cost">${maxed ? 'MAX' : formatCost(cost)}</span></div>
+        <div class="cardTitle"><span>${u.name} <span class="tag blue">Lv ${level}/${u.max}</span>${readyTag}</span><span class="cost">${maxed ? 'MAX' : formatCost(cost)}</span></div>
         <div class="smallNote">${u.desc}<br/><strong style="color:var(--brass2)">${u.benefit}</strong></div>
-        <button class="btn primary ${can ? 'pulse' : ''}" style="margin-top:8px; width:100%;" ${can ? '' : 'disabled'} onclick="buyUpgrade('${key}')">${maxed ? 'Fully Upgraded' : 'Upgrade'}</button>
+        <button class="btn primary ${pulse}" style="margin-top:8px; width:100%;" ${can ? '' : 'disabled'} onclick="buyUpgrade('${key}')">${maxed ? 'Fully Upgraded' : 'Upgrade'}</button>
       </div>`;
-    }).join('');
+    }).join('') + stormKeelCardHTML();
+}
+
+
+function stormKeelRequirements() {
+  const exploredStorm = !!game.flags?.stormRouteExplored;
+  const gateContract = !!game.flags?.gateContractComplete;
+  return [
+    { label: 'Engines Lv 3', met: (game.upgrades.engines || 0) >= 3 },
+    { label: 'Sensors Lv 2', met: (game.upgrades.sensors || 0) >= 2 },
+    { label: 'Explore one Storm Current or storm route', met: exploredStorm },
+    { label: 'Complete one faction gate/contract job', met: gateContract },
+    { label: `Pay ${formatCost(STORM_KEEL_RESEARCH_COST)}`, met: canAfford(STORM_KEEL_RESEARCH_COST) }
+  ];
+}
+
+function canResearchStormKeel() {
+  return !game.flags?.stormKeelPrototype && stormKeelRequirements().every(r => r.met);
+}
+
+function stormKeelCardHTML() {
+  const installed = !!game.flags?.stormKeelPrototype;
+  const reqs = stormKeelRequirements();
+  const reqHtml = reqs.map(r => `<li class="${r.met ? 'met' : 'missing'}">${r.met ? '✓' : '•'} ${r.label}</li>`).join('');
+  const status = installed ? '<span class="tag good">Prototype Installed</span>' : (canResearchStormKeel() ? '<span class="tag good">Research Ready</span>' : '<span class="tag warn">Mid/Late Unlock</span>');
+  return `<div class="stormKeelCard ${installed ? '' : 'locked'}">
+    <div class="cardTitle"><span>Storm Keel Engine ${status}</span><span class="cost">${installed ? 'INSTALLED' : formatCost(STORM_KEEL_RESEARCH_COST)}</span></div>
+    <div class="smallNote"><strong style="color:var(--brass2)">Gate bypass technology.</strong> This mid-to-late-game engine will eventually let Brasswake open temporary currents and conduits. Until then, strategic travel depends on known Current Gates.</div>
+    <ul class="requirementList">${reqHtml}</ul>
+    <button class="btn blue" style="margin-top:8px; width:100%;" ${canResearchStormKeel() ? '' : 'disabled'} onclick="researchStormKeel()">${installed ? 'Prototype Installed' : 'Research Storm Keel Prototype'}</button>
+    <div class="smallNote" style="margin-top:6px;">Full temporary current creation is a future patch. This research only records the prototype milestone.</div>
+  </div>`;
+}
+
+function researchStormKeel() {
+  if (!canResearchStormKeel()) return showToast('Storm Keel requirements are not met.');
+  spendResources(STORM_KEEL_RESEARCH_COST);
+  game.flags.stormKeelPrototype = true;
+  addLog('Storm Keel prototype installed. Future refits will allow temporary current creation; strategic travel still uses known gates for now.');
+  showToast('Storm Keel prototype installed. Temporary current creation comes later.');
+  autoSave('Autosaved after Storm Keel research');
+  renderUI();
 }
 
 function renderRoomsPanel() {
@@ -2148,7 +2263,7 @@ function tutorialSteps() {
     { key: 'resolvedEvent', label: 'Resolve the local event.', hint: 'Salvage, harvest, answer a contract beacon, or explore safely.' },
     { key: 'earnedReward', label: 'Earn resources for the fortress.', hint: 'Steel and gold become upgrades; fuel keeps the route network open.' },
     { key: 'upgradedOrRepaired', label: 'Improve the fortress with an upgrade or repair.', hint: 'Engines, armor, or weapons are good first upgrades.' },
-    { key: 'foughtLowDanger', label: 'Engage a Danger 1 enemy when ready.', hint: 'Check Combat Readiness before firing the first shot.' },
+    { key: 'foughtLowDanger', label: 'Survive or win a low-danger hostile contact.', hint: 'Choose a Danger 1 enemy when ready, or escape an ambush and repair before trying again.' },
     { key: 'returnedForService', label: 'Return to a settlement to repair or refuel.', hint: 'Port services keep Brasswake from entering a death spiral.' }
   ];
 }
@@ -2210,7 +2325,13 @@ function setOrderFlag(key) {
     earnedReward: false,
     upgradedOrRepaired: false,
     foughtLowDanger: false,
-    returnedForService: false
+    survivedHostileContact: false,
+    returnedForService: false,
+    manualUpgradePrompted: false,
+    firstFieldEventComplete: false,
+    stormRouteExplored: false,
+    gateContractComplete: false,
+    stormKeelPrototype: false
   }, game.flags || {});
   game.saveStatus = game.saveStatus || `Loaded Save Day ${game.day}`;
   if (!game.flags[key]) game.flags[key] = true;
@@ -2229,7 +2350,7 @@ function getNextActionNudge() {
   const hullPct = game.hull / stats.maxHull;
   if (hullPct < 0.35) return '<strong>Critical Hull:</strong> avoid combat. Reach a settlement and repair immediately.';
   if (hullPct < 0.65) return '<strong>Repairs Recommended:</strong> repair before another fight if you can.';
-  if (!game.flags?.traveledOnce) return 'Start with a nearby salvage, resource, or contract tile before fighting. Upgrades remain available for experienced captains.';
+  if (!game.flags?.traveledOnce) return 'Start with a nearby salvage, resource, or contract tile connected by a Current. Strategic travel is gate-network locked until future Storm Keel tech.';
   const up = affordableUpgradeKeys();
   if (up.length && (game.flags?.earnedReward || game.flags?.resolvedEvent || game.flags?.upgradedOrRepaired)) return `<strong>Upgrade Recommended:</strong> Brasswake can afford ${UPGRADE_DATA[up[0]].name}. Improving ${UPGRADE_DATA[up[0]].name.toLowerCase()} makes future routes and fights safer.`;
   if (current && ['skyport','settlement'].includes(current.type) && game.resources.fuel < 45 && canAfford({ gold: 30 })) return '<strong>Fuel Low:</strong> buy fuel before pushing deeper into the sky lanes.';
@@ -2279,13 +2400,13 @@ function travelToSelected(forceDirect = false, forceRoute = false) {
   const cur = getLocation(game.currentLocationId);
   if (!loc || loc.id === cur.id || isTraveling) return;
   const route = getRouteBetween(cur.id, loc.id);
+  if (!route) return showNoChartedCurrentModal(loc, cur);
   const cost = routeTravelCost(cur, loc, route);
   const stats = computeStats();
   if (distance2D(cur, loc) > stats.travelRange) return showToast('Route exceeds safe range. Upgrade engines or sensors.');
   if (game.resources.fuel < cost) return showToast('Not enough fuel for that route.');
 
-  if (!route && !forceDirect && shouldConfirmDirectTravel(cur, loc, cost)) return confirmDirectTravel(cur, loc, cost);
-  if (route && !forceRoute) {
+  if (!forceRoute) {
     const policy = routeGatePolicy(route);
     if (policy.toll > 0 && game.resources.gold < policy.toll) return showRouteTollFallback(route, loc, policy, cost);
     if (policy.blockadeRisk) return confirmCurrentGateTravel(route, loc, policy, cost);
@@ -2293,18 +2414,20 @@ function travelToSelected(forceDirect = false, forceRoute = false) {
 
   spendResources({ fuel: cost });
   isTraveling = true;
-  if (route) {
-    const policy = routeGatePolicy(route);
-    if (policy.toll > 0) spendResources({ gold: policy.toll });
-    game.lastRouteTaken = { ...route, paidToll: policy.toll, policyAtDeparture: policy };
-    addLog(`Brasswake enters ${route.name}. Fuel spent: ${cost}${policy.toll ? `, gate toll: ${policy.toll} gold` : ''}.`);
-    beginCurrentTravel(route, loc, cost);
-  } else {
-    const strain = maybeApplyDirectTravelStrain(cur, loc);
-    addLog(`Brasswake departs ${cur.name} for ${loc.name} under direct engine power. Fuel spent: ${cost}${strain ? `, hull strain: ${strain}` : ''}.`);
-    animateFortressTo(loc, () => finishTravel(loc, 1, 'travel'));
-  }
+  const policy = routeGatePolicy(route);
+  if (policy.toll > 0) spendResources({ gold: policy.toll });
+  game.lastRouteTaken = { ...route, paidToll: policy.toll, policyAtDeparture: policy };
+  addLog(`Brasswake enters ${route.name}. Fuel spent: ${cost}${policy.toll ? `, gate toll: ${policy.toll} gold` : ''}.`);
+  beginCurrentTravel(route, loc, cost);
   renderUI();
+}
+
+function showNoChartedCurrentModal(loc, cur) {
+  showModal(`<h1>No Charted Current</h1>
+    <p>No known Current Gate, Jet Stream, or slipstream links <strong>${cur.name}</strong> to <strong>${loc.name}</strong>.</p>
+    <div class="noChartedCurrentBox"><strong>Gate Network Required:</strong> At campaign start, Brasswake cannot bypass the sky-road network. Plot a route through connected gates, toll lanes, storm currents, or pirate slipstreams.</div>
+    <p class="smallNote">Mid/late Storm Keel technology will eventually allow temporary conduit creation, but that engine is locked and not available to a new campaign.</p>
+    <button class="btn primary" onclick="closeModal()">Plot Another Route</button>`);
 }
 
 function shouldConfirmDirectTravel(cur, loc, cost) {
@@ -2341,8 +2464,8 @@ function confirmCurrentGateTravel(route, loc, policy, cost) {
 function showRouteTollFallback(route, loc, policy, cost) {
   showModal(`<h1>Gate Toll Required</h1>
     <p>${route.name} requires a ${policy.toll} gold toll, but Brasswake cannot afford it.</p>
-    <p class="smallNote">Use a cheaper route, earn gold, or attempt direct engine travel if within range.</p>
-    <div class="buttonGrid"><button class="btn ghost" onclick="closeModal()">Choose Another Route</button>${shouldConfirmDirectTravel(getLocation(game.currentLocationId), loc, directTravelCost(getLocation(game.currentLocationId), loc)) ? `<button class="btn red" onclick="closeModal(); travelToSelected(true)">Attempt Direct</button>` : ''}</div>`);
+    <p class="smallNote">Earn gold, improve relations for a discount, or plot another connected Current route. Direct inter-section bypass is locked until future Storm Keel technology.</p>
+    <div class="buttonGrid"><button class="btn primary" onclick="closeModal()">Choose Another Route</button></div>`);
 }
 
 function currentTravelText(route, from, to) {
@@ -2439,6 +2562,7 @@ function finishTravel(loc, days, mode) {
   loc.visited = true;
   setOrderFlag('traveledOnce');
   if (['skyport','settlement'].includes(loc.type) && game.day > 1) setOrderFlag('returnedForService');
+  if (mode === 'current' && game.lastRouteTaken?.type === 'storm') setOrderFlag('stormRouteExplored');
   advanceDay(days || 1);
   revealNearby();
   isTraveling = false;
@@ -2449,6 +2573,7 @@ function finishTravel(loc, days, mode) {
   buildWorldMeshes();
   autoSave(mode === 'current' ? 'Autosaved after current travel' : 'Autosaved after travel');
   renderUI();
+  resetSelectedPanelScrollSoon();
 }
 
 function autoLocationPulse(loc) {
@@ -2501,23 +2626,88 @@ function showPostRewardNudge() {
 function salvageLocation() {
   const loc = getLocation(game.currentLocationId);
   if (!loc || loc.type !== 'salvage' || loc.depleted) return;
-  const stats = computeStats();
+  const firstField = !game.flags?.firstFieldEventComplete && !game.flags?.resolvedEvent;
   const steel = 18 + Math.floor(Math.random()*18) + (game.rooms.foundry ? 8 : 0);
   const gold = 10 + Math.floor(Math.random()*18);
   addResource('steel', steel);
   addResource('gold', gold);
   loc.depleted = true;
   markEventResolved('salvage');
+  setOrderFlag('firstFieldEventComplete');
   addLog(`Salvage crews stripped ${loc.name}: +${steel} steel, +${gold} gold.`);
-  if (Math.random() < 0.22) {
+
+  if (firstField) {
+    addLog('Scavenger lanterns flicker at the edge of the wreck field, but the first salvage run stays clear of combat.');
+    advanceDay(1);
+    autoSave('Autosaved after salvage');
+    showPostRewardNudge();
+  } else if (Math.random() < 0.22) {
+    const danger = game.flags?.foughtLowDanger ? (1 + Math.floor(Math.random()*2)) : 1;
     addLog('Freebooter scavengers were drawn by the work lights.', 'bad');
-    startCombat({ name: 'Freebooter Scavenger Wing', faction: 'pirates', danger: 1 + Math.floor(Math.random()*2), sourceLocationId: loc.id, ambush: true });
+    showSalvageAmbushChoice(loc.id, danger);
   } else {
     advanceDay(1);
     autoSave('Autosaved after salvage');
     showPostRewardNudge();
   }
   rebuildLocationMesh(loc.id);
+  renderUI();
+  resetSelectedPanelScrollSoon();
+}
+
+function showSalvageAmbushChoice(sourceLocationId, danger = 1) {
+  const enemyHull = 48 + danger * 24;
+  const enemyWeapons = 8 + danger * 5;
+  const retreatFuel = 5;
+  const payoff = 14;
+  game.pendingAmbush = { sourceLocationId, danger, name: 'Freebooter Scavenger Wing', faction: 'pirates' };
+  showModal(`<h1>Scavenger Ambush Warning</h1>
+    <p>Freebooter lanterns flicker between the wrecks. The crew can cut lines and flee, brace for battle, or hide among the debris.</p>
+    <div class="statGrid" style="margin:10px 0;">
+      <div class="statCard"><div class="k">Danger</div><div class="v">${danger}</div></div>
+      <div class="statCard"><div class="k">Est. Enemy Hull</div><div class="v">${enemyHull}</div></div>
+      <div class="statCard"><div class="k">Est. Weapons</div><div class="v">${enemyWeapons}</div></div>
+      <div class="statCard"><div class="k">Advice</div><div class="v" style="font-size:13px;">Retreat is valid</div></div>
+    </div>
+    <div class="warningBox">Early ambushes are capped at Danger 1 until Brasswake survives a first hostile contact. Retreating will count as surviving contact and keep the tutorial moving.</div>
+    <div class="buttonGrid">
+      <button class="btn red" onclick="resolveSalvageAmbush('engage')">Engage</button>
+      <button class="btn ghost" onclick="resolveSalvageAmbush('retreat')">Retreat Before Contact (${retreatFuel} Fuel)</button>
+      <button class="btn blue" ${game.resources.gold >= payoff ? '' : 'disabled'} onclick="resolveSalvageAmbush('payoff')">Hide / Pay Off (${payoff} Gold)</button>
+    </div>`);
+}
+
+function resolveSalvageAmbush(choice) {
+  const amb = game.pendingAmbush;
+  if (!amb) return closeModal();
+  game.pendingAmbush = null;
+  closeModal();
+  if (choice === 'engage') {
+    startCombat({ name: amb.name, faction: amb.faction, danger: amb.danger, sourceLocationId: amb.sourceLocationId, ambush: true });
+    return;
+  }
+  if (choice === 'payoff') {
+    const cost = Math.min(game.resources.gold, 14);
+    addResource('gold', -cost, true);
+    if (Math.random() < 0.18) {
+      addLog(`The payoff fails. Freebooters take ${cost} gold and open fire anyway.`, 'bad');
+      startCombat({ name: amb.name, faction: amb.faction, danger: amb.danger, sourceLocationId: amb.sourceLocationId, ambush: true });
+      return;
+    }
+    setOrderFlag('foughtLowDanger');
+    setOrderFlag('survivedHostileContact');
+    addLog(`Crew hid among the debris and paid off scavenger lookouts: -${cost} gold. Hostile contact survived.`);
+  } else {
+    const cost = Math.min(game.resources.fuel, 5);
+    addResource('fuel', -cost, true);
+    setOrderFlag('foughtLowDanger');
+    setOrderFlag('survivedHostileContact');
+    addLog(`Brasswake cut salvage lines and retreated before contact: -${cost} fuel. Hostile contact survived.`);
+  }
+  advanceDay(1);
+  autoSave('Autosaved after ambush escape');
+  showToast('Hostile contact survived. Repair and prepare before seeking a deliberate fight.');
+  buildWorldMeshes();
   renderUI();
 }
 
@@ -2552,6 +2742,7 @@ function braveStorm() {
   addResource('fuel', fuel);
   addResource('gold', gold);
   loc.depleted = true;
+  setOrderFlag('stormRouteExplored');
   markEventResolved('storm');
   addLog(`Brasswake punched through ${loc.name}: -${actual} hull, +${fuel} fuel, +${gold} gold in storm salvage.`);
   advanceDay(1);
@@ -2653,6 +2844,7 @@ function completeContract() {
   addResource('gold', rewardGold);
   addResource('fuel', rewardFuel);
   improveRelation(faction, 7);
+  setOrderFlag('gateContractComplete');
   loc.depleted = true;
   markEventResolved('contract');
   if (risk) {
@@ -2763,6 +2955,7 @@ function takeSettlementContract(force = false) {
     addResource('gold', reward);
     addLog(`Risky patrol paid out but drew cannon fire: +${reward} gold, -${dmg} hull.`);
   }
+  setOrderFlag('gateContractComplete');
   markEventResolved('contract');
   advanceDay(1);
   autoSave('Autosaved after contract');
@@ -2992,7 +3185,8 @@ function endCombat(victory, retreated, destroyed = false) {
     addLog(`Victory over ${c.enemyName}: +${steel} steel, +${gold} gold, +${fuel} fuel.`);
     showResultModal('Victory in the Clouds', combatSummaryHTML(c, `The enemy fleet breaks apart under Brasswake's guns. Salvage crews recover ${steel} steel, ${gold} gold, and ${fuel} fuel.`), 'Continue', closeModal);
   } else if (retreated) {
-    addLog(`Brasswake retreated from ${c.enemyName}. Repairs recommended.`, 'warn');
+    if ((c.danger || 1) <= 1) { setOrderFlag('foughtLowDanger'); setOrderFlag('survivedHostileContact'); }
+    addLog(`Brasswake retreated from ${c.enemyName}. Hostile contact survived; repairs recommended.`, 'warn');
     showResultModal('Retreat Successful', combatSummaryHTML(c, 'The fortress escaped into cloud cover. Some gold and momentum were lost, but the campaign continues.'), 'Continue', closeModal);
   } else if (destroyed) {
     game.hull = 1;
@@ -3173,7 +3367,13 @@ function normalizeLoadedGame() {
     earnedReward: false,
     upgradedOrRepaired: false,
     foughtLowDanger: false,
-    returnedForService: false
+    survivedHostileContact: false,
+    returnedForService: false,
+    manualUpgradePrompted: false,
+    firstFieldEventComplete: false,
+    stormRouteExplored: false,
+    gateContractComplete: false,
+    stormKeelPrototype: false
   }, game.flags || {});
   game.saveStatus = game.saveStatus || `Loaded Save Day ${game.day}`;
   game.log = game.log || [];
@@ -3305,6 +3505,12 @@ function toggleMapFocus() {
   showToast(on ? 'Map focus enabled.' : 'Command panels restored.');
 }
 
+function resetSelectedPanelScrollSoon() {
+  const panel = document.getElementById('selectedPanel');
+  if (!panel) return;
+  requestAnimationFrame(() => { panel.scrollTop = 0; });
+}
+
 // =============================================================
 // MODALS AND MESSAGES
 // =============================================================
@@ -3326,7 +3532,7 @@ function showHelp() {
     <p>The first playable loop is simple:</p>
     <ol>
       <li>Select a discovered location on the 3D map.</li>
-      <li>Travel there if you have enough fuel and range.</li>
+      <li>Travel there through a charted Current Gate / Jet Stream route if you have enough fuel and any required toll.</li>
       <li>Resolve the local event: salvage, harvest, trade, storm, contract, ruin, or combat.</li>
       <li>Use steel and gold to build rooms or buy upgrades.</li>
       <li>Return to settlements to refuel and repair.</li>
@@ -3338,17 +3544,17 @@ function showHelp() {
       <div><span class="legendSwatch" style="background:#f4cf78"></span>Trade Current</div>
       <div><span class="legendSwatch" style="background:#b586ff"></span>Storm Current</div>
       <div><span class="legendSwatch" style="background:#5de2df"></span>Pirate Slipstream</div>
-      <div><span class="legendSwatch" style="background:#8f7645"></span>Direct Engine Fallback</div>
+      <div><span class="legendSwatch" style="background:#8f7645"></span>No Charted Current</div>
     </div>
-    <p class="smallNote">Dashed dim lines are direct engine fallback routes: more expensive and riskier than charted currents.</p>
+    <p class="smallNote">Early strategic travel is gate-network locked. If no charted Current connects the selected destination, plot through known gates. Mid/late Storm Keel technology will eventually allow temporary current creation.</p>
     <button class="btn primary" onclick="closeModal()">Understood</button>`);
 }
 
 function showBuildNotes() {
   showModal(`<h1>Build Notes — ${VERSION}</h1>
-    <p><strong>Implemented:</strong> Three.js strategic map, procedural hex-aligned locations, edge-to-edge pointy-top hex board fix, Current Gate route logic, gate tolls, blockade warnings, faction-flavored route events, direct travel confirmation, eventful Jet Stream travel overlay, travel, fuel costs, Captain’s Orders completion/Open Command state, combat readiness warnings, salvage, harvesting, trade, repairs, contracts, storm hazards, turn-based combat, rooms, upgrades, faction standing, AI world events, autosave/manual save, and polished Iron Kingdoms UI.</p>
-    <p><strong>Known limitations:</strong> Current Gates are still a foundation layered over fallback direct travel; faction permits/blockades are warning-and-event based rather than a full diplomacy system, room placement is still simplified to build slots, combat is panel-based rather than full spatial battles, AI is lightweight simulated movement/events, and audio is hook-only without external assets.</p>
-    <p><strong>Phase 2 hooks:</strong> deeper hex-overworld conversion, jet-stream current routes, tactical 3rd-person location flight, fortress hex modules, officers, crew stories, research trees, faction campaigns, fortress skins, damage simulation, custom escorts, cloud saves, and multiplayer sharing.</p>
+    <p><strong>Implemented:</strong> Three.js strategic map, procedural hex-aligned locations, edge-to-edge pointy-top hex board fix, Current Gate route logic, gate tolls, blockade warnings, faction-flavored route events, gate-locked strategic travel, Storm Keel locked foundation, eventful Jet Stream travel overlay, travel, fuel costs, Captain’s Orders completion/Open Command state, combat readiness warnings, salvage, harvesting, trade, repairs, contracts, storm hazards, turn-based combat, rooms, upgrades, faction standing, AI world events, autosave/manual save, and polished Iron Kingdoms UI.</p>
+    <p><strong>Known limitations:</strong> Current Gates now define early strategic travel; no-charted-current destinations require route planning until future Storm Keel technology, faction permits/blockades are warning-and-event based rather than a full diplomacy system, room placement is still simplified to build slots, combat is panel-based rather than full spatial battles, AI is lightweight simulated movement/events, and audio is hook-only without external assets.</p>
+    <p><strong>Phase 2 hooks:</strong> deeper hex-overworld conversion, gate-locked jet-stream route planning, mid/late Storm Keel temporary current creation, tactical 3rd-person location flight, fortress hex modules, officers, crew stories, research trees, faction campaigns, fortress skins, damage simulation, custom escorts, cloud saves, and multiplayer sharing.</p>
     <button class="btn primary" onclick="closeModal()">Close</button>`);
 }
 
@@ -3434,7 +3640,7 @@ function showHoverTooltip(e, loc) {
   const cost = loc.id === cur.id ? 0 : routeTravelCost(cur, loc, route);
   const danger = loc.danger ? ` · Danger ${loc.danger}` : '';
   const depleted = loc.depleted ? ' · Depleted' : '';
-  tip.innerHTML = `<strong>${loc.name}</strong><span class="mini">${prettyType(loc.type)}${danger}${depleted}<br/>${loc.id === cur.id ? 'Current position' : `${route ? 'Jet Stream Route' : 'Direct Engine Route'} · Fuel cost: ${cost}`}</span>`;
+  tip.innerHTML = `<strong>${loc.name}</strong><span class="mini">${prettyType(loc.type)}${danger}${depleted}<br/>${loc.id === cur.id ? 'Current position' : `${route ? 'Jet Stream Route' : 'No Charted Current'}${route ? ` · Fuel cost: ${cost}` : ''}`}</span>`;
   tip.style.left = Math.min(window.innerWidth - 300, e.clientX + 16) + 'px';
   tip.style.top = Math.min(window.innerHeight - 120, e.clientY + 16) + 'px';
   tip.style.display = 'block';
