@@ -1,42 +1,31 @@
-# IRON KINGDOMS: SKY FORTRESS COMMAND — v0.26.06.17.0300
+# IRON KINGDOMS: SKY FORTRESS COMMAND — v0.26.06.17.0400
 
-## Package Contents
+Focused tutorial-completion, direct-travel polish, faction-gate roadmap patch.
 
-- `index.html` — standalone single-file browser build.
+## Changed
 
-## Version Consistency
-
-- Displayed version label: v0.26.06.17.0300
-- VERSION constant: v0.26.06.17.0300
-- Save key: IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0300
-- Package/folder name: IRON_KINGDOMS_SKY_FORTRESS_COMMAND_v0.26.06.17.0300
-
-## Summary of Changes
-
-- Fixed selected-location panel scroll retention when selecting a new map node.
-- Depleted enemy fleets no longer show active Combat Readiness; cleared enemy sites now show a resolved/secured state.
-- Captain’s Orders now uses “Next Order” language so out-of-order progress feels intentional rather than broken.
-- Free ruin/research upgrades now count as fortress improvement for the tutorial objective.
-- Added stronger one-time first-upgrade guidance and preferred early upgrade ordering for Engines, Armor, and Weapons.
-- Made Current Gates matter more by expanding the route web, making current travel cheaper, and making direct engine travel more expensive.
-- Added low-risk direct-travel hull strain for longer uncharted direct routes.
-- Added simple Jet Stream route events for tolls, turbulence, patrol/salvage-style outcomes, and smooth-current travel logs.
-- Improved Current Gate visuals with vertical vane-rings, brass pylons, and route-type glow so gates no longer read like selection rings.
-- Improved route hierarchy: brighter Current routes, dim dashed direct fallback lines, and a route legend in Help/Build Notes.
-- Added dynamic fantasy-steampunk current-travel text based on route type, departure, destination, and owner.
-- Updated the hex board to use true touching hex tile geometry with subtle grooves instead of visible open gaps.
+- Updated displayed build label, VERSION constant, SAVE_KEY, standalone filename, package folder, and build notes to v0.26.06.17.0400.
+- Added proper Captain's Orders completion state and Open Command suggestions after 7/7 tutorial objectives.
+- Delayed early upgrade nudges so they no longer compete with the first travel tutorial.
+- Added direct engine travel confirmation for medium/long, costly, risky, or low-hull direct routes.
+- Added low-hull direct-travel warnings.
+- Added faction-controlled gate policy foundation: owner, standing, toll, permit/inspection risk, blockade risk, event risk.
+- Added route toll handling and fallback messaging if a toll cannot be afforded.
+- Expanded route events with faction-flavored outcomes.
+- Improved enemy fleet naming by faction.
+- Added compact route legend to the selected-location panel.
+- Fixed the hex mesh orientation to match the pointy-top axial hex coordinate math, eliminating the large triangular gaps between tiles.
 
 ## Known Limitations
 
-- Current Gates are still a foundation system; full faction toll/blockade/permit logic is not complete.
-- Direct travel still exists as a safety fallback, though it is now less efficient and can lightly strain the hull.
-- Route events are lightweight log/toast outcomes, not full encounters.
-- Storm Keel temporary-current engine is not implemented yet.
-- Fortress hex module construction is not implemented yet.
+- Current Gates are still a foundation layer, not the full final route-network diplomacy system.
+- Blockades/permits are warning-and-event based; they do not yet create full strategic locks or negotiation flows.
+- Direct travel still exists as a prototype fallback.
+- Storm Keel temporary-current creation is not implemented yet.
+- Fortress hex module building is not implemented yet.
 - Tactical 3rd-person fortress flight is not implemented yet.
-- Combat remains panel-based.
-- Saves from earlier versions use different save keys and will not auto-load in this build.
+- Older saves use previous version save keys and will not auto-load.
 
 ## Recommended Next Patch
 
-Recommended next patch: expand the Current Gate system with faction-controlled tolls, blockades, permits, and route event variety, or begin the Storm Keel / temporary current unlock foundation once route logic feels stable.
+Continue with either Storm Keel / temporary current unlock foundation, deeper gate diplomacy, richer route events, or the first fortress hex module builder foundation.

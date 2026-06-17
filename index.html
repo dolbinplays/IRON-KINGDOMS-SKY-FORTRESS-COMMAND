@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.17.0300</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.17.0400</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <style>
     :root {
@@ -835,6 +835,50 @@
     #gameRoot.mapFocus .bottomLog { display: none !important; }
     #gameRoot.mapFocus .mapFocusToggle { display: block; }
 
+
+
+    .miniRouteLegendInline {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4px 8px;
+      margin: 8px 0;
+      padding: 7px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 9px;
+      background: rgba(0,0,0,0.16);
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.35px;
+    }
+    .miniRouteLegendInline span::before {
+      content: "";
+      display: inline-block;
+      width: 18px;
+      height: 4px;
+      border-radius: 999px;
+      margin-right: 5px;
+      vertical-align: middle;
+      background: var(--swatch, #80b9ff);
+    }
+    .gatePolicyLine {
+      margin-top: 5px;
+      color: #ffe9b8;
+      font-size: 11px;
+      line-height: 1.3;
+    }
+    .ordersActive.complete {
+      border-color: rgba(127,209,132,0.76);
+      background: rgba(127,209,132,0.12);
+    }
+    .openCommandList {
+      margin: 5px 0 0 0;
+      padding-left: 16px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
     .hidden { display: none !important; }
 
     @media (max-width: 1120px) {
@@ -873,7 +917,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.17.0300</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.17.0400</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -944,7 +988,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.17.0300 · Single-file HTML · Three.js CDN build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.17.0400 · Single-file HTML · Three.js CDN build</p>
     </div>
   </div>
 </div>
@@ -955,8 +999,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.17.0300';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0300';
+const VERSION = 'v0.26.06.17.0400';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0400';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -1027,6 +1071,19 @@ const LOCATION_NAMES = {
   contract: ['Courier Beacon', 'Distress Pennant', 'Mercenary Writ', 'Treaty Dispatch', 'Lost Convoy Trail']
 };
 
+
+
+const ENEMY_NAMES_BY_FACTION = {
+  steam: ['Imperial Checkpoint Wing', 'Red Brass Patrol', 'Marshal Gun Convoy', 'Crownward Interdictor'],
+  archmage: ['Violet Arc Battery', 'Rune-Lantern War Wing', 'Mooncoil Interdictor', 'Glass Sigil Patrol'],
+  sky: ['Blue Pennant Patrol', 'Admiral Escort Wing', 'Signal Mast Squadron', 'Skyhook Gunline'],
+  priest: ['Pilgrim Iron Guard', 'Saint Rivet Patrol', 'Chapel Engine Escort', 'Gold Bell Gunship'],
+  thorn: ['Green Vane Wardens', 'Ironroot Thorn Wing', 'Living Hull Patrol', 'Briar Current Guard'],
+  cinder: ['Cinder Fang Patrol', 'Furnace Raider Wing', 'Red Kiln Gun Deck', 'Ashwake Marauders'],
+  dusk: ['Teal Knife Wing', 'Masked Slipstream Raiders', 'Dusk Lantern Privateers', 'Corsair Veil Squadron'],
+  frost: ['Frost Lantern Patrol', 'Icewake Gun Wing', 'White Squall Raiders', 'Frozen Signal Wing'],
+  pirates: ['Raider Lanterns', 'Rogue Gun Deck', 'Iron Vulture Fleet', 'Freebooter Scavenger Wing', 'Corsair Knife Wing']
+};
 
 const CURRENT_ROUTE_TYPES = {
   safe: { label: 'Safe Current', color: 0x80b9ff, risk: 'Low', desc: 'A stabilized brass-and-wind corridor maintained by skyport vane crews.' },
@@ -1263,7 +1320,7 @@ function generateLocations(rng) {
   place('loc_2', uniqueLocationName(rng, 'salvage', 2), 'salvage', 'steam', 0, 1);
   place('loc_3', uniqueLocationName(rng, 'resource', 3), 'resource', 'thorn', -1, 1, { resourceKind: choose(rng, ['fuel','food','steel']) });
   place('loc_4', uniqueLocationName(rng, 'contract', 4), 'contract', 'priest', -1, 0, { contract: choose(rng, ['escort','salvage','relief']) });
-  place('loc_5', uniqueLocationName(rng, 'enemy', 5), 'enemy', 'pirates', 0, -1, { danger: 1 });
+  place('loc_5', enemyLocationName(rng, 'pirates', 5), 'enemy', 'pirates', 0, -1, { danger: 1 });
   place('loc_6', uniqueLocationName(rng, 'storm', 6), 'storm', 'frost', 1, -1, { danger: 1 });
 
   const coords = allHexCoords(HEX_MAP_RADIUS)
@@ -1284,13 +1341,15 @@ function generateLocations(rng) {
     if (type === 'enemy') extras.danger = dist <= 2 ? 1 : dist <= 3 ? randInt(rng, 1, 2) : randInt(rng, 2, 4);
     if (type === 'storm') extras.danger = dist <= 2 ? 1 : randInt(rng, 1, 3);
     if (type === 'ruins') extras.danger = randInt(rng, 0, Math.min(3, Math.max(1, dist - 2)));
-    place('loc_' + idx, uniqueLocationName(rng, type, idx), type, faction, c.q, c.r, extras);
+    const locName = type === 'enemy' ? enemyLocationName(rng, faction, idx) : uniqueLocationName(rng, type, idx);
+    place('loc_' + idx, locName, type, faction, c.q, c.r, extras);
     idx++;
   }
   return locations;
 }
 
 function hexToWorld(q, r) {
+  // Pointy-top axial hex math. Meshes must remain unrotated around Y so flat edges/corners align without open triangle gaps.
   return {
     x: HEX_SIZE * Math.sqrt(3) * (q + r / 2),
     z: HEX_SIZE * 1.5 * r
@@ -1385,6 +1444,44 @@ function getRouteBetween(a, b) {
   return getRouteBetweenIds(game?.currentRoutes || [], a, b);
 }
 
+function routeGatePolicy(route) {
+  if (!route || !game) return { standing: 'Neutral', relation: 0, toll: 0, permitRequired: false, blockadeRisk: false, hostile: false, friendlyDiscount: false, eventRisk: 'Low' };
+  const owner = route.owner || 'steam';
+  const relation = game.relations?.[owner] ?? 0;
+  const standing = relationStatus(relation);
+  let toll = 0;
+  if (route.type === 'trade') toll = 8;
+  else if (route.type === 'safe') toll = 3;
+  else if (route.type === 'pirate') toll = 0;
+  else if (route.type === 'storm') toll = 0;
+  if (standing === 'Friendly') toll = Math.max(0, Math.floor(toll * 0.35));
+  if (standing === 'Hostile') toll = toll ? Math.ceil(toll * 2.25) : (route.type === 'safe' || route.type === 'trade' ? 10 : 0);
+  const permitRequired = standing === 'Hostile' && (route.type === 'safe' || route.type === 'trade');
+  const blockadeRisk = standing === 'Hostile' || route.type === 'pirate' || !!route.blockaded;
+  const eventRisk = route.type === 'pirate' ? 'High' : route.type === 'storm' ? 'Moderate' : blockadeRisk ? 'Moderate' : 'Low';
+  return { standing, relation, toll, permitRequired, blockadeRisk, hostile: standing === 'Hostile', friendlyDiscount: standing === 'Friendly' && toll === 0, eventRisk };
+}
+
+function routePolicySummary(route) {
+  if (!route) return '';
+  const policy = routeGatePolicy(route);
+  const owner = FACTIONS[route.owner]?.name || 'Unclaimed';
+  const tollText = policy.toll > 0 ? `${policy.toll} gold` : (policy.friendlyDiscount ? 'waived by friendly standing' : 'none');
+  const warning = policy.blockadeRisk ? ' · Blockade Risk' : '';
+  const permit = policy.permitRequired ? ' · Permit/inspection risk' : '';
+  return `Owner: ${owner} · Standing: ${policy.standing} ${policy.relation} · Toll: ${tollText} · Event Risk: ${policy.eventRisk}${warning}${permit}`;
+}
+
+function routeLegendMiniHTML() {
+  return `<div class="miniRouteLegendInline">
+    <span style="--swatch:#80b9ff">Safe Current</span>
+    <span style="--swatch:#f4cf78">Trade Current</span>
+    <span style="--swatch:#b586ff">Storm Current</span>
+    <span style="--swatch:#5de2df">Pirate Slipstream</span>
+    <span style="--swatch:#8f7645">Direct fallback</span>
+  </div>`;
+}
+
 function shortRouteName(name) {
   return String(name || 'Sky').replace(/\s+(I|II|III|IV|V|VI|VII|VIII|IX)$/,'').split(' ').slice(0,2).join(' ');
 }
@@ -1422,12 +1519,19 @@ function routePreviewHTML(loc, cur) {
   return `<div class="routePreview"><strong>${route.name}</strong><br/>
     <span class="gateBadge">${meta.label}</span><br/>
     Owner: ${owner} · Risk: ${route.risk} · Travel Time: ${route.travelDays} day${route.travelDays > 1 ? 's' : ''}<br/>
+    <div class="gatePolicyLine">${routePolicySummary(route)}</div>
     ${meta.desc}</div>`;
 }
 
 function uniqueLocationName(rng, type, i) {
   const base = choose(rng, LOCATION_NAMES[type] || ['Sky Mark']);
   return i > 12 && rng() < 0.45 ? base + ' ' + roman(randInt(rng, 2, 9)) : base;
+}
+
+function enemyLocationName(rng, faction, i) {
+  const pool = ENEMY_NAMES_BY_FACTION[faction] || ENEMY_NAMES_BY_FACTION.pirates || LOCATION_NAMES.enemy;
+  const base = choose(rng, pool);
+  return i > 12 && rng() < 0.35 ? `${base} ${roman(randInt(rng, 2, 9))}` : base;
 }
 
 function roman(n) {
@@ -1529,7 +1633,7 @@ function buildHexLayer() {
     if (!tileMatCache.has(key)) tileMatCache.set(key, createHexMaterial(tileType, loc));
     const hex = new THREE.Mesh(new THREE.CylinderGeometry(HEX_SIZE * 1.005, HEX_SIZE * 1.005, 0.16, 6), tileMatCache.get(key));
     hex.position.set(pos.x, -1.55, pos.z);
-    hex.rotation.y = Math.PI / 6;
+    hex.rotation.y = 0; // Pointy-top mesh orientation matches hexToWorld axial spacing; prevents triangular gaps.
     hex.receiveShadow = true;
     hexGroup.add(hex);
 
@@ -1913,6 +2017,7 @@ function renderSelectedPanel() {
       <div class="statCard"><div class="k">Fuel Cost</div><div class="v">${loc.id === cur.id ? 0 : cost}</div></div>
     </div>
     ${routePreviewHTML(loc, cur)}
+    ${routeLegendMiniHTML()}
     ${loc.type === 'enemy' ? (loc.depleted ? clearedLocationHTML(loc) : combatReadinessHTML(loc)) : ''}
     ${getLocationNudgeHTML(loc)}
     ${actionHtml}
@@ -2053,11 +2158,24 @@ function renderOrdersPanel() {
   if (!panel || !game) return;
   const flags = game.flags || {};
   const steps = tutorialSteps();
-  let idx = steps.findIndex(s => !flags[s.key]);
-  if (idx < 0) idx = steps.length - 1;
-  const active = steps[idx];
   const completed = steps.filter(s => flags[s.key]).length;
-  const compact = steps.map((s, i) => `<span title="${s.label}" class="orderDot ${flags[s.key] ? 'done' : i === idx ? 'active' : ''}">${flags[s.key] ? '✓' : i + 1}</span>`).join('');
+  const allDone = completed >= steps.length;
+  const idx = allDone ? steps.length - 1 : Math.max(0, steps.findIndex(s => !flags[s.key]));
+  const active = steps[idx];
+  const compact = steps.map((s, i) => `<span title="${s.label}" class="orderDot ${flags[s.key] ? 'done' : i === idx && !allDone ? 'active' : ''}">${flags[s.key] ? '✓' : i + 1}</span>`).join('');
+  if (allDone) {
+    panel.innerHTML = `<div class="ordersActive complete">
+      <div class="ordersStepLine"><span>Captain's Orders Complete</span><span>${completed}/${steps.length} Complete</span></div>
+      <div class="ordersObjective">Brasswake has completed the first command cycle.</div>
+      <div class="ordersHint">You are ready for open command.</div>
+      <ul class="openCommandList">
+        <li>${openCommandSuggestion()}</li>
+        <li>${secondaryOpenCommandSuggestion()}</li>
+      </ul>
+      <div class="ordersCompact">${compact}</div>
+    </div>`;
+    return;
+  }
   const nudge = getNextActionNudge();
   panel.innerHTML = `<div class="ordersActive">
     <div class="ordersStepLine"><span>Next Order</span><span>${completed}/${steps.length} Complete</span></div>
@@ -2065,6 +2183,22 @@ function renderOrdersPanel() {
     <div class="ordersHint">${active.hint}</div>
     <div class="ordersCompact">${compact}</div>
   </div>${nudge ? `<div class="nudgeBox">${nudge}</div>` : ''}`;
+}
+
+function openCommandSuggestion() {
+  const hullPct = game.hull / computeStats().maxHull;
+  if (hullPct < 0.65) return 'Repair at a settlement before seeking another battle.';
+  if (affordableUpgradeKeys().length) return `Upgrade ${UPGRADE_DATA[affordableUpgradeKeys()[0]].name} or build a new room aboard Brasswake.`;
+  const danger2 = game.locations.find(l => game.discovered[l.id] && l.type === 'enemy' && !l.depleted && (l.danger || 1) >= 2);
+  if (danger2) return `Prepare for a Danger ${danger2.danger} fleet near ${danger2.name}.`;
+  return 'Explore another Current route and chart the nearby sky lanes.';
+}
+
+function secondaryOpenCommandSuggestion() {
+  const settlement = game.locations.find(l => game.discovered[l.id] && ['settlement','skyport'].includes(l.type) && l.id !== game.currentLocationId);
+  if (game.resources.fuel < 45) return 'Stock fuel before pushing into storm routes.';
+  if (settlement) return `Improve relations by trading or taking work at ${settlement.name}.`;
+  return 'Find a ruin, storm route, or faction contract to expand the campaign.';
 }
 
 function setOrderFlag(key) {
@@ -2095,10 +2229,10 @@ function getNextActionNudge() {
   const hullPct = game.hull / stats.maxHull;
   if (hullPct < 0.35) return '<strong>Critical Hull:</strong> avoid combat. Reach a settlement and repair immediately.';
   if (hullPct < 0.65) return '<strong>Repairs Recommended:</strong> repair before another fight if you can.';
+  if (!game.flags?.traveledOnce) return 'Start with a nearby salvage, resource, or contract tile before fighting. Upgrades remain available for experienced captains.';
   const up = affordableUpgradeKeys();
-  if (up.length) return `<strong>Upgrade Recommended:</strong> Brasswake can afford ${UPGRADE_DATA[up[0]].name}. Improving ${UPGRADE_DATA[up[0]].name.toLowerCase()} makes future routes and fights safer.`;
+  if (up.length && (game.flags?.earnedReward || game.flags?.resolvedEvent || game.flags?.upgradedOrRepaired)) return `<strong>Upgrade Recommended:</strong> Brasswake can afford ${UPGRADE_DATA[up[0]].name}. Improving ${UPGRADE_DATA[up[0]].name.toLowerCase()} makes future routes and fights safer.`;
   if (current && ['skyport','settlement'].includes(current.type) && game.resources.fuel < 45 && canAfford({ gold: 30 })) return '<strong>Fuel Low:</strong> buy fuel before pushing deeper into the sky lanes.';
-  if (!game.flags?.traveledOnce) return 'Start with a nearby salvage, resource, or contract tile before fighting.';
   return '';
 }
 
@@ -2140,7 +2274,7 @@ function maybeApplyDirectTravelStrain(cur, loc) {
   return dmg;
 }
 
-function travelToSelected() {
+function travelToSelected(forceDirect = false, forceRoute = false) {
   const loc = getLocation(game.selectedLocationId);
   const cur = getLocation(game.currentLocationId);
   if (!loc || loc.id === cur.id || isTraveling) return;
@@ -2150,11 +2284,20 @@ function travelToSelected() {
   if (distance2D(cur, loc) > stats.travelRange) return showToast('Route exceeds safe range. Upgrade engines or sensors.');
   if (game.resources.fuel < cost) return showToast('Not enough fuel for that route.');
 
+  if (!route && !forceDirect && shouldConfirmDirectTravel(cur, loc, cost)) return confirmDirectTravel(cur, loc, cost);
+  if (route && !forceRoute) {
+    const policy = routeGatePolicy(route);
+    if (policy.toll > 0 && game.resources.gold < policy.toll) return showRouteTollFallback(route, loc, policy, cost);
+    if (policy.blockadeRisk) return confirmCurrentGateTravel(route, loc, policy, cost);
+  }
+
   spendResources({ fuel: cost });
   isTraveling = true;
   if (route) {
-    game.lastRouteTaken = route;
-    addLog(`Brasswake enters ${route.name}. Fuel spent: ${cost}.`);
+    const policy = routeGatePolicy(route);
+    if (policy.toll > 0) spendResources({ gold: policy.toll });
+    game.lastRouteTaken = { ...route, paidToll: policy.toll, policyAtDeparture: policy };
+    addLog(`Brasswake enters ${route.name}. Fuel spent: ${cost}${policy.toll ? `, gate toll: ${policy.toll} gold` : ''}.`);
     beginCurrentTravel(route, loc, cost);
   } else {
     const strain = maybeApplyDirectTravelStrain(cur, loc);
@@ -2162,6 +2305,44 @@ function travelToSelected() {
     animateFortressTo(loc, () => finishTravel(loc, 1, 'travel'));
   }
   renderUI();
+}
+
+function shouldConfirmDirectTravel(cur, loc, cost) {
+  const strain = directTravelStrainPreview(cur, loc);
+  const hullPct = game.hull / computeStats().maxHull;
+  const d = distance2D(cur, loc);
+  return !!strain.chance || cost >= 18 || hullPct < 0.65 || d >= 24;
+}
+
+function confirmDirectTravel(cur, loc, cost) {
+  const strain = directTravelStrainPreview(cur, loc);
+  const hullPct = game.hull / computeStats().maxHull;
+  const hullWarn = hullPct < 0.35 ? '<div class="warningBox danger"><strong>Critical Hull:</strong> Brasswake is badly damaged. Long direct travel may leave the fortress vulnerable before the next battle.</div>' : hullPct < 0.65 ? '<div class="warningBox danger"><strong>Damaged Hull:</strong> direct travel may strain already weakened plates.</div>' : '';
+  showModal(`<h1>Confirm Direct Engine Travel</h1>
+    <p>No charted Current reaches <strong>${loc.name}</strong> from <strong>${cur.name}</strong>.</p>
+    <div class="statGrid" style="margin:10px 0;">
+      <div class="statCard"><div class="k">Fuel Cost</div><div class="v">${cost}</div></div>
+      <div class="statCard"><div class="k">Strain Chance</div><div class="v">${Math.round((strain.chance || 0) * 100)}%</div></div>
+      <div class="statCard"><div class="k">Possible Damage</div><div class="v">${strain.max ? `${strain.min}–${strain.max}` : 'None'}</div></div>
+      <div class="statCard"><div class="k">Recommendation</div><div class="v" style="font-size:13px;">Use Current Gates when possible</div></div>
+    </div>
+    ${hullWarn}
+    <p class="smallNote">Direct engine travel remains available as a prototype fallback, but it costs more fuel and may strain the hull on longer uncharted routes.</p>
+    <div class="buttonGrid"><button class="btn red" onclick="closeModal(); travelToSelected(true)">Proceed Direct</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
+}
+
+function confirmCurrentGateTravel(route, loc, policy, cost) {
+  showModal(`<h1>Gate Warning: ${route.name}</h1>
+    <p>${routePolicySummary(route)}</p>
+    <div class="warningBox danger">This gate has blockade or hostile inspection risk. Travel may trigger a faction route event.</div>
+    <div class="buttonGrid"><button class="btn primary" onclick="closeModal(); travelToSelected(false, true)">Ride Current</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
+}
+
+function showRouteTollFallback(route, loc, policy, cost) {
+  showModal(`<h1>Gate Toll Required</h1>
+    <p>${route.name} requires a ${policy.toll} gold toll, but Brasswake cannot afford it.</p>
+    <p class="smallNote">Use a cheaper route, earn gold, or attempt direct engine travel if within range.</p>
+    <div class="buttonGrid"><button class="btn ghost" onclick="closeModal()">Choose Another Route</button>${shouldConfirmDirectTravel(getLocation(game.currentLocationId), loc, directTravelCost(getLocation(game.currentLocationId), loc)) ? `<button class="btn red" onclick="closeModal(); travelToSelected(true)">Attempt Direct</button>` : ''}</div>`);
 }
 
 function currentTravelText(route, from, to) {
@@ -2193,19 +2374,55 @@ function resolveCurrentRouteEvent(destination) {
   const route = game?.lastRouteTaken;
   if (!route) return;
   const roll = Math.random();
+  const owner = route.owner || 'steam';
+  const factionName = FACTIONS[owner]?.name || 'the gate wardens';
+  const policy = route.policyAtDeparture || routeGatePolicy(route);
   let text = '';
-  if (route.type === 'trade' && roll < 0.28) {
-    const toll = Math.min(game.resources.gold, 6 + Math.floor(Math.random() * 9));
-    addResource('gold', -toll, true);
-    improveRelation(route.owner, 1, true);
-    text = `Brass Gate toll paid to ${FACTIONS[route.owner]?.name || 'the gate wardens'}: -${toll} gold, passage recorded.`;
-  } else if (route.type === 'storm' && roll < 0.34) {
+
+  if (policy.blockadeRisk && roll < 0.28) {
+    const dmg = route.type === 'pirate' ? 4 + Math.floor(Math.random() * 7) : 2 + Math.floor(Math.random() * 5);
+    game.hull = clamp(game.hull - dmg, 1, computeStats().maxHull);
+    improveRelation(owner, -1, true);
+    text = `${factionName} blockade pressure near ${route.name}: inspection fire and violent crosswinds cause -${dmg} hull.`;
+  } else if (owner === 'steam' && roll < 0.22) {
+    improveRelation(owner, 1, true);
+    text = `Steam Marshal checkpoint crews stamp Brasswake's passage papers through ${route.name}. Relations +1.`;
+  } else if (owner === 'sky' && roll < 0.24) {
+    addResource('fuel', 3);
+    improveRelation(owner, 1, true);
+    text = `Sky Admiral beacons provide navigation assistance: +3 fuel recovered and relations +1.`;
+  } else if (owner === 'priest' && roll < 0.24) {
+    const heal = Math.min(computeStats().maxHull - game.hull, 4 + Math.floor(Math.random() * 5));
+    if (heal > 0) game.hull += heal;
+    text = `Iron Priest pilgrims bless the gate engines: ${heal > 0 ? `+${heal} hull repaired` : 'safe passage granted'}.`;
+  } else if (owner === 'thorn' && roll < 0.24) {
+    addResource('food', 5);
+    text = `Thorn Regent living currents calm the stores: +5 food from green mist condensers.`;
+  } else if (owner === 'cinder' && roll < 0.28) {
+    const dmg = 3 + Math.floor(Math.random() * 6);
+    game.hull = clamp(game.hull - dmg, 1, computeStats().maxHull);
+    text = `Cinder Khan furnace wake lashes the hull: -${dmg} hull in hot turbulence.`;
+  } else if (owner === 'dusk' && roll < 0.26) {
+    const gold = 5 + Math.floor(Math.random() * 9);
+    addResource('gold', gold);
+    text = `Dusk Corsair smugglers reveal a hidden shortcut cache: +${gold} gold.`;
+  } else if (owner === 'frost' && roll < 0.28) {
+    if (route.type === 'storm') {
+      text = `Frost Matriarch charts guide Brasswake through the ice-current. Storm turbulence avoided.`;
+    } else {
+      const delay = Math.random() < 0.4;
+      text = delay ? `Frozen gate traffic delays Brasswake, but no damage is taken.` : `Frost Matriarch signal lamps mark a safe cold-current passage.`;
+    }
+  } else if (route.type === 'trade' && roll < 0.34) {
+    improveRelation(owner, 1, true);
+    text = `${factionName} trade wardens record orderly passage through ${route.name}. Relations +1.`;
+  } else if (route.type === 'storm' && roll < 0.38) {
     const dmg = 3 + Math.floor(Math.random() * 6);
     game.hull = clamp(game.hull - dmg, 1, computeStats().maxHull);
     text = `Arc-wind turbulence rattled the plates during ${route.name}: -${dmg} hull.`;
-  } else if (route.type === 'pirate' && roll < 0.30) {
+  } else if (route.type === 'pirate' && roll < 0.36) {
     text = `Pirate wake detected near ${destination.name}. The crew marks possible ambush signs in the log.`;
-  } else if (roll < 0.18) {
+  } else if (roll < 0.20) {
     const steel = 4 + Math.floor(Math.random() * 7);
     addResource('steel', steel);
     text = `Salvage glimpse in the current: crews hook drifting plate fragments for +${steel} steel.`;
@@ -2397,7 +2614,7 @@ function getLocationNudgeHTML(loc) {
   if (loc.type === 'enemy' && hullPct < 0.65) return `<div class="warningBox danger">${hullPct < 0.35 ? '<strong>Critical Hull:</strong>' : '<strong>Repairs Recommended:</strong>'} return to a settlement before another fight if possible.</div>`;
   if (['skyport','settlement'].includes(loc.type) && hullPct < 0.65) return `<div class="warningBox">Repair services are available here. Patch Brasswake before pushing deeper into hostile skies.</div>`;
   const upgrades = affordableUpgradeKeys();
-  if (upgrades.length) return `<div class="warningBox good"><strong>Upgrade Recommended:</strong> ${UPGRADE_DATA[upgrades[0]].name} is affordable. This is the best next way to strengthen Brasswake.</div>`;
+  if (upgrades.length && (game.flags?.earnedReward || game.flags?.resolvedEvent || game.flags?.upgradedOrRepaired)) return `<div class="warningBox good"><strong>Upgrade Recommended:</strong> ${UPGRADE_DATA[upgrades[0]].name} is affordable. This is the best next way to strengthen Brasswake.</div>`;
   return '';
 }
 
@@ -3121,6 +3338,7 @@ function showHelp() {
       <div><span class="legendSwatch" style="background:#f4cf78"></span>Trade Current</div>
       <div><span class="legendSwatch" style="background:#b586ff"></span>Storm Current</div>
       <div><span class="legendSwatch" style="background:#5de2df"></span>Pirate Slipstream</div>
+      <div><span class="legendSwatch" style="background:#8f7645"></span>Direct Engine Fallback</div>
     </div>
     <p class="smallNote">Dashed dim lines are direct engine fallback routes: more expensive and riskier than charted currents.</p>
     <button class="btn primary" onclick="closeModal()">Understood</button>`);
@@ -3128,8 +3346,8 @@ function showHelp() {
 
 function showBuildNotes() {
   showModal(`<h1>Build Notes — ${VERSION}</h1>
-    <p><strong>Implemented:</strong> Three.js strategic map, procedural hex-aligned locations, visible hex overworld foundation, Current Gate route logic, route events, true touching hex-board layout, eventful Jet Stream travel overlay, travel, fuel costs, Captain’s Orders 2.0, combat readiness warnings, salvage, harvesting, trade, repairs, contracts, storm hazards, turn-based combat, rooms, upgrades, faction standing, AI world events, autosave/manual save, and polished Iron Kingdoms UI.</p>
-    <p><strong>Known limitations:</strong> Current Gates are still a foundation layered over fallback direct travel; direct travel now costs more and can strain the hull, but the final full route-network system is not complete, room placement is still simplified to build slots, combat is panel-based rather than full spatial battles, diplomacy is numeric/simple, AI is lightweight simulated movement/events, and audio is hook-only without external assets.</p>
+    <p><strong>Implemented:</strong> Three.js strategic map, procedural hex-aligned locations, edge-to-edge pointy-top hex board fix, Current Gate route logic, gate tolls, blockade warnings, faction-flavored route events, direct travel confirmation, eventful Jet Stream travel overlay, travel, fuel costs, Captain’s Orders completion/Open Command state, combat readiness warnings, salvage, harvesting, trade, repairs, contracts, storm hazards, turn-based combat, rooms, upgrades, faction standing, AI world events, autosave/manual save, and polished Iron Kingdoms UI.</p>
+    <p><strong>Known limitations:</strong> Current Gates are still a foundation layered over fallback direct travel; faction permits/blockades are warning-and-event based rather than a full diplomacy system, room placement is still simplified to build slots, combat is panel-based rather than full spatial battles, AI is lightweight simulated movement/events, and audio is hook-only without external assets.</p>
     <p><strong>Phase 2 hooks:</strong> deeper hex-overworld conversion, jet-stream current routes, tactical 3rd-person location flight, fortress hex modules, officers, crew stories, research trees, faction campaigns, fortress skins, damage simulation, custom escorts, cloud saves, and multiplayer sharing.</p>
     <button class="btn primary" onclick="closeModal()">Close</button>`);
 }
