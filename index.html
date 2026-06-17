@@ -1,0 +1,2329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.17.0001</title>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <style>
+    :root {
+      --bg: #100c12;
+      --panel: rgba(22, 17, 20, 0.93);
+      --panel2: rgba(42, 31, 28, 0.94);
+      --brass: #d9a441;
+      --brass2: #f4cf78;
+      --steel: #9ca7b3;
+      --ink: #f4ead8;
+      --muted: #bcae98;
+      --danger: #e15f4f;
+      --good: #7fd184;
+      --blue: #80b9ff;
+      --purple: #b586ff;
+      --shadow: rgba(0, 0, 0, 0.55);
+      --glass: rgba(14, 13, 18, 0.62);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at 45% 30%, #2a2430 0%, #100c12 42%, #050407 100%);
+      color: var(--ink);
+      font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+      user-select: none;
+    }
+
+    button, input, select { font-family: inherit; }
+
+    #gameRoot {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(180deg, rgba(22,22,34,0.15), rgba(2,2,5,0.65));
+    }
+
+    #threeWrap {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    #threeWrap canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    #threeError {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      text-align: center;
+      background: radial-gradient(circle, #2a1f22, #070608 68%);
+      z-index: 50;
+    }
+
+    #threeError .errorCard {
+      max-width: 720px;
+      padding: 28px;
+      border: 2px solid #bd583f;
+      border-radius: 18px;
+      background: rgba(20,12,12,0.95);
+      box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    }
+
+    .scanlines::before {
+      content: "";
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      opacity: 0.15;
+      z-index: 5;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.08) 0px,
+        rgba(255,255,255,0.08) 1px,
+        transparent 1px,
+        transparent 4px
+      );
+      mix-blend-mode: overlay;
+    }
+
+    .topbar {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: 1.15fr 2.2fr auto;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .brandBox, .resourcesBar, .dayBox, .panel, .floatingPanel {
+      border: 1px solid rgba(217,164,65,0.55);
+      background: linear-gradient(180deg, rgba(39,30,27,0.94), rgba(16,12,15,0.94));
+      box-shadow: 0 12px 26px var(--shadow), inset 0 0 0 1px rgba(255,255,255,0.06);
+      border-radius: 12px;
+      backdrop-filter: blur(6px);
+    }
+
+    .brandBox {
+      padding: 10px 14px;
+      min-width: 280px;
+    }
+
+    .brandTitle {
+      letter-spacing: 1.4px;
+      font-weight: 900;
+      font-size: 17px;
+      color: var(--brass2);
+      text-shadow: 0 2px 0 #000;
+      line-height: 1.05;
+    }
+
+    .brandSub {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .resourcesBar {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(96px, 1fr));
+      gap: 6px;
+      padding: 8px;
+    }
+
+    .resChip {
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 10px;
+      padding: 6px 8px;
+      min-height: 48px;
+    }
+
+    .resLabel {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+    }
+
+    .resValue {
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .meter {
+      margin-top: 4px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.35);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .meterFill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #906522, #f4cf78);
+      width: 50%;
+      transition: width 0.25s ease;
+    }
+
+    .dayBox {
+      padding: 10px 12px;
+      min-width: 150px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 2px;
+    }
+
+    .dayBox strong { color: var(--brass2); font-size: 18px; }
+    .dayBox span { color: var(--muted); font-size: 12px; }
+
+    .leftColumn {
+      position: absolute;
+      top: 96px;
+      left: 12px;
+      bottom: 132px;
+      width: 340px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .rightColumn {
+      position: absolute;
+      top: 96px;
+      right: 12px;
+      bottom: 132px;
+      width: 388px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .panel {
+      padding: 12px;
+      overflow: hidden;
+      pointer-events: auto;
+    }
+
+    .panel h2, .panel h3 {
+      margin: 0 0 8px 0;
+      color: var(--brass2);
+      text-shadow: 0 2px 0 #000;
+      letter-spacing: 0.8px;
+    }
+    .panel h2 { font-size: 18px; }
+    .panel h3 { font-size: 14px; text-transform: uppercase; }
+
+    .panelScroll {
+      overflow-y: auto;
+      padding-right: 3px;
+      scrollbar-width: thin;
+      max-height: 100%;
+    }
+
+    .statGrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .statCard {
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.19);
+      border-radius: 9px;
+      padding: 8px;
+    }
+
+    .statCard .k { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+    .statCard .v { color: var(--ink); font-size: 17px; font-weight: 800; margin-top: 2px; }
+
+    .locationName {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--brass2);
+    }
+
+    .locationMeta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+      color: var(--ink);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .tag.good { color: #b7ffbd; border-color: rgba(127,209,132,0.45); }
+    .tag.bad { color: #ffb3a9; border-color: rgba(225,95,79,0.55); }
+    .tag.warn { color: #ffe0a0; border-color: rgba(244,207,120,0.55); }
+    .tag.blue { color: #b9ddff; border-color: rgba(128,185,255,0.48); }
+
+    .desc {
+      color: #e7dcc7;
+      font-size: 13px;
+      line-height: 1.35;
+      margin: 8px 0 10px 0;
+    }
+
+    .buttonGrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .buttonStack { display: flex; flex-direction: column; gap: 7px; }
+
+    .btn {
+      border: 1px solid rgba(244,207,120,0.45);
+      background: linear-gradient(180deg, rgba(86,65,39,0.98), rgba(44,28,20,0.98));
+      color: #fff6df;
+      border-radius: 9px;
+      padding: 9px 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.25px;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12);
+      transition: transform 0.08s ease, filter 0.1s ease, border 0.1s ease;
+      text-align: center;
+    }
+
+    .btn:hover:not(:disabled) { filter: brightness(1.14); transform: translateY(-1px); }
+    .btn:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); }
+    .btn:disabled {
+      opacity: 0.48;
+      cursor: not-allowed;
+      filter: grayscale(0.4);
+    }
+    .btn.primary { background: linear-gradient(180deg, #aa762c, #5a3219); border-color: #f4cf78; }
+    .btn.blue { background: linear-gradient(180deg, #315a82, #192c44); border-color: rgba(128,185,255,0.7); }
+    .btn.red { background: linear-gradient(180deg, #8b3b2e, #401814); border-color: rgba(255,150,120,0.7); }
+    .btn.green { background: linear-gradient(180deg, #3d7042, #1c3720); border-color: rgba(145,238,151,0.7); }
+    .btn.ghost { background: rgba(255,255,255,0.04); color: var(--muted); }
+
+    .smallNote {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.32;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .tabBtn {
+      padding: 7px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.18);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tabBtn.active {
+      color: var(--brass2);
+      border-color: rgba(244,207,120,0.62);
+      background: rgba(217,164,65,0.14);
+    }
+
+    .upgradeCard, .roomCard, .factionCard, .logItem {
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.18);
+      border-radius: 10px;
+      padding: 9px;
+      margin-bottom: 7px;
+    }
+
+    .cardTitle {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: #fff2d2;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+
+    .cost {
+      color: var(--brass2);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .bottomLog {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      height: 108px;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: 270px 1fr 260px;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .logPanel, .controlsPanel, .helpPanel {
+      pointer-events: auto;
+      border: 1px solid rgba(217,164,65,0.55);
+      background: linear-gradient(180deg, rgba(39,30,27,0.94), rgba(16,12,15,0.94));
+      box-shadow: 0 12px 26px var(--shadow), inset 0 0 0 1px rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 10px;
+      overflow: hidden;
+    }
+
+    .logPanel h3, .controlsPanel h3, .helpPanel h3 { margin: 0 0 6px; color: var(--brass2); font-size: 13px; }
+    #eventLog { overflow-y: auto; height: 72px; padding-right: 3px; }
+    .logItem { margin-bottom: 5px; padding: 6px; font-size: 12px; color: #e9dfcf; }
+    .logItem strong { color: var(--brass2); }
+
+    .controlsPanel .buttonGrid { grid-template-columns: repeat(4, 1fr); }
+    .helpPanel { color: var(--muted); font-size: 12px; line-height: 1.3; }
+
+    .modalOverlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(0,0,0,0.62);
+      z-index: 40;
+      backdrop-filter: blur(3px);
+    }
+
+    .modalOverlay.active { display: flex; }
+
+    .modal {
+      max-width: 900px;
+      width: min(900px, 94vw);
+      max-height: 90vh;
+      overflow: auto;
+      border: 2px solid rgba(244,207,120,0.72);
+      background: radial-gradient(circle at 30% 0%, rgba(92,66,43,0.98), rgba(23,17,20,0.98) 42%, rgba(8,7,10,0.98));
+      border-radius: 18px;
+      box-shadow: 0 18px 70px rgba(0,0,0,0.75), inset 0 0 0 1px rgba(255,255,255,0.08);
+      padding: 18px;
+    }
+
+    .modal h1, .modal h2 {
+      margin: 0 0 10px;
+      color: var(--brass2);
+      text-shadow: 0 3px 0 #000;
+    }
+
+    .combatGrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .combatSide {
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.22);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .barBlock { margin: 8px 0; }
+    .barTop { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+    .bar { height: 10px; border-radius: 999px; background: rgba(0,0,0,0.5); overflow: hidden; border: 1px solid rgba(255,255,255,0.07); }
+    .barFill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #bd583f, #f4cf78); width: 50%; transition: width 0.2s ease; }
+    .barFill.good { background: linear-gradient(90deg, #317348, #7fd184); }
+    .barFill.blue { background: linear-gradient(90deg, #234a76, #80b9ff); }
+
+    #titleScreen {
+      position: absolute;
+      inset: 0;
+      z-index: 60;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      background:
+        radial-gradient(circle at 50% 20%, rgba(154,101,43,0.22), transparent 35%),
+        radial-gradient(circle at 65% 65%, rgba(88,41,128,0.22), transparent 36%),
+        linear-gradient(180deg, rgba(15,14,20,0.92), rgba(4,4,6,0.98));
+    }
+
+    .titleCard {
+      width: min(920px, 94vw);
+      border: 2px solid rgba(244,207,120,0.75);
+      border-radius: 22px;
+      padding: 30px;
+      background: linear-gradient(180deg, rgba(50,36,31,0.96), rgba(12,9,12,0.98));
+      box-shadow: 0 20px 90px rgba(0,0,0,0.82), inset 0 0 0 1px rgba(255,255,255,0.09);
+      text-align: center;
+    }
+
+    .titleKicker {
+      color: var(--muted);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .titleMain {
+      font-size: clamp(34px, 6vw, 62px);
+      line-height: 0.95;
+      font-weight: 950;
+      color: var(--brass2);
+      text-shadow: 0 4px 0 #000, 0 0 26px rgba(217,164,65,0.18);
+      letter-spacing: 1.2px;
+    }
+
+    .titleSub {
+      margin-top: 12px;
+      color: #ede1c6;
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    .titleButtons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .miniLegend {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 22px;
+      text-align: left;
+    }
+
+    .legendCard {
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .legendCard strong { color: var(--ink); display: block; margin-bottom: 4px; }
+
+    .toast {
+      position: absolute;
+      top: 88px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-12px);
+      z-index: 70;
+      min-width: 260px;
+      max-width: 620px;
+      padding: 12px 18px;
+      text-align: center;
+      color: #fff8df;
+      border: 1px solid rgba(244,207,120,0.7);
+      background: rgba(36,25,20,0.95);
+      border-radius: 999px;
+      box-shadow: 0 12px 34px rgba(0,0,0,0.55);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+      font-weight: 800;
+    }
+
+    .toast.active {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0px);
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 1120px) {
+      .topbar { grid-template-columns: 1fr; right: 12px; }
+      .resourcesBar { grid-template-columns: repeat(5, 1fr); }
+      .dayBox { display: none; }
+      .leftColumn { top: 178px; width: 310px; bottom: 126px; }
+      .rightColumn { top: 178px; width: 340px; bottom: 126px; }
+      .bottomLog { grid-template-columns: 1fr; height: 116px; }
+      .helpPanel, .controlsPanel { display: none; }
+    }
+
+    @media (max-width: 760px) {
+      .leftColumn, .rightColumn { position: absolute; top: auto; bottom: 12px; width: calc(50vw - 18px); height: 240px; }
+      .bottomLog { display: none; }
+      .resourcesBar { grid-template-columns: repeat(3, 1fr); }
+      .topbar { max-height: 170px; overflow: hidden; }
+      .miniLegend { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div id="gameRoot" class="scanlines">
+  <div id="threeWrap"></div>
+  <div id="threeError">
+    <div class="errorCard">
+      <h1>Three.js could not load</h1>
+      <p>This build uses Three.js from a CDN for the 3D strategy map. Check your internet connection or allow scripts from jsDelivr, then reload the page.</p>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="topbar hidden" id="hudTop">
+    <div class="brandBox">
+      <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.17.0001</span><span id="saveStatus">No save loaded</span></div>
+    </div>
+    <div class="resourcesBar" id="resourcesBar"></div>
+    <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
+  </div>
+
+  <div class="leftColumn hidden" id="hudLeft">
+    <div class="panel" style="flex:0 0 auto;">
+      <h2>Fortress Status</h2>
+      <div id="fortressStats" class="statGrid"></div>
+    </div>
+    <div class="panel" style="flex:1 1 auto; min-height:0;">
+      <h2>Selected Location</h2>
+      <div id="selectedPanel" class="panelScroll"></div>
+    </div>
+  </div>
+
+  <div class="rightColumn hidden" id="hudRight">
+    <div class="panel" style="height:100%;">
+      <div class="tabs">
+        <button class="tabBtn active" id="tabUpgrade" onclick="setRightTab('upgrades')">Upgrades</button>
+        <button class="tabBtn" id="tabRooms" onclick="setRightTab('rooms')">Rooms</button>
+        <button class="tabBtn" id="tabFactions" onclick="setRightTab('factions')">Factions</button>
+      </div>
+      <div id="rightPanel" class="panelScroll"></div>
+    </div>
+  </div>
+
+  <div class="bottomLog hidden" id="hudBottom">
+    <div class="controlsPanel">
+      <h3>Command</h3>
+      <div class="buttonGrid">
+        <button class="btn primary" onclick="saveGame()">Save</button>
+        <button class="btn blue" onclick="loadGame()">Load</button>
+        <button class="btn ghost" onclick="showHelp()">Help</button>
+        <button class="btn red" onclick="confirmReset()">Reset</button>
+      </div>
+    </div>
+    <div class="logPanel">
+      <h3>Fleet Log</h3>
+      <div id="eventLog"></div>
+    </div>
+    <div class="helpPanel">
+      <h3>Captain's Orders</h3>
+      Select glowing map nodes, travel to them, resolve events, then spend steel and gold on rooms or upgrades. Settlements let you refuel and repair. Enemy fleets can be defeated for salvage.
+    </div>
+  </div>
+
+  <div class="modalOverlay" id="modalOverlay">
+    <div class="modal" id="modalContent"></div>
+  </div>
+
+  <div id="titleScreen">
+    <div class="titleCard">
+      <div class="titleKicker">IRON KINGDOMS: WAR OF BRASS</div>
+      <div class="titleMain">SKY FORTRESS<br/>COMMAND</div>
+      <div class="titleSub">
+        Command a brass-and-steel flying fortress across the shattered skies. Salvage wrecks, brave storm routes, battle hostile fleets, and build the first playable foundation of a future Iron Kingdoms sky campaign.
+      </div>
+      <div class="titleButtons">
+        <button class="btn primary" onclick="startNewGame()">New Campaign</button>
+        <button class="btn blue" id="loadTitleBtn" onclick="loadGame(true)">Load Campaign</button>
+        <button class="btn ghost" onclick="showBuildNotes()">Build Notes</button>
+      </div>
+      <div class="miniLegend">
+        <div class="legendCard"><strong>Explore</strong>Select sky nodes and travel between floating settlements, ruins, storms, wreck fields, and patrol routes.</div>
+        <div class="legendCard"><strong>Gather</strong>Fuel, food, steel, gold, and population keep your fortress alive and moving.</div>
+        <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
+        <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
+      </div>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.17.0001 · Single-file HTML · Three.js CDN build</p>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// =============================================================
+// CONSTANTS
+// =============================================================
+const VERSION = 'v0.26.06.17.0001';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0001';
+const WORLD_RADIUS = 74;
+const LOCATION_COUNT = 34;
+
+const FACTIONS = {
+  steam: { name: 'Steam Marshal', color: 0xb72d2d, accent: '#d64a37', flavor: 'Red imperial brass military power.' },
+  archmage: { name: 'Archmage', color: 0x7b3fc7, accent: '#b586ff', flavor: 'Royal purple arcane engines and spellcraft.' },
+  sky: { name: 'Sky Admiral', color: 0x2367bd, accent: '#80b9ff', flavor: 'Deep blue air fleets and naval command.' },
+  priest: { name: 'Iron Priest', color: 0xd8c47a, accent: '#f4e49c', flavor: 'Gold and white holy machine doctrine.' },
+  thorn: { name: 'Thorn Regent', color: 0x1f9650, accent: '#7fd184', flavor: 'Emerald living metal and nature-infused engines.' },
+  cinder: { name: 'Cinder Khan', color: 0xc4541f, accent: '#ff8a35', flavor: 'Crimson-orange furnace warbands and raiders.' },
+  dusk: { name: 'Dusk Corsair', color: 0x159b9d, accent: '#5de2df', flavor: 'Teal covert fleets and privateers.' },
+  frost: { name: 'Frost Matriarch', color: 0x7fc7d7, accent: '#b9f2ff', flavor: 'Ice-blue northern warships and storm survivalists.' },
+  pirates: { name: 'Freebooter Clans', color: 0x8a3b2a, accent: '#e15f4f', flavor: 'Unaffiliated raiders, wreck-thieves, and oathbreakers.' }
+};
+
+const RESOURCE_META = {
+  fuel: { label: 'Fuel', color: '#f4cf78' },
+  food: { label: 'Food', color: '#7fd184' },
+  steel: { label: 'Steel', color: '#b9c6d0' },
+  gold: { label: 'Gold', color: '#ffd56a' },
+  population: { label: 'Population', color: '#d7c6ff' }
+};
+
+const ROOM_DATA = {
+  bridge: { name: 'Bridge', base: true, desc: 'Command deck. Improves cohesion and future diplomacy hooks.', benefit: '+Command efficiency', cost: null },
+  engine: { name: 'Engine Room', base: true, desc: 'Lift engines and boilers. Reduces fuel cost through upgrades.', benefit: '+Range foundation', cost: null },
+  barracks: { name: 'Barracks', base: true, desc: 'Crew quarters and arms lockers. Adds combat crew capacity.', benefit: '+Crew capacity', cost: null },
+  workshop: { name: 'Workshop', base: true, desc: 'Repairs, fittings, and retrofit crews.', benefit: '+Repair efficiency', cost: null },
+  storage: { name: 'Storage', base: true, desc: 'Hold space for fuel, food, steel, and gold.', benefit: '+Resource capacity', cost: null },
+  hydroponics: { name: 'Hydroponics', desc: 'Warm glass farms that grow food during travel.', benefit: '+Food each day', cost: { steel: 28, gold: 24 } },
+  foundry: { name: 'Foundry', desc: 'Smelts salvage into usable armor plate and weapon fittings.', benefit: '+Steel gains, armor unlock feel', cost: { steel: 38, gold: 28 } },
+  radar: { name: 'Radar Tower', desc: 'Brass receiver masts and storm-piercing scopes.', benefit: '+Sensor radius', cost: { steel: 30, gold: 36 } },
+  hangar: { name: 'Hangar', desc: 'Launch bay for skiffs and escort craft.', benefit: '+Combat action and weapon power', cost: { steel: 44, gold: 42 } },
+  hospital: { name: 'Hospital', desc: 'Surgical cabins and recovery cots for battered crew.', benefit: '-Crew losses, recovery action', cost: { steel: 26, gold: 32, food: 8 } }
+};
+
+const UPGRADE_DATA = {
+  engines: { name: 'Engines', max: 3, desc: 'Burn cleaner, push farther, and cut route fuel cost.', baseCost: { steel: 24, gold: 22 }, benefit: '+Range, -fuel cost' },
+  armor: { name: 'Armor', max: 3, desc: 'Layered brass plate and arc-welded steel ribs.', baseCost: { steel: 30, gold: 18 }, benefit: '+Max hull, -damage' },
+  weapons: { name: 'Weapons', max: 3, desc: 'Heavier guns, better pressure seals, sharper firing tables.', baseCost: { steel: 28, gold: 28 }, benefit: '+Combat damage' },
+  storage: { name: 'Storage', max: 3, desc: 'Expanded holds, dry lockers, fuel bladders, and vault cages.', baseCost: { steel: 22, gold: 18 }, benefit: '+Resource caps' },
+  sensors: { name: 'Sensors', max: 3, desc: 'Storm-scrying lenses and radar coils.', baseCost: { steel: 18, gold: 30 }, benefit: '+Map reveal radius' },
+  repairs: { name: 'Repair Systems', max: 3, desc: 'Tracked gantries, trained damage teams, and patch boilers.', baseCost: { steel: 24, gold: 20 }, benefit: '+Emergency repair power' },
+  hangarCap: { name: 'Hangar Capacity', max: 3, desc: 'More skiffs, better winches, and trained launch crews.', baseCost: { steel: 26, gold: 32 }, benefit: '+Air wing combat power' }
+};
+
+const LOCATION_COLORS = {
+  skyport: 0xd9a441,
+  settlement: 0x89bfff,
+  salvage: 0xa7a9af,
+  resource: 0x7fd184,
+  storm: 0x735aa3,
+  enemy: 0xe15f4f,
+  ruins: 0xb586ff,
+  contract: 0xffd56a
+};
+
+const LOCATION_NAMES = {
+  skyport: ['Brassgate Anchorage', 'Marshal Crown Dock', 'Northern Lantern Port'],
+  settlement: ['Kettlewick Mooring', 'Hearthchain Hold', 'Blueglass Outpost', 'Saint Rivet Harbor', 'Windmere Market'],
+  salvage: ['Broken Crown Wrecks', 'Ash Rudder Field', 'Fallen Boiler Grave', 'The Chain Debris', 'Mourning Screw Shoals'],
+  resource: ['Amber Fuel Vents', 'Ironroot Shelf', 'Sky-Grain Terraces', 'Blacksteel Lode', 'Cloud Kelp Farm'],
+  storm: ['The Violet Squall', 'Thunderhook Veil', 'Saint Elmo Spiral', 'Frostjaw Front', 'Red Aurora Wall'],
+  enemy: ['Raider Lanterns', 'Cinder Fang Patrol', 'Corsair Knife Wing', 'Rogue Gun Deck', 'Iron Vulture Fleet'],
+  ruins: ['Sundered Chapel Engine', 'Old Mage Lift', 'Glass Admiral Tomb', 'Arc-Reactor Husk', 'Frozen Signal Tower'],
+  contract: ['Courier Beacon', 'Distress Pennant', 'Mercenary Writ', 'Treaty Dispatch', 'Lost Convoy Trail']
+};
+
+// =============================================================
+// GAME STATE
+// =============================================================
+let game = null;
+let activeRightTab = 'upgrades';
+let isTraveling = false;
+let hoverLocationId = null;
+let selectedMesh = null;
+let toastTimer = null;
+
+// Three.js objects
+let scene, camera, renderer, raycaster, mouse, clock;
+let worldGroup, locationGroup, aiFleetGroup, fortressGroup, lineGroup, selectionRing, hoverRing;
+let locationMeshes = new Map();
+let aiFleetMeshes = new Map();
+let stormMeshes = [];
+let cameraState = { targetX: 0, targetZ: 0, distance: 118, yaw: 0.05, pitch: 0.82, dragging: false, lastX: 0, lastY: 0 };
+
+// =============================================================
+// SEEDED RANDOM
+// =============================================================
+function mulberry32(seed) {
+  return function() {
+    let t = seed += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function randRange(rng, min, max) { return min + rng() * (max - min); }
+function randInt(rng, min, max) { return Math.floor(randRange(rng, min, max + 1)); }
+function choose(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
+function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+function distance2D(a, b) { return Math.hypot(a.x - b.x, a.z - b.z); }
+
+// =============================================================
+// INITIALIZATION
+// =============================================================
+window.addEventListener('load', () => {
+  document.getElementById('versionLabel').textContent = VERSION;
+  document.getElementById('loadTitleBtn').disabled = !localStorage.getItem(SAVE_KEY);
+  if (!window.THREE) {
+    document.getElementById('threeError').style.display = 'flex';
+    return;
+  }
+  setupThree();
+  animate();
+});
+
+function setupThree() {
+  const wrap = document.getElementById('threeWrap');
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x08070d);
+  scene.fog = new THREE.FogExp2(0x07070c, 0.012);
+
+  camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 900);
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  wrap.appendChild(renderer.domElement);
+
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
+  clock = new THREE.Clock();
+
+  const hemi = new THREE.HemisphereLight(0xd6e7ff, 0x22170e, 1.65);
+  scene.add(hemi);
+  const sun = new THREE.DirectionalLight(0xffdf9e, 2.4);
+  sun.position.set(-48, 70, 42);
+  sun.castShadow = true;
+  scene.add(sun);
+  const violet = new THREE.PointLight(0x8866ff, 1.2, 190);
+  violet.position.set(40, 35, -60);
+  scene.add(violet);
+
+  worldGroup = new THREE.Group();
+  locationGroup = new THREE.Group();
+  aiFleetGroup = new THREE.Group();
+  lineGroup = new THREE.Group();
+  scene.add(worldGroup, locationGroup, aiFleetGroup, lineGroup);
+
+  createBackgroundWorld();
+  fortressGroup = createFortressModel();
+  fortressGroup.visible = false;
+  scene.add(fortressGroup);
+
+  selectionRing = createRing(0xf4cf78, 4.3);
+  selectionRing.visible = false;
+  scene.add(selectionRing);
+  hoverRing = createRing(0xffffff, 3.5);
+  hoverRing.visible = false;
+  scene.add(hoverRing);
+
+  renderer.domElement.addEventListener('pointermove', onPointerMove);
+  renderer.domElement.addEventListener('pointerdown', onPointerDown);
+  renderer.domElement.addEventListener('pointerup', onPointerUp);
+  renderer.domElement.addEventListener('click', onCanvasClick);
+  renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
+  window.addEventListener('resize', onResize);
+  window.addEventListener('keydown', onKeyDown);
+
+  updateCamera();
+}
+
+function createBackgroundWorld() {
+  const gridMat = new THREE.LineBasicMaterial({ color: 0x2c2b33, transparent: true, opacity: 0.34 });
+  const gridGeo = new THREE.BufferGeometry();
+  const pts = [];
+  for (let i = -90; i <= 90; i += 10) {
+    pts.push(-90, -2, i, 90, -2, i);
+    pts.push(i, -2, -90, i, -2, 90);
+  }
+  gridGeo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+  const grid = new THREE.LineSegments(gridGeo, gridMat);
+  worldGroup.add(grid);
+
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0x5f4b38, transparent: true, opacity: 0.08, side: THREE.DoubleSide });
+  const ringGeo = new THREE.RingGeometry(WORLD_RADIUS - 1, WORLD_RADIUS + 1, 96);
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = -1.8;
+  worldGroup.add(ring);
+
+  for (let i = 0; i < 115; i++) {
+    const rng = Math.random;
+    const starGeo = new THREE.SphereGeometry(randRange(rng, 0.04, 0.13), 6, 4);
+    const starMat = new THREE.MeshBasicMaterial({ color: new THREE.Color().setHSL(0.12 + Math.random()*0.08, 0.45, 0.7) });
+    const star = new THREE.Mesh(starGeo, starMat);
+    const angle = Math.random() * Math.PI * 2;
+    const r = 92 + Math.random() * 92;
+    star.position.set(Math.cos(angle) * r, randRange(rng, 22, 80), Math.sin(angle) * r);
+    worldGroup.add(star);
+  }
+}
+
+// =============================================================
+// STATE CREATION AND WORLD GENERATION
+// =============================================================
+function createNewState() {
+  const seed = Date.now() % 2147483647;
+  const rng = mulberry32(seed);
+  const state = {
+    version: VERSION,
+    seed,
+    day: 1,
+    resources: { fuel: 92, food: 84, steel: 68, gold: 128, population: 54 },
+    hull: 100,
+    rooms: { bridge: 1, engine: 1, barracks: 1, workshop: 1, storage: 1, hydroponics: 0, foundry: 0, radar: 0, hangar: 0, hospital: 0 },
+    upgrades: { engines: 0, armor: 0, weapons: 0, storage: 0, sensors: 0, repairs: 0, hangarCap: 0 },
+    locations: [],
+    aiFleets: [],
+    currentLocationId: 'loc_home',
+    selectedLocationId: 'loc_home',
+    discovered: { loc_home: true },
+    relations: {},
+    log: [],
+    inCombat: false,
+    combat: null,
+    flags: { tutorialSeen: false }
+  };
+
+  Object.keys(FACTIONS).forEach(k => {
+    if (k === 'pirates') state.relations[k] = -65;
+    else state.relations[k] = k === 'steam' ? 35 : randInt(rng, -12, 18);
+  });
+
+  state.locations = generateLocations(rng);
+  state.aiFleets = generateAIFleets(rng, state.locations);
+  state.log.push({ day: 1, text: 'The fortress-crown <strong>Brasswake</strong> takes command at Brassgate Anchorage.' });
+  state.log.push({ day: 1, text: 'Captain\'s Orders: select a nearby node, travel, resolve the event, then upgrade or refuel.' });
+  revealNearby(state);
+  return state;
+}
+
+function generateLocations(rng) {
+  const locations = [];
+  const home = {
+    id: 'loc_home', name: 'Brassgate Anchorage', type: 'skyport', faction: 'steam', x: 0, z: 0, discovered: true, visited: true, depleted: false, danger: 0,
+    desc: 'A fortified Steam Marshal skyport with dry docks, food markets, and brass-bound repair cranes.'
+  };
+  locations.push(home);
+
+  const typePool = ['settlement','settlement','salvage','salvage','resource','resource','storm','enemy','enemy','ruins','contract'];
+  for (let i = 1; i < LOCATION_COUNT; i++) {
+    let angle = (i / LOCATION_COUNT) * Math.PI * 2 + randRange(rng, -0.18, 0.18);
+    let radius = randRange(rng, 15, WORLD_RADIUS);
+    if (i < 7) radius = randRange(rng, 12, 26);
+    const type = choose(rng, typePool);
+    const facKeys = Object.keys(FACTIONS).filter(f => f !== 'pirates');
+    const faction = type === 'enemy' ? (rng() < 0.62 ? 'pirates' : choose(rng, facKeys)) : choose(rng, facKeys);
+    const loc = {
+      id: 'loc_' + i,
+      name: uniqueLocationName(rng, type, i),
+      type,
+      faction,
+      x: Math.cos(angle) * radius,
+      z: Math.sin(angle) * radius,
+      discovered: false,
+      visited: false,
+      depleted: false,
+      claimedBy: null,
+      danger: type === 'enemy' ? randInt(rng, 1, 4) : type === 'storm' ? randInt(rng, 1, 3) : type === 'ruins' ? randInt(rng, 0, 2) : 0,
+      desc: describeLocation(type, faction)
+    };
+    if (type === 'resource') loc.resourceKind = choose(rng, ['fuel','food','steel','gold']);
+    if (type === 'contract') loc.contract = choose(rng, ['escort','salvage','relief','patrol']);
+    locations.push(loc);
+  }
+  return locations;
+}
+
+function uniqueLocationName(rng, type, i) {
+  const base = choose(rng, LOCATION_NAMES[type] || ['Sky Mark']);
+  return i > 12 && rng() < 0.45 ? base + ' ' + roman(randInt(rng, 2, 9)) : base;
+}
+
+function roman(n) {
+  const vals = ['','I','II','III','IV','V','VI','VII','VIII','IX'];
+  return vals[n] || String(n);
+}
+
+function describeLocation(type, faction) {
+  const f = FACTIONS[faction]?.name || 'Unknown';
+  const d = {
+    skyport: 'A major fortified dock where repairs, fuel, and contracts are available.',
+    settlement: `A floating settlement under ${f} influence, open to trade unless relations sour.`,
+    salvage: 'A drifting wreck field rich in steel and gold, but scavengers may be watching.',
+    resource: 'A productive site that can be harvested for supplies if your fortress can secure it.',
+    storm: 'A dangerous storm route. Risk hull damage for rare salvage and faster exploration.',
+    enemy: `A hostile fleet signature. Expect combat before salvage can be claimed.`,
+    ruins: 'A pre-war Iron Kingdoms ruin, half machine and half myth, waiting to be explored.',
+    contract: 'A beacon offering paid work to any captain brave enough to answer.'
+  };
+  return d[type] || 'A mysterious sky mark.';
+}
+
+function generateAIFleets(rng, locations) {
+  const fleets = [];
+  const facKeys = Object.keys(FACTIONS).filter(f => f !== 'steam' && f !== 'pirates');
+  facKeys.forEach((fac, idx) => {
+    const loc = locations[5 + idx * 3] || locations[randInt(rng, 1, locations.length - 1)];
+    fleets.push({ id: 'fleet_' + fac, faction: fac, locationId: loc.id, strength: randInt(rng, 1, 4), goal: 'patrol' });
+  });
+  fleets.push({ id: 'fleet_pirates', faction: 'pirates', locationId: locations[randInt(rng, 8, locations.length - 1)].id, strength: 3, goal: 'raid' });
+  return fleets;
+}
+
+function revealNearby(state = game) {
+  if (!state) return;
+  const current = getLocation(state.currentLocationId, state);
+  const stats = computeStats(state);
+  state.locations.forEach(loc => {
+    if (distance2D(current, loc) <= stats.sensorRadius) {
+      state.discovered[loc.id] = true;
+      loc.discovered = true;
+    }
+  });
+}
+
+// =============================================================
+// THREE.JS MODEL BUILDING
+// =============================================================
+function buildWorldMeshes() {
+  locationGroup.clear();
+  aiFleetGroup.clear();
+  lineGroup.clear();
+  locationMeshes.clear();
+  aiFleetMeshes.clear();
+  stormMeshes = [];
+
+  if (!game) return;
+  game.locations.forEach(loc => {
+    const obj = createLocationMarker(loc);
+    obj.position.set(loc.x, 0, loc.z);
+    obj.userData.locationId = loc.id;
+    obj.visible = !!game.discovered[loc.id];
+    locationGroup.add(obj);
+    locationMeshes.set(loc.id, obj);
+
+    if (loc.type === 'storm') stormMeshes.push(obj);
+  });
+
+  game.aiFleets.forEach(fleet => {
+    const loc = getLocation(fleet.locationId);
+    const obj = createAirshipModel(FACTIONS[fleet.faction].color, 0.7 + fleet.strength * 0.08);
+    obj.position.set(loc.x + 1.8, 3 + fleet.strength * 0.2, loc.z - 1.6);
+    obj.userData.fleetId = fleet.id;
+    obj.visible = !!game.discovered[loc.id];
+    aiFleetGroup.add(obj);
+    aiFleetMeshes.set(fleet.id, obj);
+  });
+
+  updateFortressPosition(false);
+  drawTravelLines();
+  refreshSelectionVisuals();
+}
+
+function createLocationMarker(loc) {
+  const group = new THREE.Group();
+  const color = loc.depleted ? 0x55565c : (LOCATION_COLORS[loc.type] || 0xffffff);
+
+  const baseMat = new THREE.MeshStandardMaterial({ color, metalness: 0.35, roughness: 0.55, emissive: color, emissiveIntensity: loc.depleted ? 0.02 : 0.08 });
+  const darkMat = new THREE.MeshStandardMaterial({ color: 0x222128, metalness: 0.25, roughness: 0.72 });
+
+  if (loc.type === 'skyport' || loc.type === 'settlement') {
+    const platform = new THREE.Mesh(new THREE.CylinderGeometry(2.7, 3.2, 0.55, 8), darkMat);
+    platform.castShadow = true;
+    platform.receiveShadow = true;
+    group.add(platform);
+    const tower = new THREE.Mesh(new THREE.BoxGeometry(1.35, 2.7, 1.35), baseMat);
+    tower.position.y = 1.6;
+    tower.castShadow = true;
+    group.add(tower);
+    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 2.4, 8), baseMat);
+    mast.position.y = 4.1;
+    group.add(mast);
+  } else if (loc.type === 'salvage') {
+    for (let i = 0; i < 6; i++) {
+      const piece = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.35, 1.8), baseMat);
+      piece.position.set(Math.cos(i) * (1.1 + i*0.12), randRange(Math.random, 0.1, 1.5), Math.sin(i*1.8) * (1.1 + i*0.1));
+      piece.rotation.set(Math.random()*1.2, Math.random()*Math.PI, Math.random()*1.2);
+      group.add(piece);
+    }
+  } else if (loc.type === 'resource') {
+    const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(1.75, 0), baseMat);
+    crystal.position.y = 1.6;
+    crystal.castShadow = true;
+    group.add(crystal);
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 2.1, 0.4, 7), darkMat);
+    group.add(base);
+  } else if (loc.type === 'storm') {
+    const mat = new THREE.MeshStandardMaterial({ color, transparent: true, opacity: 0.24, emissive: color, emissiveIntensity: 0.16, roughness: 1, depthWrite: false });
+    const storm = new THREE.Mesh(new THREE.SphereGeometry(4.1 + loc.danger * 0.7, 16, 10), mat);
+    storm.scale.y = 0.5;
+    storm.position.y = 2.2;
+    group.add(storm);
+    const core = new THREE.Mesh(new THREE.IcosahedronGeometry(1.0, 0), baseMat);
+    core.position.y = 2.3;
+    group.add(core);
+  } else if (loc.type === 'enemy') {
+    const air = createAirshipModel(color, 0.9 + loc.danger * 0.08);
+    air.position.y = 1.8;
+    group.add(air);
+  } else if (loc.type === 'ruins') {
+    const ruin = new THREE.Mesh(new THREE.ConeGeometry(2.1, 3.2, 5), baseMat);
+    ruin.position.y = 1.4;
+    ruin.rotation.y = 0.4;
+    group.add(ruin);
+    const slab = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.35, 2.2), darkMat);
+    group.add(slab);
+  } else if (loc.type === 'contract') {
+    const beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 3.6, 8), baseMat);
+    beacon.position.y = 1.9;
+    group.add(beacon);
+    const light = new THREE.Mesh(new THREE.SphereGeometry(0.8, 12, 8), new THREE.MeshBasicMaterial({ color }));
+    light.position.y = 4.0;
+    group.add(light);
+  }
+
+  const halo = new THREE.Mesh(new THREE.RingGeometry(2.8, 3.05, 32), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: loc.depleted ? 0.12 : 0.35, side: THREE.DoubleSide }));
+  halo.rotation.x = -Math.PI / 2;
+  halo.position.y = 0.08;
+  group.add(halo);
+
+  return group;
+}
+
+function createFortressModel() {
+  const group = new THREE.Group();
+  const brass = new THREE.MeshStandardMaterial({ color: 0xb98935, metalness: 0.65, roughness: 0.38, emissive: 0x2a1804, emissiveIntensity: 0.08 });
+  const steel = new THREE.MeshStandardMaterial({ color: 0x7e8a92, metalness: 0.62, roughness: 0.36 });
+  const red = new THREE.MeshStandardMaterial({ color: 0xb72d2d, metalness: 0.35, roughness: 0.52, emissive: 0x1e0503, emissiveIntensity: 0.1 });
+  const glow = new THREE.MeshBasicMaterial({ color: 0xffd56a });
+
+  const hull = new THREE.Mesh(new THREE.BoxGeometry(5.6, 1.3, 3.2), steel);
+  hull.castShadow = true;
+  hull.position.y = 1.0;
+  group.add(hull);
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(4.0, 1.3, 2.15), brass);
+  deck.position.y = 2.15;
+  deck.castShadow = true;
+  group.add(deck);
+  const bridge = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.1, 1.55), red);
+  bridge.position.set(-0.35, 3.2, 0);
+  bridge.castShadow = true;
+  group.add(bridge);
+  for (let i = 0; i < 3; i++) {
+    const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 1.8, 10), brass);
+    stack.position.set(1.2 + i * 0.75, 3.1, -0.95 + i*0.95);
+    stack.castShadow = true;
+    group.add(stack);
+  }
+  const core = new THREE.Mesh(new THREE.SphereGeometry(0.38, 12, 8), glow);
+  core.position.set(-2.4, 1.1, 0);
+  group.add(core);
+  for (let z of [-2.0, 2.0]) {
+    const wing = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.25, 0.55), brass);
+    wing.position.set(0.2, 1.35, z);
+    group.add(wing);
+  }
+  const light = new THREE.PointLight(0xffc76b, 0.9, 12);
+  light.position.set(-2.4, 2.2, 0);
+  group.add(light);
+  group.scale.set(1.1, 1.1, 1.1);
+  return group;
+}
+
+function createAirshipModel(color, scale = 1) {
+  const group = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({ color, metalness: 0.46, roughness: 0.48, emissive: color, emissiveIntensity: 0.04 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x31313a, metalness: 0.55, roughness: 0.38 });
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.65, 2.6, 6, 12), mat);
+  body.rotation.z = Math.PI / 2;
+  body.castShadow = true;
+  group.add(body);
+  const gondola = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.45, 0.55), dark);
+  gondola.position.y = -0.62;
+  group.add(gondola);
+  const fin = new THREE.Mesh(new THREE.ConeGeometry(0.42, 0.8, 4), mat);
+  fin.position.x = 1.75;
+  fin.rotation.z = -Math.PI / 2;
+  group.add(fin);
+  group.scale.setScalar(scale);
+  return group;
+}
+
+function createRing(color, radius) {
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(radius - 0.1, radius + 0.1, 48),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.75, side: THREE.DoubleSide })
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.18;
+  return ring;
+}
+
+function drawTravelLines() {
+  lineGroup.clear();
+  if (!game) return;
+  const current = getLocation(game.currentLocationId);
+  const stats = computeStats();
+  const material = new THREE.LineBasicMaterial({ color: 0xd9a441, transparent: true, opacity: 0.28 });
+  game.locations.forEach(loc => {
+    if (!game.discovered[loc.id] || loc.id === current.id) return;
+    const d = distance2D(current, loc);
+    if (d <= stats.travelRange + 2) {
+      const geo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(current.x, 0.16, current.z),
+        new THREE.Vector3(loc.x, 0.16, loc.z)
+      ]);
+      lineGroup.add(new THREE.Line(geo, material));
+    }
+  });
+}
+
+// =============================================================
+// UI CONTROL AND RENDERING
+// =============================================================
+function startNewGame() {
+  game = createNewState();
+  document.getElementById('titleScreen').classList.add('hidden');
+  showHUD(true);
+  buildWorldMeshes();
+  centerCameraOnCurrent();
+  renderUI();
+  showToast('Campaign started. Brasswake awaits orders.');
+}
+
+function showHUD(show) {
+  ['hudTop','hudLeft','hudRight','hudBottom'].forEach(id => document.getElementById(id).classList.toggle('hidden', !show));
+}
+
+function renderUI() {
+  if (!game) return;
+  updateComputedCaps();
+  document.getElementById('dayLabel').textContent = game.day;
+  document.getElementById('currentLocMini').textContent = getLocation(game.currentLocationId).name;
+  renderResources();
+  renderFortressStats();
+  renderSelectedPanel();
+  renderRightPanel();
+  renderLog();
+  refreshSelectionVisuals();
+  updateSaveStatus();
+}
+
+function renderResources() {
+  const caps = computeCaps();
+  const bar = document.getElementById('resourcesBar');
+  bar.innerHTML = '';
+  Object.keys(RESOURCE_META).forEach(key => {
+    const val = Math.floor(game.resources[key] || 0);
+    const cap = caps[key] || 100;
+    const pct = clamp((val / cap) * 100, 0, 100);
+    const chip = document.createElement('div');
+    chip.className = 'resChip';
+    chip.innerHTML = `<div class="resLabel"><span>${RESOURCE_META[key].label}</span><span>${val}/${cap}</span></div>
+      <div class="resValue">${val}</div><div class="meter"><div class="meterFill" style="width:${pct}%; background:${resourceGradient(key)}"></div></div>`;
+    bar.appendChild(chip);
+  });
+}
+
+function resourceGradient(key) {
+  const map = {
+    fuel: 'linear-gradient(90deg,#7d4e16,#f4cf78)', food: 'linear-gradient(90deg,#2f713e,#7fd184)', steel: 'linear-gradient(90deg,#4d5862,#c7d4dc)', gold: 'linear-gradient(90deg,#96651d,#ffd56a)', population: 'linear-gradient(90deg,#684e9a,#d7c6ff)'
+  };
+  return map[key] || 'linear-gradient(90deg,#777,#fff)';
+}
+
+function renderFortressStats() {
+  const stats = computeStats();
+  const hullPct = Math.round(game.hull) + '/' + stats.maxHull;
+  const entries = [
+    ['Hull', hullPct], ['Armor', stats.armor], ['Weapons', stats.weaponPower], ['Crew Power', stats.crewPower],
+    ['Fuel Cost', stats.fuelCostMod.toFixed(2) + '×'], ['Range', Math.round(stats.travelRange)], ['Sensors', Math.round(stats.sensorRadius)], ['Repair', stats.repairPower]
+  ];
+  document.getElementById('fortressStats').innerHTML = entries.map(([k,v]) => `<div class="statCard"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+}
+
+function renderSelectedPanel() {
+  const panel = document.getElementById('selectedPanel');
+  const loc = getLocation(game.selectedLocationId);
+  const cur = getLocation(game.currentLocationId);
+  if (!loc || !game.discovered[loc.id]) {
+    panel.innerHTML = `<p class="smallNote">Select a discovered sky mark to inspect it.</p>`;
+    return;
+  }
+  const d = distance2D(cur, loc);
+  const stats = computeStats();
+  const cost = travelFuelCost(cur, loc);
+  const statusTags = [];
+  statusTags.push(`<span class="tag blue">${prettyType(loc.type)}</span>`);
+  if (loc.faction) statusTags.push(`<span class="tag" style="border-color:${FACTIONS[loc.faction].accent}; color:${FACTIONS[loc.faction].accent}">${FACTIONS[loc.faction].name}</span>`);
+  if (loc.depleted) statusTags.push(`<span class="tag">Depleted</span>`);
+  if (loc.danger > 0) statusTags.push(`<span class="tag bad">Danger ${loc.danger}</span>`);
+  if (loc.id === cur.id) statusTags.push(`<span class="tag good">Current Position</span>`);
+  if (d > stats.travelRange) statusTags.push(`<span class="tag warn">Beyond Safe Range</span>`);
+
+  const actionHtml = locationActionButtons(loc, cur, cost, d);
+  panel.innerHTML = `
+    <div class="locationName">${loc.name}</div>
+    <div class="locationMeta">${statusTags.join('')}</div>
+    <div class="desc">${loc.desc}</div>
+    <div class="statGrid" style="margin-bottom:8px;">
+      <div class="statCard"><div class="k">Distance</div><div class="v">${Math.round(d)}</div></div>
+      <div class="statCard"><div class="k">Fuel Cost</div><div class="v">${loc.id === cur.id ? 0 : cost}</div></div>
+    </div>
+    ${actionHtml}
+  `;
+}
+
+function locationActionButtons(loc, cur, cost, d) {
+  const atLoc = loc.id === cur.id;
+  if (!atLoc) {
+    const canTravel = game.resources.fuel >= cost && d <= computeStats().travelRange && !isTraveling;
+    return `<div class="buttonStack">
+      <button class="btn primary" ${canTravel ? '' : 'disabled'} onclick="travelToSelected()">Travel to ${shortName(loc.name)} (${cost} Fuel)</button>
+      ${!canTravel ? `<div class="smallNote">${travelBlockReason(cost, d)}</div>` : ''}
+      <button class="btn ghost" onclick="centerCameraOnSelected()">Center Camera</button>
+    </div>`;
+  }
+
+  const buttons = [];
+  if (loc.type === 'skyport' || loc.type === 'settlement') {
+    buttons.push(`<button class="btn green" onclick="tradeFuel()">Buy Fuel: 25 for 30 Gold</button>`);
+    buttons.push(`<button class="btn blue" onclick="repairAtPort()">Repair Hull</button>`);
+    buttons.push(`<button class="btn" onclick="takeSettlementContract()">Take Local Contract</button>`);
+  }
+  if (loc.type === 'salvage') buttons.push(`<button class="btn primary" ${loc.depleted ? 'disabled' : ''} onclick="salvageLocation()">Salvage Wreck Field</button>`);
+  if (loc.type === 'resource') buttons.push(`<button class="btn primary" ${loc.depleted ? 'disabled' : ''} onclick="harvestLocation()">Harvest ${loc.resourceKind || 'Resources'}</button>`);
+  if (loc.type === 'storm') buttons.push(`<button class="btn red" ${loc.depleted ? 'disabled' : ''} onclick="braveStorm()">Brave the Storm</button>`);
+  if (loc.type === 'enemy') buttons.push(`<button class="btn red" ${loc.depleted ? 'disabled' : ''} onclick="startCombatAtLocation()">Engage Hostile Fleet</button>`);
+  if (loc.type === 'ruins') buttons.push(`<button class="btn primary" ${loc.depleted ? 'disabled' : ''} onclick="exploreRuins()">Explore Ruins</button>`);
+  if (loc.type === 'contract') buttons.push(`<button class="btn primary" ${loc.depleted ? 'disabled' : ''} onclick="completeContract()">Answer Contract Beacon</button>`);
+  buttons.push(`<button class="btn ghost" onclick="emergencyDrift()">Emergency Drift/Scavenge</button>`);
+  return `<div class="buttonStack">${buttons.join('')}<div class="smallNote">Emergency drift is a last-resort option for fuel starvation. It damages the fortress but prevents early soft-locks.</div></div>`;
+}
+
+function travelBlockReason(cost, d) {
+  const stats = computeStats();
+  if (isTraveling) return 'The fortress is already moving.';
+  if (d > stats.travelRange) return 'This route lies beyond your current safe travel range. Upgrade Engines or Sensors.';
+  if (game.resources.fuel < cost) return 'Insufficient fuel. Buy fuel at a settlement or use Emergency Drift at your current location.';
+  return 'Cannot travel right now.';
+}
+
+function renderRightPanel() {
+  document.querySelectorAll('.tabBtn').forEach(b => b.classList.remove('active'));
+  const tabId = activeRightTab === 'upgrades' ? 'tabUpgrade' : activeRightTab === 'rooms' ? 'tabRooms' : 'tabFactions';
+  document.getElementById(tabId).classList.add('active');
+
+  if (activeRightTab === 'upgrades') renderUpgradePanel();
+  else if (activeRightTab === 'rooms') renderRoomsPanel();
+  else renderFactionsPanel();
+}
+
+function setRightTab(tab) {
+  activeRightTab = tab;
+  renderRightPanel();
+}
+
+function renderUpgradePanel() {
+  const panel = document.getElementById('rightPanel');
+  panel.innerHTML = `<h2>Fortress Upgrades</h2><p class="smallNote">Upgrades are the main Phase 1 progression track. Every upgrade changes real stats.</p>` +
+    Object.entries(UPGRADE_DATA).map(([key,u]) => {
+      const level = game.upgrades[key] || 0;
+      const maxed = level >= u.max;
+      const cost = upgradeCost(key);
+      const can = !maxed && canAfford(cost);
+      return `<div class="upgradeCard">
+        <div class="cardTitle"><span>${u.name} <span class="tag blue">Lv ${level}/${u.max}</span></span><span class="cost">${maxed ? 'MAX' : formatCost(cost)}</span></div>
+        <div class="smallNote">${u.desc}<br/><strong style="color:var(--brass2)">${u.benefit}</strong></div>
+        <button class="btn primary" style="margin-top:8px; width:100%;" ${can ? '' : 'disabled'} onclick="buyUpgrade('${key}')">${maxed ? 'Fully Upgraded' : 'Upgrade'}</button>
+      </div>`;
+    }).join('');
+}
+
+function renderRoomsPanel() {
+  const panel = document.getElementById('rightPanel');
+  panel.innerHTML = `<h2>Fortress Rooms</h2><p class="smallNote">Starting rooms are already installed. Buildable rooms provide real Phase 1 bonuses.</p>` +
+    Object.entries(ROOM_DATA).map(([key,r]) => {
+      const level = game.rooms[key] || 0;
+      const built = level > 0;
+      const canBuild = !r.base && !built && canAfford(r.cost || {});
+      return `<div class="roomCard">
+        <div class="cardTitle"><span>${r.name} ${built ? '<span class="tag good">Installed</span>' : '<span class="tag">Empty Slot</span>'}</span><span class="cost">${r.base ? 'BASE' : built ? 'BUILT' : formatCost(r.cost)}</span></div>
+        <div class="smallNote">${r.desc}<br/><strong style="color:var(--brass2)">${r.benefit}</strong></div>
+        ${r.base ? '' : `<button class="btn green" style="margin-top:8px; width:100%;" ${canBuild ? '' : 'disabled'} onclick="buildRoom('${key}')">${built ? 'Room Built' : 'Build Room'}</button>`}
+      </div>`;
+    }).join('');
+}
+
+function renderFactionsPanel() {
+  const panel = document.getElementById('rightPanel');
+  panel.innerHTML = `<h2>Kingdom Relations</h2><p class="smallNote">Phase 1 uses readable standing bands. Trade and aid improve relations; raids and attacks worsen them.</p>` +
+    Object.entries(FACTIONS).map(([key,f]) => {
+      const score = game.relations[key] ?? 0;
+      const status = relationStatus(score);
+      return `<div class="factionCard" style="border-color:${f.accent}55">
+        <div class="cardTitle"><span style="color:${f.accent}">${f.name}</span><span class="tag ${status === 'Friendly' ? 'good' : status === 'Hostile' ? 'bad' : 'warn'}">${status} ${score}</span></div>
+        <div class="smallNote">${f.flavor}</div>
+      </div>`;
+    }).join('');
+}
+
+function renderLog() {
+  const log = game.log.slice(-9).reverse();
+  document.getElementById('eventLog').innerHTML = log.map(item => `<div class="logItem"><strong>Day ${item.day}:</strong> ${item.text}</div>`).join('');
+}
+
+function updateSaveStatus() {
+  const has = !!localStorage.getItem(SAVE_KEY);
+  document.getElementById('saveStatus').textContent = has ? 'Save available' : 'No save loaded';
+}
+
+// =============================================================
+// GAMEPLAY: TRAVEL AND EVENTS
+// =============================================================
+function selectLocation(id) {
+  if (!game || !game.discovered[id]) return;
+  game.selectedLocationId = id;
+  renderUI();
+}
+
+function travelToSelected() {
+  const loc = getLocation(game.selectedLocationId);
+  const cur = getLocation(game.currentLocationId);
+  if (!loc || loc.id === cur.id || isTraveling) return;
+  const cost = travelFuelCost(cur, loc);
+  const stats = computeStats();
+  if (distance2D(cur, loc) > stats.travelRange) return showToast('Route exceeds safe range. Upgrade engines or sensors.');
+  if (game.resources.fuel < cost) return showToast('Not enough fuel for that route.');
+
+  spendResources({ fuel: cost });
+  isTraveling = true;
+  addLog(`Brasswake departs ${cur.name} for ${loc.name}. Fuel spent: ${cost}.`);
+  animateFortressTo(loc, () => {
+    game.currentLocationId = loc.id;
+    loc.visited = true;
+    advanceDay(1);
+    revealNearby();
+    isTraveling = false;
+    addLog(`Arrived at ${loc.name}.`);
+    autoLocationPulse(loc);
+    buildWorldMeshes();
+    renderUI();
+  });
+  renderUI();
+}
+
+function autoLocationPulse(loc) {
+  if (loc.type === 'enemy' && !loc.depleted) showToast('Hostile fleet contact. Prepare for battle.');
+  else if (loc.type === 'storm' && !loc.depleted) showToast('Storm route ahead. Braving it may damage the hull.');
+  else if (!loc.depleted) showToast(`${loc.name} reached. Choose an action.`);
+}
+
+function advanceDay(days = 1) {
+  for (let i = 0; i < days; i++) {
+    game.day += 1;
+    dailyProduction();
+    simulateAI();
+    revealNearby();
+  }
+}
+
+function dailyProduction() {
+  const foodUse = Math.max(1, Math.floor(game.resources.population / 34));
+  addResource('food', -foodUse, true);
+  if (game.rooms.hydroponics) addResource('food', 7 + game.rooms.hydroponics * 2, true);
+  if (game.resources.food <= 0) {
+    const loss = 1;
+    addResource('population', -loss, true);
+    addLog('Food stores ran dry. Population morale breaks and one crew family is lost.', 'bad');
+  }
+  if (game.rooms.hospital && game.resources.population < computeCaps().population) {
+    if (Math.random() < 0.35) addResource('population', 1, true);
+  }
+}
+
+function salvageLocation() {
+  const loc = getLocation(game.currentLocationId);
+  if (!loc || loc.type !== 'salvage' || loc.depleted) return;
+  const stats = computeStats();
+  const steel = 18 + Math.floor(Math.random()*18) + (game.rooms.foundry ? 8 : 0);
+  const gold = 10 + Math.floor(Math.random()*18);
+  addResource('steel', steel);
+  addResource('gold', gold);
+  loc.depleted = true;
+  addLog(`Salvage crews stripped ${loc.name}: +${steel} steel, +${gold} gold.`);
+  if (Math.random() < 0.22) {
+    addLog('Freebooter scavengers were drawn by the work lights.', 'bad');
+    startCombat({ name: 'Freebooter Scavenger Wing', faction: 'pirates', danger: 1 + Math.floor(Math.random()*2), sourceLocationId: loc.id, ambush: true });
+  } else {
+    advanceDay(1);
+  }
+  rebuildLocationMesh(loc.id);
+  renderUI();
+}
+
+function harvestLocation() {
+  const loc = getLocation(game.currentLocationId);
+  if (!loc || loc.type !== 'resource' || loc.depleted) return;
+  const kind = loc.resourceKind || 'steel';
+  let amount = 28 + Math.floor(Math.random()*22);
+  if (kind === 'steel' && game.rooms.foundry) amount += 10;
+  addResource(kind, amount);
+  if (Math.random() < 0.35) addResource('gold', 10 + Math.floor(Math.random()*15));
+  loc.depleted = true;
+  addLog(`${loc.name} secured: +${amount} ${kind}.`);
+  improveRelation(loc.faction, 3);
+  advanceDay(1);
+  rebuildLocationMesh(loc.id);
+  renderUI();
+}
+
+function braveStorm() {
+  const loc = getLocation(game.currentLocationId);
+  if (!loc || loc.type !== 'storm' || loc.depleted) return;
+  const stats = computeStats();
+  const damage = Math.max(4, 10 + loc.danger * 7 - stats.armor - Math.floor(stats.sensorRadius / 18));
+  const actual = Math.floor(damage * (0.7 + Math.random()*0.55));
+  game.hull = clamp(game.hull - actual, 1, stats.maxHull);
+  const fuel = 18 + Math.floor(Math.random()*18);
+  const gold = 8 + Math.floor(Math.random()*20);
+  addResource('fuel', fuel);
+  addResource('gold', gold);
+  loc.depleted = true;
+  addLog(`Brasswake punched through ${loc.name}: -${actual} hull, +${fuel} fuel, +${gold} gold in storm salvage.`);
+  advanceDay(1);
+  rebuildLocationMesh(loc.id);
+  renderUI();
+  showToast('Storm survived. Hull damage reported.');
+}
+
+function startCombatAtLocation() {
+  const loc = getLocation(game.currentLocationId);
+  if (!loc || loc.type !== 'enemy' || loc.depleted) return;
+  startCombat({ name: loc.name, faction: loc.faction || 'pirates', danger: loc.danger || 1, sourceLocationId: loc.id });
+}
+
+function exploreRuins() {
+  const loc = getLocation(game.currentLocationId);
+  if (!loc || loc.type !== 'ruins' || loc.depleted) return;
+  const hazard = Math.random() < 0.32 + loc.danger * 0.08;
+  const steel = 10 + Math.floor(Math.random()*18);
+  const gold = 24 + Math.floor(Math.random()*30);
+  addResource('steel', steel);
+  addResource('gold', gold);
+  if (hazard) {
+    const dmg = 8 + Math.floor(Math.random()*12);
+    game.hull = clamp(game.hull - dmg, 1, computeStats().maxHull);
+    addLog(`Ancient machinery awakened in ${loc.name}: +${steel} steel, +${gold} gold, -${dmg} hull.`);
+  } else {
+    addLog(`Ruins explored cleanly at ${loc.name}: +${steel} steel, +${gold} gold.`);
+  }
+  if (Math.random() < 0.48) grantCheapestResearchBoost();
+  loc.depleted = true;
+  advanceDay(1);
+  rebuildLocationMesh(loc.id);
+  renderUI();
+}
+
+function completeContract() {
+  const loc = getLocation(game.currentLocationId);
+  if (!loc || loc.type !== 'contract' || loc.depleted) return;
+  const faction = loc.faction;
+  const rewardGold = 32 + Math.floor(Math.random()*32);
+  const rewardFuel = 10 + Math.floor(Math.random()*18);
+  const risk = Math.random() < 0.25;
+  addResource('gold', rewardGold);
+  addResource('fuel', rewardFuel);
+  improveRelation(faction, 7);
+  loc.depleted = true;
+  if (risk) {
+    const dmg = 6 + Math.floor(Math.random()*9);
+    game.hull = clamp(game.hull - dmg, 1, computeStats().maxHull);
+    addLog(`Contract complete for ${FACTIONS[faction].name}: +${rewardGold} gold, +${rewardFuel} fuel, -${dmg} hull from convoy fire.`);
+  } else {
+    addLog(`Contract complete for ${FACTIONS[faction].name}: +${rewardGold} gold, +${rewardFuel} fuel, relations improved.`);
+  }
+  advanceDay(1);
+  rebuildLocationMesh(loc.id);
+  renderUI();
+}
+
+function tradeFuel() {
+  const loc = getLocation(game.currentLocationId);
+  if (!['skyport','settlement'].includes(loc.type)) return;
+  if (!canAfford({ gold: 30 })) return showToast('Not enough gold.');
+  spendResources({ gold: 30 });
+  addResource('fuel', 25);
+  improveRelation(loc.faction, 1);
+  addLog(`Purchased fuel at ${loc.name}: -30 gold, +25 fuel.`);
+  renderUI();
+}
+
+function repairAtPort() {
+  const loc = getLocation(game.currentLocationId);
+  if (!['skyport','settlement'].includes(loc.type)) return;
+  const stats = computeStats();
+  if (game.hull >= stats.maxHull) return showToast('Hull already at maximum.');
+  const missing = stats.maxHull - game.hull;
+  const repair = Math.min(missing, 35 + stats.repairPower);
+  const steelCost = Math.max(6, Math.ceil(repair * 0.35));
+  const goldCost = Math.max(8, Math.ceil(repair * 0.28));
+  if (!canAfford({ steel: steelCost, gold: goldCost })) return showToast(`Repairs require ${steelCost} steel and ${goldCost} gold.`);
+  spendResources({ steel: steelCost, gold: goldCost });
+  game.hull = clamp(game.hull + repair, 0, stats.maxHull);
+  addLog(`Port repairs complete at ${loc.name}: +${Math.round(repair)} hull.`);
+  renderUI();
+}
+
+function takeSettlementContract() {
+  const loc = getLocation(game.currentLocationId);
+  if (!['skyport','settlement'].includes(loc.type)) return;
+  const roll = Math.random();
+  if (roll < 0.62) {
+    const reward = 20 + Math.floor(Math.random()*22);
+    addResource('gold', reward);
+    improveRelation(loc.faction, 4);
+    addLog(`Local escort contract completed for ${FACTIONS[loc.faction].name}: +${reward} gold, relations improved.`);
+  } else {
+    const dmg = 5 + Math.floor(Math.random()*10);
+    const reward = 24 + Math.floor(Math.random()*28);
+    game.hull = clamp(game.hull - dmg, 1, computeStats().maxHull);
+    addResource('gold', reward);
+    addLog(`Risky patrol paid out but drew cannon fire: +${reward} gold, -${dmg} hull.`);
+  }
+  advanceDay(1);
+  renderUI();
+}
+
+function emergencyDrift() {
+  if (!game) return;
+  const stats = computeStats();
+  const damage = Math.min(game.hull - 1, 10 + Math.floor(Math.random()*9));
+  if (damage <= 0) return showToast('Emergency drift unavailable. Hull is too fragile.');
+  game.hull -= damage;
+  const fuel = 12 + Math.floor(Math.random()*14);
+  addResource('fuel', fuel);
+  if (Math.random() < 0.5) addResource('steel', 5 + Math.floor(Math.random()*8));
+  addLog(`Emergency drift/scavenge ordered: -${damage} hull, +${fuel} fuel. The crew is not pleased.`);
+  advanceDay(1);
+  renderUI();
+}
+
+// =============================================================
+// COMBAT
+// =============================================================
+function startCombat(enemySpec) {
+  const stats = computeStats();
+  const danger = enemySpec.danger || 1;
+  const faction = enemySpec.faction || 'pirates';
+  game.inCombat = true;
+  game.combat = {
+    enemyName: enemySpec.name || 'Hostile Fleet',
+    faction,
+    sourceLocationId: enemySpec.sourceLocationId || null,
+    enemyHullMax: 48 + danger * 24,
+    enemyHull: 48 + danger * 24,
+    enemyArmor: 2 + danger * 2,
+    enemyWeapons: 8 + danger * 5,
+    enemyCrew: 18 + danger * 8,
+    braced: false,
+    round: 1,
+    log: [`${enemySpec.ambush ? 'Ambush!' : 'Contact!'} ${enemySpec.name} closes to firing range.`]
+  };
+  openCombatModal();
+}
+
+function openCombatModal() {
+  const c = game.combat;
+  const stats = computeStats();
+  const hangar = game.rooms.hangar ? true : false;
+  const modal = document.getElementById('modalOverlay');
+  const content = document.getElementById('modalContent');
+  content.innerHTML = `
+    <h1>Battle: ${c.enemyName}</h1>
+    <p class="smallNote">${FACTIONS[c.faction]?.name || 'Unknown'} forces engage the Brasswake. Round ${c.round}. Choose an action.</p>
+    <div class="combatGrid">
+      <div class="combatSide">
+        <h2>Brasswake</h2>
+        ${combatBar('Hull', game.hull, stats.maxHull, 'good')}
+        <div class="statGrid">
+          <div class="statCard"><div class="k">Armor</div><div class="v">${stats.armor}</div></div>
+          <div class="statCard"><div class="k">Weapons</div><div class="v">${stats.weaponPower}</div></div>
+          <div class="statCard"><div class="k">Crew Power</div><div class="v">${stats.crewPower}</div></div>
+          <div class="statCard"><div class="k">Repair</div><div class="v">${stats.repairPower}</div></div>
+        </div>
+      </div>
+      <div class="combatSide">
+        <h2>${c.enemyName}</h2>
+        ${combatBar('Hull', c.enemyHull, c.enemyHullMax, '')}
+        <div class="statGrid">
+          <div class="statCard"><div class="k">Armor</div><div class="v">${c.enemyArmor}</div></div>
+          <div class="statCard"><div class="k">Weapons</div><div class="v">${c.enemyWeapons}</div></div>
+          <div class="statCard"><div class="k">Crew</div><div class="v">${c.enemyCrew}</div></div>
+          <div class="statCard"><div class="k">Faction</div><div class="v" style="font-size:13px;color:${FACTIONS[c.faction]?.accent || '#fff'}">${FACTIONS[c.faction]?.name || c.faction}</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="buttonGrid">
+      <button class="btn primary" onclick="combatAction('fire')">Fire Main Guns</button>
+      <button class="btn blue" ${hangar ? '' : 'disabled'} onclick="combatAction('skiffs')">Launch Skiffs</button>
+      <button class="btn green" onclick="combatAction('brace')">Brace Armor</button>
+      <button class="btn" ${canAfford({ steel: 8 }) ? '' : 'disabled'} onclick="combatAction('repair')">Emergency Repairs</button>
+      <button class="btn ghost" onclick="combatAction('retreat')">Attempt Retreat</button>
+    </div>
+    <div style="margin-top:12px; max-height:150px; overflow:auto;">
+      ${c.log.slice(-8).reverse().map(x => `<div class="logItem">${x}</div>`).join('')}
+    </div>
+  `;
+  modal.classList.add('active');
+}
+
+function combatBar(label, val, max, cls) {
+  const pct = clamp((val / max) * 100, 0, 100);
+  return `<div class="barBlock"><div class="barTop"><span>${label}</span><span>${Math.ceil(val)}/${max}</span></div><div class="bar"><div class="barFill ${cls}" style="width:${pct}%"></div></div></div>`;
+}
+
+function combatAction(action) {
+  const c = game.combat;
+  const stats = computeStats();
+  if (!c) return;
+  let playerActed = true;
+
+  if (action === 'fire') {
+    const dmg = Math.max(4, Math.floor(stats.weaponPower + Math.random()*10 - c.enemyArmor * 0.6));
+    c.enemyHull = Math.max(0, c.enemyHull - dmg);
+    c.log.push(`Main guns hit for ${dmg} damage.`);
+  } else if (action === 'skiffs') {
+    if (!game.rooms.hangar) return;
+    const dmg = Math.max(6, Math.floor(12 + stats.hangarPower + Math.random()*12 - c.enemyArmor * 0.4));
+    c.enemyHull = Math.max(0, c.enemyHull - dmg);
+    const crewRisk = Math.random() < 0.28 ? 1 : 0;
+    if (crewRisk) addResource('population', -1, true);
+    c.log.push(`Skiff wing rakes the enemy for ${dmg} damage${crewRisk ? ', losing one crew member' : ''}.`);
+  } else if (action === 'brace') {
+    c.braced = true;
+    c.log.push('Armor teams brace the outer plates. Incoming damage reduced this round.');
+  } else if (action === 'repair') {
+    if (!canAfford({ steel: 8 })) return;
+    spendResources({ steel: 8 });
+    const heal = Math.min(stats.maxHull - game.hull, 13 + stats.repairPower + Math.floor(Math.random()*8));
+    game.hull += heal;
+    c.log.push(`Emergency crews patch ${Math.round(heal)} hull using 8 steel.`);
+  } else if (action === 'retreat') {
+    const chance = 0.52 + game.upgrades.engines * 0.1 + (c.enemyHull < c.enemyHullMax * 0.35 ? 0.15 : 0);
+    if (Math.random() < chance) {
+      c.log.push('Retreat successful. The fortress breaks cloud cover and disengages.');
+      const loss = Math.min(game.resources.gold, 10 + Math.floor(Math.random()*18));
+      addResource('gold', -loss, true);
+      endCombat(false, true);
+      return;
+    } else {
+      c.log.push('Retreat failed. Enemy gunners maintain contact.');
+    }
+  }
+
+  if (c.enemyHull <= 0) {
+    endCombat(true, false);
+    return;
+  }
+
+  if (playerActed) enemyCombatTurn();
+  if (game.hull <= 0) {
+    endCombat(false, false, true);
+    return;
+  }
+  c.round += 1;
+  openCombatModal();
+  renderUI();
+}
+
+function enemyCombatTurn() {
+  const c = game.combat;
+  const stats = computeStats();
+  let raw = c.enemyWeapons + Math.random()*9 - stats.armor * 0.75;
+  if (c.braced) raw *= 0.48;
+  const dmg = Math.max(2, Math.floor(raw));
+  game.hull = Math.max(0, game.hull - dmg);
+  const crewLossChance = c.braced ? 0.06 : 0.14 + c.enemyWeapons / 140;
+  let crewLoss = 0;
+  if (Math.random() < crewLossChance) crewLoss = game.rooms.hospital ? 1 : 1 + (Math.random() < 0.25 ? 1 : 0);
+  if (crewLoss) addResource('population', -crewLoss, true);
+  c.log.push(`${c.enemyName} returns fire: -${dmg} hull${crewLoss ? `, -${crewLoss} population` : ''}.`);
+  c.braced = false;
+}
+
+function endCombat(victory, retreated, destroyed = false) {
+  const c = game.combat;
+  const modal = document.getElementById('modalOverlay');
+  if (victory) {
+    const steel = 20 + Math.floor(Math.random()*18) + (game.rooms.foundry ? 8 : 0);
+    const gold = 18 + Math.floor(Math.random()*22);
+    const fuel = 8 + Math.floor(Math.random()*18);
+    addResource('steel', steel);
+    addResource('gold', gold);
+    addResource('fuel', fuel);
+    improveRelation(c.faction, c.faction === 'pirates' ? -2 : -8);
+    if (c.faction === 'pirates') {
+      Object.keys(game.relations).forEach(f => { if (f !== 'pirates') improveRelation(f, 1, true); });
+    }
+    if (c.sourceLocationId) {
+      const loc = getLocation(c.sourceLocationId);
+      if (loc) { loc.depleted = true; rebuildLocationMesh(loc.id); }
+    }
+    addLog(`Victory over ${c.enemyName}: +${steel} steel, +${gold} gold, +${fuel} fuel.`);
+    showResultModal('Victory in the Clouds', `The enemy fleet breaks apart under Brasswake's guns. Salvage crews recover ${steel} steel, ${gold} gold, and ${fuel} fuel.`, 'Continue', closeModal);
+  } else if (retreated) {
+    addLog(`Brasswake retreated from ${c.enemyName}. Repairs recommended.`, 'warn');
+    showResultModal('Retreat Successful', 'The fortress escaped into cloud cover. Some gold and momentum were lost, but the campaign continues.', 'Continue', closeModal);
+  } else if (destroyed) {
+    game.hull = 1;
+    const lossGold = Math.min(game.resources.gold, 40);
+    const lossSteel = Math.min(game.resources.steel, 25);
+    addResource('gold', -lossGold, true);
+    addResource('steel', -lossSteel, true);
+    addResource('population', -Math.min(game.resources.population - 1, 5), true);
+    addLog(`Near catastrophe against ${c.enemyName}. Brasswake emergency-crashed but survived at 1 hull.`, 'bad');
+    showResultModal('Catastrophic Defeat', 'The fortress was nearly destroyed. Emergency ballast kept Brasswake aloft at 1 hull, but resources and crew were lost. Reach a settlement and repair immediately.', 'Continue', closeModal);
+  } else {
+    addLog(`Defeat against ${c.enemyName}. The fortress limps away heavily damaged.`, 'bad');
+    showResultModal('Defeat', 'The fortress disengages under smoke and broken armor. Repair before taking another fight.', 'Continue', closeModal);
+  }
+  game.inCombat = false;
+  game.combat = null;
+  advanceDay(1);
+  modal.classList.add('active');
+  buildWorldMeshes();
+  renderUI();
+}
+
+function showResultModal(title, text, button, callback) {
+  const content = document.getElementById('modalContent');
+  content.innerHTML = `<h1>${title}</h1><p>${text}</p><button class="btn primary" onclick="closeModal()">${button}</button>`;
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+  renderUI();
+}
+
+// =============================================================
+// UPGRADES AND ROOMS
+// =============================================================
+function buyUpgrade(key) {
+  const data = UPGRADE_DATA[key];
+  if (!data) return;
+  const level = game.upgrades[key] || 0;
+  if (level >= data.max) return;
+  const cost = upgradeCost(key);
+  if (!canAfford(cost)) return showToast('Insufficient resources.');
+  spendResources(cost);
+  game.upgrades[key] = level + 1;
+  if (key === 'armor') game.hull = Math.min(computeStats().maxHull, game.hull + 18);
+  addLog(`${data.name} upgraded to level ${game.upgrades[key]}.`);
+  showToast(`${data.name} upgraded.`);
+  revealNearby();
+  buildWorldMeshes();
+  renderUI();
+}
+
+function buildRoom(key) {
+  const room = ROOM_DATA[key];
+  if (!room || room.base || game.rooms[key]) return;
+  if (!canAfford(room.cost)) return showToast('Insufficient resources.');
+  spendResources(room.cost);
+  game.rooms[key] = 1;
+  addLog(`${room.name} constructed aboard Brasswake. ${room.benefit}.`);
+  showToast(`${room.name} built.`);
+  revealNearby();
+  buildWorldMeshes();
+  renderUI();
+}
+
+function upgradeCost(key) {
+  const u = UPGRADE_DATA[key];
+  const level = game?.upgrades?.[key] || 0;
+  const mult = 1 + level * 0.72;
+  const cost = {};
+  Object.entries(u.baseCost).forEach(([res, val]) => cost[res] = Math.ceil(val * mult));
+  return cost;
+}
+
+function grantCheapestResearchBoost() {
+  const possible = Object.keys(UPGRADE_DATA).filter(k => game.upgrades[k] < UPGRADE_DATA[k].max);
+  if (!possible.length) return;
+  possible.sort((a,b) => Object.values(upgradeCost(a)).reduce((x,y)=>x+y,0) - Object.values(upgradeCost(b)).reduce((x,y)=>x+y,0));
+  const key = possible[0];
+  game.upgrades[key] += 1;
+  addLog(`Ancient plans recovered. ${UPGRADE_DATA[key].name} improves to level ${game.upgrades[key]} without cost.`);
+}
+
+// =============================================================
+// AI / WORLD SIMULATION
+// =============================================================
+function simulateAI() {
+  if (!game) return;
+  const rng = Math.random;
+  game.aiFleets.forEach(fleet => {
+    const current = getLocation(fleet.locationId);
+    const candidates = game.locations
+      .filter(l => l.id !== current.id && distance2D(current, l) < 34)
+      .sort((a,b) => distance2D(current,a) - distance2D(current,b));
+    if (candidates.length && rng() < 0.68) {
+      const next = candidates[Math.floor(rng() * Math.min(5, candidates.length))];
+      fleet.locationId = next.id;
+      if (rng() < 0.3 && ['resource','settlement','skyport'].includes(next.type)) {
+        next.claimedBy = fleet.faction;
+      }
+    }
+    if (rng() < 0.08) fleet.strength = clamp(fleet.strength + (rng() < 0.58 ? 1 : -1), 1, 5);
+  });
+
+  if (Math.random() < 0.42) {
+    const fleet = game.aiFleets[Math.floor(Math.random() * game.aiFleets.length)];
+    const faction = FACTIONS[fleet.faction];
+    const phrases = {
+      sky: 'Sky Admiral patrol secured a storm route.',
+      cinder: 'Cinder Khan raiders attacked a trade convoy.',
+      priest: 'Iron Priest engineers fortified a skyport.',
+      dusk: 'Dusk Corsair privateers vanished into cloud cover.',
+      archmage: 'Archmage engines bent moonlight over a forbidden ruin.',
+      thorn: 'Thorn Regent vine-rigs claimed a resource shelf.',
+      frost: 'Frost Matriarch warships crossed a white squall intact.',
+      pirates: 'Freebooter clans looted a lonely beacon station.'
+    };
+    addLog(phrases[fleet.faction] || `${faction.name} fleet activity reported.`);
+  }
+}
+
+// =============================================================
+// SAVE / LOAD
+// =============================================================
+function saveGame() {
+  if (!game) return showToast('No campaign to save.');
+  game.version = VERSION;
+  const payload = JSON.stringify(game);
+  localStorage.setItem(SAVE_KEY, payload);
+  addLog('Campaign saved to local storage.');
+  showToast('Campaign saved.');
+  updateSaveStatus();
+  document.getElementById('loadTitleBtn').disabled = false;
+  renderLog();
+}
+
+function loadGame(fromTitle = false) {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) return showToast('No save found.');
+  try {
+    const loaded = JSON.parse(raw);
+    if (!loaded || !loaded.version) throw new Error('Missing save metadata.');
+    if (loaded.version !== VERSION) {
+      showToast('Save version mismatch. Attempting safe load.');
+    }
+    game = loaded;
+    normalizeLoadedGame();
+    document.getElementById('titleScreen').classList.add('hidden');
+    showHUD(true);
+    revealNearby();
+    buildWorldMeshes();
+    centerCameraOnCurrent();
+    renderUI();
+    addLog('Campaign loaded from local storage.');
+    showToast('Campaign loaded.');
+  } catch (err) {
+    console.error(err);
+    showToast('Save could not be loaded. It may be incompatible or corrupted.');
+  }
+}
+
+function normalizeLoadedGame() {
+  game.version = game.version || VERSION;
+  game.flags = game.flags || {};
+  game.log = game.log || [];
+  game.relations = game.relations || {};
+  Object.keys(FACTIONS).forEach(k => { if (typeof game.relations[k] !== 'number') game.relations[k] = k === 'pirates' ? -65 : 0; });
+  game.rooms = Object.assign({ bridge: 1, engine: 1, barracks: 1, workshop: 1, storage: 1, hydroponics: 0, foundry: 0, radar: 0, hangar: 0, hospital: 0 }, game.rooms || {});
+  game.upgrades = Object.assign({ engines: 0, armor: 0, weapons: 0, storage: 0, sensors: 0, repairs: 0, hangarCap: 0 }, game.upgrades || {});
+  game.discovered = game.discovered || { [game.currentLocationId || 'loc_home']: true };
+  game.locations.forEach(l => { l.discovered = !!game.discovered[l.id]; });
+  game.hull = Math.max(1, game.hull || 80);
+}
+
+function confirmReset() {
+  showModal(`<h1>Reset Campaign?</h1><p>This clears the saved campaign for ${VERSION}.</p><div class="buttonGrid"><button class="btn red" onclick="resetSave()">Reset Save</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
+}
+
+function resetSave() {
+  localStorage.removeItem(SAVE_KEY);
+  closeModal();
+  showToast('Save reset.');
+  document.getElementById('loadTitleBtn').disabled = true;
+  updateSaveStatus();
+}
+
+// =============================================================
+// UTILITY: STATS, RESOURCES, RELATIONS
+// =============================================================
+function computeCaps() {
+  const storageLevel = game?.upgrades?.storage || 0;
+  const storageRoom = game?.rooms?.storage || 1;
+  return {
+    fuel: 120 + storageLevel * 40 + storageRoom * 12,
+    food: 130 + storageLevel * 42 + (game?.rooms?.hydroponics ? 20 : 0),
+    steel: 135 + storageLevel * 48 + storageRoom * 18,
+    gold: 260 + storageLevel * 70,
+    population: 80 + (game?.rooms?.barracks || 0) * 15 + (game?.rooms?.hospital ? 8 : 0)
+  };
+}
+
+function computeStats(state = game) {
+  const up = state?.upgrades || {};
+  const rooms = state?.rooms || {};
+  const pop = state?.resources?.population || 1;
+  return {
+    maxHull: 100 + (up.armor || 0) * 24 + (rooms.foundry ? 8 : 0),
+    armor: 5 + (up.armor || 0) * 4 + (rooms.foundry ? 2 : 0),
+    weaponPower: 14 + (up.weapons || 0) * 8 + (rooms.hangar ? 4 : 0),
+    crewPower: Math.floor(pop / 5) + (rooms.barracks || 0) * 4,
+    fuelCostMod: Math.max(0.55, 1 - (up.engines || 0) * 0.12 - (rooms.engine ? 0.04 : 0)),
+    travelRange: 32 + (up.engines || 0) * 13 + (up.sensors || 0) * 3,
+    sensorRadius: 28 + (up.sensors || 0) * 16 + (rooms.radar ? 16 : 0),
+    repairPower: 8 + (up.repairs || 0) * 7 + (rooms.workshop ? 4 : 0) + (rooms.hospital ? 3 : 0),
+    hangarPower: (rooms.hangar ? 8 : 0) + (up.hangarCap || 0) * 7
+  };
+}
+
+function updateComputedCaps() {
+  const caps = computeCaps();
+  Object.keys(caps).forEach(k => { game.resources[k] = clamp(game.resources[k] || 0, 0, caps[k]); });
+  game.hull = clamp(game.hull, 1, computeStats().maxHull);
+}
+
+function travelFuelCost(a, b) {
+  const d = distance2D(a, b);
+  const stats = computeStats();
+  let cost = Math.ceil((5 + d * 0.43) * stats.fuelCostMod);
+  if (b.type === 'storm') cost += 4 + b.danger * 2;
+  return Math.max(2, cost);
+}
+
+function addResource(key, amount, silent = false) {
+  const caps = computeCaps();
+  game.resources[key] = clamp((game.resources[key] || 0) + amount, 0, caps[key] || 9999);
+  return game.resources[key];
+}
+
+function spendResources(cost) {
+  Object.entries(cost || {}).forEach(([k,v]) => addResource(k, -v, true));
+}
+
+function canAfford(cost) {
+  return Object.entries(cost || {}).every(([k,v]) => (game.resources[k] || 0) >= v);
+}
+
+function formatCost(cost) {
+  if (!cost) return '';
+  return Object.entries(cost).map(([k,v]) => `${v} ${k}`).join(' · ');
+}
+
+function improveRelation(faction, amount, silent = false) {
+  if (!faction || typeof game.relations[faction] !== 'number') return;
+  game.relations[faction] = clamp(game.relations[faction] + amount, -100, 100);
+}
+
+function relationStatus(score) {
+  if (score >= 25) return 'Friendly';
+  if (score <= -25) return 'Hostile';
+  return 'Neutral';
+}
+
+function addLog(text) {
+  if (!game) return;
+  game.log.push({ day: game.day, text });
+  if (game.log.length > 80) game.log.shift();
+}
+
+function getLocation(id, state = game) {
+  return state?.locations?.find(l => l.id === id);
+}
+
+function prettyType(type) {
+  return ({ skyport:'Skyport', settlement:'Settlement', salvage:'Salvage', resource:'Resource', storm:'Storm', enemy:'Enemy Fleet', ruins:'Ruins', contract:'Contract' })[type] || type;
+}
+
+function shortName(name) {
+  return name.length > 22 ? name.slice(0, 20) + '…' : name;
+}
+
+// =============================================================
+// MODALS AND MESSAGES
+// =============================================================
+function showToast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.classList.add('active');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('active'), 2400);
+}
+
+function showModal(html) {
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function showHelp() {
+  showModal(`<h1>Captain's Orders</h1>
+    <p>The first playable loop is simple:</p>
+    <ol>
+      <li>Select a discovered location on the 3D map.</li>
+      <li>Travel there if you have enough fuel and range.</li>
+      <li>Resolve the local event: salvage, harvest, trade, storm, contract, ruin, or combat.</li>
+      <li>Use steel and gold to build rooms or buy upgrades.</li>
+      <li>Return to settlements to refuel and repair.</li>
+    </ol>
+    <p>Mouse drag pans the camera. Mouse wheel zooms. Click glowing nodes to inspect them.</p>
+    <button class="btn primary" onclick="closeModal()">Understood</button>`);
+}
+
+function showBuildNotes() {
+  showModal(`<h1>Build Notes — ${VERSION}</h1>
+    <p><strong>Implemented:</strong> Three.js strategic map, procedural locations, travel, fuel costs, salvage, harvesting, trade, repairs, contracts, storm hazards, turn-based combat, rooms, upgrades, faction standing, AI world events, save/load, and polished Iron Kingdoms UI.</p>
+    <p><strong>Known limitations:</strong> Room placement is simplified to build slots, combat is panel-based rather than full spatial battles, diplomacy is numeric/simple, AI is lightweight simulated movement/events, and audio is hook-only without external assets.</p>
+    <p><strong>Phase 2 hooks:</strong> deeper room placement, officers, crew stories, boarding missions, research trees, faction campaigns, fortress skins, damage simulation, custom escorts, cloud saves, and multiplayer sharing.</p>
+    <button class="btn primary" onclick="closeModal()">Close</button>`);
+}
+
+// =============================================================
+// THREE.JS INTERACTION AND ANIMATION
+// =============================================================
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock ? clock.getDelta() : 0.016;
+  if (game) {
+    const elapsed = performance.now() * 0.001;
+    locationMeshes.forEach((obj, id) => {
+      const loc = getLocation(id);
+      obj.rotation.y += dt * (loc?.type === 'storm' ? 0.28 : 0.08);
+      obj.position.y = Math.sin(elapsed * 1.4 + id.length) * 0.08;
+    });
+    stormMeshes.forEach((obj, idx) => {
+      obj.scale.setScalar(1 + Math.sin(elapsed * 1.1 + idx) * 0.04);
+    });
+    aiFleetMeshes.forEach((obj, id) => {
+      obj.position.y += Math.sin(elapsed * 2.0 + id.length) * 0.002;
+      obj.rotation.y = Math.sin(elapsed * 0.5 + id.length) * 0.25;
+    });
+    if (fortressGroup.visible) {
+      fortressGroup.position.y = 4.8 + Math.sin(elapsed * 1.6) * 0.18;
+      fortressGroup.rotation.y = Math.sin(elapsed * 0.6) * 0.08;
+    }
+    if (selectionRing.visible) selectionRing.rotation.z += dt * 0.65;
+    if (hoverRing.visible) hoverRing.rotation.z -= dt * 0.9;
+  }
+  updateCamera();
+  if (renderer && scene && camera) renderer.render(scene, camera);
+}
+
+function updateCamera() {
+  const cs = cameraState;
+  const x = cs.targetX + Math.sin(cs.yaw) * cs.distance * Math.cos(cs.pitch);
+  const z = cs.targetZ + Math.cos(cs.yaw) * cs.distance * Math.cos(cs.pitch);
+  const y = Math.sin(cs.pitch) * cs.distance;
+  camera.position.set(x, y, z);
+  camera.lookAt(cs.targetX, 0, cs.targetZ);
+}
+
+function onResize() {
+  if (!camera || !renderer) return;
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function onPointerMove(e) {
+  if (!renderer) return;
+  if (cameraState.dragging) {
+    const dx = e.clientX - cameraState.lastX;
+    const dy = e.clientY - cameraState.lastY;
+    cameraState.targetX -= dx * 0.075;
+    cameraState.targetZ -= dy * 0.075;
+    cameraState.lastX = e.clientX;
+    cameraState.lastY = e.clientY;
+    return;
+  }
+  const id = pickLocation(e);
+  hoverLocationId = id;
+  if (id && game?.discovered[id]) {
+    const loc = getLocation(id);
+    hoverRing.position.set(loc.x, 0.2, loc.z);
+    hoverRing.visible = true;
+    document.body.style.cursor = 'pointer';
+  } else {
+    hoverRing.visible = false;
+    document.body.style.cursor = 'default';
+  }
+}
+
+function onPointerDown(e) {
+  if (e.button !== 0) return;
+  cameraState.dragging = true;
+  cameraState.lastX = e.clientX;
+  cameraState.lastY = e.clientY;
+}
+
+function onPointerUp() {
+  setTimeout(() => { cameraState.dragging = false; }, 0);
+}
+
+function onCanvasClick(e) {
+  if (Math.abs((e.clientX || 0) - cameraState.lastX) > 5 || Math.abs((e.clientY || 0) - cameraState.lastY) > 5) return;
+  const id = pickLocation(e);
+  if (id) selectLocation(id);
+}
+
+function onWheel(e) {
+  e.preventDefault();
+  cameraState.distance = clamp(cameraState.distance + e.deltaY * 0.06, 45, 180);
+}
+
+function onKeyDown(e) {
+  if (!game) return;
+  const step = 3.5;
+  if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'w') cameraState.targetZ -= step;
+  if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') cameraState.targetZ += step;
+  if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') cameraState.targetX -= step;
+  if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') cameraState.targetX += step;
+}
+
+function pickLocation(e) {
+  if (!game || !raycaster || !camera) return null;
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(Array.from(locationMeshes.values()), true);
+  if (!intersects.length) return null;
+  let obj = intersects[0].object;
+  while (obj && !obj.userData.locationId) obj = obj.parent;
+  return obj?.userData?.locationId || null;
+}
+
+function updateFortressPosition(animateMove = false) {
+  if (!game || !fortressGroup) return;
+  const loc = getLocation(game.currentLocationId);
+  fortressGroup.position.set(loc.x, 4.8, loc.z);
+  fortressGroup.visible = true;
+}
+
+function animateFortressTo(loc, done) {
+  const start = fortressGroup.position.clone();
+  const end = new THREE.Vector3(loc.x, 4.8, loc.z);
+  const startTime = performance.now();
+  const duration = 900;
+  function step() {
+    const t = clamp((performance.now() - startTime) / duration, 0, 1);
+    const eased = t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2)/2;
+    fortressGroup.position.lerpVectors(start, end, eased);
+    cameraState.targetX = fortressGroup.position.x;
+    cameraState.targetZ = fortressGroup.position.z;
+    if (t < 1) requestAnimationFrame(step);
+    else done && done();
+  }
+  step();
+}
+
+function refreshSelectionVisuals() {
+  if (!game || !selectionRing) return;
+  const loc = getLocation(game.selectedLocationId);
+  if (loc && game.discovered[loc.id]) {
+    selectionRing.position.set(loc.x, 0.24, loc.z);
+    selectionRing.visible = true;
+  } else {
+    selectionRing.visible = false;
+  }
+  locationMeshes.forEach((mesh, id) => {
+    const loc = getLocation(id);
+    mesh.visible = !!game.discovered[id];
+    mesh.traverse(child => {
+      if (child.material && child.material.opacity !== undefined && loc?.depleted) child.material.opacity = Math.min(child.material.opacity, 0.48);
+    });
+  });
+  aiFleetMeshes.forEach((mesh, id) => {
+    const fleet = game.aiFleets.find(f => f.id === id);
+    if (!fleet) return;
+    const loc = getLocation(fleet.locationId);
+    mesh.visible = !!game.discovered[loc.id];
+    mesh.position.x = loc.x + 1.8;
+    mesh.position.z = loc.z - 1.6;
+  });
+}
+
+function centerCameraOnCurrent() {
+  if (!game) return;
+  const loc = getLocation(game.currentLocationId);
+  cameraState.targetX = loc.x;
+  cameraState.targetZ = loc.z;
+}
+
+function centerCameraOnSelected() {
+  if (!game) return;
+  const loc = getLocation(game.selectedLocationId);
+  if (!loc) return;
+  cameraState.targetX = loc.x;
+  cameraState.targetZ = loc.z;
+}
+
+function rebuildLocationMesh(id) {
+  const loc = getLocation(id);
+  const old = locationMeshes.get(id);
+  if (old) locationGroup.remove(old);
+  const obj = createLocationMarker(loc);
+  obj.position.set(loc.x, 0, loc.z);
+  obj.userData.locationId = loc.id;
+  obj.visible = !!game.discovered[loc.id];
+  locationGroup.add(obj);
+  locationMeshes.set(id, obj);
+}
+</script>
+</body>
+</html>
