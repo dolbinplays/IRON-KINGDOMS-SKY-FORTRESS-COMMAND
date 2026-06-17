@@ -1,41 +1,41 @@
-IRON KINGDOMS: SKY FORTRESS COMMAND
-Version: v0.26.06.17.0001
+IRON KINGDOMS: SKY FORTRESS COMMAND — v0.26.06.17.0600
+
+Focused gate-locked route planning, tutorial guidance, and Storm Keel visibility patch.
 
 Package contents:
-- index.html
-- README_BUILD_NOTES.txt
+- index.html — single-file browser build using Three.js CDN
+- README_BUILD_NOTES.txt — this file
 
-How to run:
-Open index.html in a modern browser with an internet connection. This prototype loads Three.js from the jsDelivr CDN.
+Version consistency:
+- Displayed version label: v0.26.06.17.0600
+- VERSION constant: v0.26.06.17.0600
+- Save key metadata: IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0600
+- Package/folder name: IRON_KINGDOMS_SKY_FORTRESS_COMMAND_v0.26.06.17.0600
 
-Implemented systems:
-- Single-file HTML/CSS/JavaScript browser build
-- Three.js stylized 3D strategic map
-- Procedural world with skyports, settlements, salvage fields, resources, storms, ruins, contracts, and enemy fleets
-- Iron Kingdoms faction integration and standing bands
-- Click-to-select world nodes and fuel-consuming travel
-- Fortress stats, resources, rooms, and upgrades
-- Resource loop: salvage, harvest, trade, repair, contracts, ruins, storm rewards, emergency drift
-- Turn-based fortress combat with main guns, skiffs, bracing, emergency repairs, retreat, victory rewards, and defeat consequences
-- AI/world simulation events and simple faction fleet movement
-- LocalStorage save/load/reset with version metadata
-- Title screen, event log, command panels, build notes, help modal, and polished Iron Kingdoms UI styling
+Summary of changes:
+- Added first multi-hop Current Gate route planner using the existing route graph.
+- Destinations without direct Current routes can now show reachable multi-hop paths, next hop, total fuel, total days, tolls, highest risk, and route path text.
+- Added Plot Route / Select Next Hop behavior instead of restoring direct overworld travel.
+- Improved No Charted Current messaging for truly unreachable destinations.
+- Added route visual hierarchy: current-adjacent routes are brighter, selected/plotted paths are highlighted, unrelated routes are dimmer.
+- Added map/tooltip feedback for direct, multi-hop reachable, and unreachable Current destinations.
+- Added combat tutorial guidance that can plot a route to the nearest reachable Danger 1 enemy.
+- Hardened selected-location panel scroll reset after selection, travel, events, and modal close.
+- Added a Tech tab and made Storm Keel more visible as locked mid/late travel technology.
+- Added Storm Keel Core as a future-content requirement so Storm Keel remains a major later milestone.
+- Tuned upgrade panel emphasis to recommend one upgrade instead of making every affordable refit feel equally urgent.
 
 Known limitations:
-- Room placement is simplified to build slots, not a spatial interior grid yet
-- Combat is a tactical panel with 3D context rather than a full spatial Stratosphere-style battlefield
-- Diplomacy is intentionally simple for Phase 1
-- AI faction behavior is lightweight and event-driven
-- Audio is hook-only/no external assets
-- Three.js requires internet access for the CDN in this version
+- The multi-hop route planner selects the next hop; it does not auto-travel the full route yet.
+- Storm Keel temporary current creation is still not implemented.
+- Storm Keel Core recovery is marked as future content.
+- Faction permits/blockades remain warning/event based rather than full diplomacy.
+- Combat remains modal/panel-based rather than tactical 3D.
+- Fortress rooms are still list-based, not hex-module placement.
+- Audio/music is still hook-only with no external assets bundled.
 
-Suggested Phase 2:
-- Add internal fortress grid placement and room adjacency bonuses
-- Add officer/crew portraits and crew personality events
-- Add boarding missions and wreck interiors
-- Add faction-specific fortress skins and campaign starts
-- Expand diplomacy, treaty, raid, and reputation systems
-- Add deeper research tree and unique tech unlocks
-- Add escort/custom fleet craft
-- Add music and SFX asset integration
-- Add optional cloud save or asynchronous multiplayer sharing
+Recommended next patch:
+- Route planner polish and route event expansion, or
+- deeper faction gate diplomacy/permits/blockades, or
+- Storm Keel Core/research progression, or
+- fortress hex module builder foundation.

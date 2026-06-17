@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.17.0500</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.17.0600</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <style>
     :root {
@@ -345,7 +345,7 @@
 
     .tabs {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 6px;
       margin-bottom: 8px;
     }
@@ -792,6 +792,58 @@
       line-height: 1.32;
     }
 
+
+    .routePlannerBox {
+      border: 1px solid rgba(128,185,255,0.68);
+      background: linear-gradient(180deg, rgba(34,74,112,0.22), rgba(0,0,0,0.18));
+      color: #d9ecff;
+      border-radius: 10px;
+      padding: 8px;
+      margin: 8px 0;
+      font-size: 12px;
+      line-height: 1.32;
+      box-shadow: inset 0 0 0 1px rgba(128,185,255,0.08);
+    }
+    .routePlannerBox strong { color: #b9ddff; }
+    .routePathLine {
+      color: #fff4c9;
+      font-size: 11px;
+      line-height: 1.3;
+      margin-top: 5px;
+    }
+    .routeSummaryGrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 5px;
+      margin: 7px 0;
+    }
+    .routeSummaryGrid div {
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.18);
+      border-radius: 7px;
+      padding: 5px;
+      font-size: 11px;
+    }
+    .techTeaserCard {
+      border: 1px solid rgba(181,134,255,0.46);
+      background: rgba(81,55,124,0.16);
+      border-radius: 10px;
+      padding: 8px;
+      margin: 8px 0 10px;
+      font-size: 12px;
+      color: #eadcff;
+    }
+    .recommendedUpgradeBox {
+      border: 1px solid rgba(127,209,132,0.58);
+      background: rgba(127,209,132,0.10);
+      border-radius: 10px;
+      padding: 8px;
+      margin: 8px 0;
+      color: #dcffdf;
+      font-size: 12px;
+      line-height: 1.32;
+    }
+
     .stormKeelCard {
       border: 1px solid rgba(181,134,255,0.42);
       background: linear-gradient(180deg, rgba(68,48,94,0.25), rgba(0,0,0,0.20));
@@ -947,7 +999,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.17.0500</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.17.0600</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -970,6 +1022,7 @@
         <button class="tabBtn active" id="tabUpgrade" onclick="setRightTab('upgrades')">Upgrades</button>
         <button class="tabBtn" id="tabRooms" onclick="setRightTab('rooms')">Rooms</button>
         <button class="tabBtn" id="tabFactions" onclick="setRightTab('factions')">Factions</button>
+        <button class="tabBtn" id="tabTech" onclick="setRightTab('tech')">Tech</button>
       </div>
       <div id="rightPanel" class="panelScroll"></div>
     </div>
@@ -1018,7 +1071,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.17.0500 · Single-file HTML · Three.js CDN build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.17.0600 · Single-file HTML · Three.js CDN build</p>
     </div>
   </div>
 </div>
@@ -1029,8 +1082,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.17.0500';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0500';
+const VERSION = 'v0.26.06.17.0600';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0600';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -1286,6 +1339,7 @@ function createNewState() {
     aiFleets: [],
     currentLocationId: 'loc_home',
     selectedLocationId: 'loc_home',
+    plottedRoute: null,
     discovered: { loc_home: true },
     relations: {},
     log: [],
@@ -1306,6 +1360,7 @@ function createNewState() {
       firstFieldEventComplete: false,
       stormRouteExplored: false,
       gateContractComplete: false,
+      stormKeelCore: false,
       stormKeelPrototype: false
     }
   };
@@ -1518,6 +1573,191 @@ function getRouteBetween(a, b) {
   return getRouteBetweenIds(game?.currentRoutes || [], a, b);
 }
 
+
+// =============================================================
+// CURRENT ROUTE PLANNER FOUNDATION
+// =============================================================
+// Gate-locked travel depends on known Current routes. These helpers build a lightweight
+// multi-hop planner without restoring early freeform direct overworld movement.
+function otherRouteEndpoint(route, id) {
+  if (!route) return null;
+  if (route.fromId === id) return route.toId;
+  if (route.toId === id) return route.fromId;
+  return null;
+}
+
+function routeRiskRank(route) {
+  if (!route) return 0;
+  if (route.type === 'pirate') return 3;
+  if (route.type === 'storm') return 2;
+  if (routeGatePolicy(route).blockadeRisk) return 2;
+  if (route.type === 'trade') return 1;
+  return 0;
+}
+
+function routeRiskLabel(rank) {
+  return rank >= 3 ? 'High' : rank === 2 ? 'Moderate' : rank === 1 ? 'Low/Trade' : 'Low';
+}
+
+function knownRouteGraphRoutes() {
+  if (!game) return [];
+  // The map only plans through discovered endpoints so the planner does not reveal hidden regions.
+  return (game.currentRoutes || []).filter(r => game.discovered?.[r.fromId] && game.discovered?.[r.toId]);
+}
+
+function findCurrentRoutePath(fromId, toId) {
+  if (!game || !fromId || !toId || fromId === toId) return null;
+  const routes = knownRouteGraphRoutes();
+  const queue = [{ id: fromId, routeIds: [], nodeIds: [fromId] }];
+  const visited = new Set([fromId]);
+  while (queue.length) {
+    const cur = queue.shift();
+    const edges = routes.filter(r => r.fromId === cur.id || r.toId === cur.id)
+      .sort((a, b) => routeRiskRank(a) - routeRiskRank(b));
+    for (const route of edges) {
+      const nextId = otherRouteEndpoint(route, cur.id);
+      if (!nextId || visited.has(nextId)) continue;
+      const nextRouteIds = cur.routeIds.concat(route.id);
+      const nextNodeIds = cur.nodeIds.concat(nextId);
+      if (nextId === toId) return { routeIds: nextRouteIds, nodeIds: nextNodeIds };
+      visited.add(nextId);
+      queue.push({ id: nextId, routeIds: nextRouteIds, nodeIds: nextNodeIds });
+    }
+  }
+  return null;
+}
+
+function summarizeRoutePath(path) {
+  if (!game || !path || !path.routeIds?.length) return null;
+  let totalFuel = 0;
+  let totalDays = 0;
+  let totalToll = 0;
+  let highestRisk = 0;
+  const owners = new Set();
+  const routeParts = [];
+  for (let i = 0; i < path.routeIds.length; i++) {
+    const route = game.currentRoutes.find(r => r.id === path.routeIds[i]);
+    const a = getLocation(path.nodeIds[i]);
+    const b = getLocation(path.nodeIds[i + 1]);
+    if (!route || !a || !b) continue;
+    const policy = routeGatePolicy(route);
+    totalFuel += routeTravelCost(a, b, route);
+    totalDays += route.travelDays || 1;
+    totalToll += policy.toll || 0;
+    highestRisk = Math.max(highestRisk, routeRiskRank(route));
+    owners.add(FACTIONS[route.owner]?.name || 'Unclaimed');
+    routeParts.push({ route, a, b, policy });
+  }
+  return { totalFuel, totalDays, totalToll, highestRisk, owners: Array.from(owners), routeParts };
+}
+
+function routePathNames(path) {
+  if (!path) return '';
+  return path.nodeIds.map(id => getLocation(id)?.name || id).join(' → ');
+}
+
+function selectedRoutePath() {
+  if (!game) return null;
+  const cur = getLocation(game.currentLocationId);
+  const loc = getLocation(game.selectedLocationId);
+  if (!cur || !loc || cur.id === loc.id) return null;
+  const direct = getRouteBetween(cur.id, loc.id);
+  if (direct) return { routeIds: [direct.id], nodeIds: [cur.id, loc.id] };
+  return findCurrentRoutePath(cur.id, loc.id);
+}
+
+function isDirectlyConnectedToCurrent(locId) {
+  return !!getRouteBetween(game?.currentLocationId, locId);
+}
+
+function isReachableThroughKnownCurrents(locId) {
+  if (!game || locId === game.currentLocationId) return true;
+  return !!findCurrentRoutePath(game.currentLocationId, locId);
+}
+
+function routePlannerHTML(loc, cur, path) {
+  const summary = summarizeRoutePath(path);
+  if (!summary || !path || path.nodeIds.length < 2) return '';
+  const nextHopId = path.nodeIds[1];
+  const nextHop = getLocation(nextHopId);
+  return `<div class="routePlannerBox"><strong>Route Available Through Gates</strong><br/>
+    ${path.routeIds.length} current${path.routeIds.length > 1 ? 's' : ''} · Next Hop: <strong>${nextHop?.name || 'Unknown'}</strong>
+    <div class="routeSummaryGrid">
+      <div>Fuel: ${summary.totalFuel}</div>
+      <div>Time: ${summary.totalDays} day${summary.totalDays !== 1 ? 's' : ''}</div>
+      <div>Tolls: ${summary.totalToll} gold</div>
+      <div>Highest Risk: ${routeRiskLabel(summary.highestRisk)}</div>
+    </div>
+    <div class="routePathLine">${routePathNames(path)}</div>
+    <div class="smallNote">Gate-locked travel requires moving one current at a time. Plot this route to select the next hop.</div>
+    <button class="btn blue" style="margin-top:7px; width:100%;" onclick="plotRouteTo('${loc.id}')">Plot Route / Select Next Hop</button>
+  </div>`;
+}
+
+function plotRouteTo(targetId) {
+  if (!game) return;
+  const path = findCurrentRoutePath(game.currentLocationId, targetId);
+  if (!path || path.nodeIds.length < 2) return showToast('No known Current route reaches that destination yet.');
+  game.plottedRoute = { targetId, routeIds: path.routeIds, nodeIds: path.nodeIds, nextHopId: path.nodeIds[1] };
+  game.selectedLocationId = path.nodeIds[1];
+  const nextHop = getLocation(path.nodeIds[1]);
+  buildWorldMeshes();
+  renderUI();
+  resetSelectedPanelScrollSoon();
+  showToast(`Route plotted. Next hop: ${nextHop?.name || 'unknown'}.`);
+}
+
+function clearPlottedRouteIfArrived() {
+  if (!game?.plottedRoute) return;
+  if (game.currentLocationId === game.plottedRoute.targetId) {
+    game.plottedRoute = null;
+    return;
+  }
+  if (!game.plottedRoute.nodeIds?.includes(game.currentLocationId)) return;
+  const idx = game.plottedRoute.nodeIds.indexOf(game.currentLocationId);
+  if (idx >= 0 && idx < game.plottedRoute.nodeIds.length - 1) {
+    game.plottedRoute.nextHopId = game.plottedRoute.nodeIds[idx + 1];
+    game.selectedLocationId = game.plottedRoute.nextHopId;
+  }
+}
+
+function nearestReachableDangerOneEnemy() {
+  if (!game) return null;
+  const enemies = game.locations
+    .filter(l => game.discovered[l.id] && l.type === 'enemy' && !l.depleted && (l.danger || 1) <= 1);
+  const options = enemies.map(loc => {
+    if (loc.id === game.currentLocationId) return { loc, path: { routeIds: [], nodeIds: [loc.id] }, score: 0 };
+    const direct = getRouteBetween(game.currentLocationId, loc.id);
+    const path = direct ? { routeIds: [direct.id], nodeIds: [game.currentLocationId, loc.id] } : findCurrentRoutePath(game.currentLocationId, loc.id);
+    if (!path) return null;
+    const summary = summarizeRoutePath(path) || { totalFuel: 0, highestRisk: 0 };
+    return { loc, path, summary, score: path.routeIds.length * 10 + summary.highestRisk * 4 + summary.totalFuel * 0.08 };
+  }).filter(Boolean).sort((a, b) => a.score - b.score);
+  return options[0] || null;
+}
+
+function plotRouteToDangerOne() {
+  const target = nearestReachableDangerOneEnemy();
+  if (!target) return showToast('No reachable Danger 1 fleet is currently charted. Explore nearby routes.');
+  if (target.loc.id === game.currentLocationId) {
+    game.selectedLocationId = target.loc.id;
+    renderUI();
+    return showToast('Danger 1 fleet is at your current location. Review combat readiness.');
+  }
+  plotRouteTo(target.loc.id);
+}
+
+function combatTutorialRouteNudgeHTML() {
+  if (!game || game.flags?.foughtLowDanger) return '';
+  const missing = tutorialSteps().find(s => !game.flags?.[s.key]);
+  if (!missing || missing.key !== 'foughtLowDanger') return '';
+  const target = nearestReachableDangerOneEnemy();
+  if (!target) return '<strong>Combat Training:</strong> no reachable Danger 1 fleet is currently charted. Explore connected routes to find a safe hostile contact.';
+  if (target.loc.id === game.currentLocationId) return `<strong>Combat Training:</strong> ${target.loc.name} is here. Review readiness, then engage or retreat if needed.`;
+  const nextHop = getLocation(target.path.nodeIds[1]);
+  return `<strong>Combat Training:</strong> nearest reachable Danger 1 fleet is ${target.loc.name}. Next hop: ${nextHop?.name || 'unknown'} (${target.path.routeIds.length} current${target.path.routeIds.length !== 1 ? 's' : ''}).<br/><button class="btn blue" style="margin-top:6px; width:100%;" onclick="plotRouteToDangerOne()">Plot Route to Danger 1 Fleet</button>`;
+}
+
 function routeGatePolicy(route) {
   if (!route || !game) return { standing: 'Neutral', relation: 0, toll: 0, permitRequired: false, blockadeRisk: false, hostile: false, friendlyDiscount: false, eventRisk: 'Low' };
   const owner = route.owner || 'steam';
@@ -1584,10 +1824,12 @@ function routePreviewHTML(loc, cur) {
   if (!game || !loc || !cur || loc.id === cur.id) return '';
   const route = getRouteBetween(cur.id, loc.id);
   if (!route) {
-    return `<div class="noChartedCurrentBox"><strong>No Charted Current</strong><br/>
-      Brasswake cannot make strategic inter-section jumps under engine power at the start of a campaign. Use connected Current Gates, trade lanes, storm currents, or pirate slipstreams to reach this region.<br/>
-      <span class="gateBadge">Storm Keel Required</span><br/>
-      Mid/late Storm Keel technology will eventually allow temporary current creation, but it is not available yet.</div>`;
+    const path = findCurrentRoutePath(cur.id, loc.id);
+    if (path) return routePlannerHTML(loc, cur, path) + stormKeelLockedInlineHTML();
+    return `<div class="noChartedCurrentBox"><strong>No Known Route Through the Current Network</strong><br/>
+      Brasswake cannot make strategic inter-section jumps under engine power at the start of a campaign. Explore nearby gates to chart more routes, or select a connected Current first.<br/>
+      <span class="gateBadge">Storm Keel Required Later</span><br/>
+      Mid/late Storm Keel technology will eventually allow temporary current creation, but it is locked and not available yet.</div>${stormKeelLockedInlineHTML()}`;
   }
   const meta = CURRENT_ROUTE_TYPES[route.type] || CURRENT_ROUTE_TYPES.safe;
   const owner = FACTIONS[route.owner]?.name || 'Unclaimed';
@@ -1596,6 +1838,10 @@ function routePreviewHTML(loc, cur) {
     Owner: ${owner} · Risk: ${route.risk} · Travel Time: ${route.travelDays} day${route.travelDays > 1 ? 's' : ''}<br/>
     <div class="gatePolicyLine">${routePolicySummary(route)}</div>
     ${meta.desc}</div>`;
+}
+
+function stormKeelLockedInlineHTML() {
+  return `<div class="techTeaserCard"><strong>Storm Keel Locked:</strong> mid-to-late-game travel tech will eventually let Brasswake open temporary conduits. Until then, plot through known Current Gates.</div>`;
 }
 
 function uniqueLocationName(rng, type, i) {
@@ -1948,11 +2194,17 @@ function drawTravelLines() {
 }
 
 function drawCurrentRoutes() {
+  const currentId = game?.currentLocationId;
+  const selectedPath = selectedRoutePath();
+  const plottedIds = new Set(game?.plottedRoute?.routeIds || []);
+  const selectedIds = new Set(selectedPath?.routeIds || []);
   (game.currentRoutes || []).forEach(route => {
     const a = getLocation(route.fromId);
     const b = getLocation(route.toId);
     if (!a || !b || !game.discovered[a.id] || !game.discovered[b.id]) return;
     const meta = CURRENT_ROUTE_TYPES[route.type] || CURRENT_ROUTE_TYPES.safe;
+    const connectedToCurrent = route.fromId === currentId || route.toId === currentId;
+    const onSelectedPath = selectedIds.has(route.id) || plottedIds.has(route.id);
     const mid = new THREE.Vector3((a.x + b.x) / 2, 2.2 + (route.type === 'storm' ? 1.1 : 0.55), (a.z + b.z) / 2);
     const curve = new THREE.CatmullRomCurve3([
       new THREE.Vector3(a.x, 0.4, a.z),
@@ -1961,14 +2213,22 @@ function drawCurrentRoutes() {
     ]);
     const pts = curve.getPoints(24);
     const geo = new THREE.BufferGeometry().setFromPoints(pts);
-    const glowMat = new THREE.LineBasicMaterial({ color: meta.color, transparent: true, opacity: route.type === 'pirate' ? 0.22 : 0.30 });
+    const glowOpacity = onSelectedPath ? 0.72 : connectedToCurrent ? 0.48 : 0.13;
+    const lineOpacity = onSelectedPath ? 1.0 : connectedToCurrent ? 0.92 : (route.type === 'pirate' ? 0.34 : 0.42);
+    const glowMat = new THREE.LineBasicMaterial({ color: meta.color, transparent: true, opacity: glowOpacity });
     const glow = new THREE.Line(geo, glowMat);
-    glow.scale.setScalar(1.006);
+    glow.scale.setScalar(onSelectedPath ? 1.014 : 1.006);
     lineGroup.add(glow);
-    const mat = new THREE.LineBasicMaterial({ color: meta.color, transparent: true, opacity: route.type === 'pirate' ? 0.70 : 0.86 });
+    const mat = new THREE.LineBasicMaterial({ color: meta.color, transparent: true, opacity: lineOpacity });
     const line = new THREE.Line(geo, mat);
     line.userData.routeId = route.id;
     lineGroup.add(line);
+    if (onSelectedPath) {
+      const highMat = new THREE.LineBasicMaterial({ color: 0xfff2bd, transparent: true, opacity: 0.72 });
+      const high = new THREE.Line(geo, highMat);
+      high.position.y += 0.035;
+      lineGroup.add(high);
+    }
   });
 }
 
@@ -2055,8 +2315,10 @@ function renderSelectedPanel() {
   const d = distance2D(cur, loc);
   const stats = computeStats();
   const route = getRouteBetween(cur.id, loc.id);
+  const pathForDisplay = !route && loc.id !== cur.id ? findCurrentRoutePath(cur.id, loc.id) : null;
+  const pathSummaryForDisplay = pathForDisplay ? summarizeRoutePath(pathForDisplay) : null;
   const cost = loc.id === cur.id ? 0 : (route ? routeTravelCost(cur, loc, route) : 0);
-  const costDisplay = loc.id === cur.id ? '0' : (route ? String(cost) : 'No Route');
+  const costDisplay = loc.id === cur.id ? '0' : (route ? String(cost) : (pathSummaryForDisplay ? `${pathSummaryForDisplay.totalFuel} Path` : 'No Route'));
   const contextKey = `${game.selectedLocationId}|${game.currentLocationId}|${loc.depleted ? 'D' : 'A'}|${game.day}`;
   const priorContext = panel.dataset.contextKey || '';
   const statusTags = [];
@@ -2093,9 +2355,18 @@ function locationActionButtons(loc, cur, cost, d) {
   if (!atLoc) {
     const route = getRouteBetween(cur.id, loc.id);
     if (!route) {
+      const path = findCurrentRoutePath(cur.id, loc.id);
+      if (path && path.nodeIds.length > 1) {
+        const nextHop = getLocation(path.nodeIds[1]);
+        return `<div class="buttonStack">
+          <button class="btn blue" onclick="plotRouteTo('${loc.id}')">Plot Route / Select ${shortName(nextHop?.name || 'Next Hop')}</button>
+          <div class="smallNote">This destination is reachable through ${path.routeIds.length} charted Current${path.routeIds.length !== 1 ? 's' : ''}. Travel one gate at a time.</div>
+          <button class="btn ghost" onclick="centerCameraOnSelected()">Center Camera</button>
+        </div>`;
+      }
       return `<div class="buttonStack">
         <button class="btn" disabled>No Charted Current</button>
-        <div class="smallNote">Strategic travel is gate-network locked. Plot through connected Current Gates, or unlock mid/late Storm Keel technology later to create temporary conduits.</div>
+        <div class="smallNote">Strategic travel is gate-network locked. Explore connected Current Gates first, or unlock mid/late Storm Keel technology later to create temporary conduits.</div>
         <button class="btn ghost" onclick="centerCameraOnSelected()">Center Camera</button>
       </div>`;
     }
@@ -2140,12 +2411,13 @@ function travelBlockReason(cost, d) {
 
 function renderRightPanel() {
   document.querySelectorAll('.tabBtn').forEach(b => b.classList.remove('active'));
-  const tabId = activeRightTab === 'upgrades' ? 'tabUpgrade' : activeRightTab === 'rooms' ? 'tabRooms' : 'tabFactions';
+  const tabId = activeRightTab === 'upgrades' ? 'tabUpgrade' : activeRightTab === 'rooms' ? 'tabRooms' : activeRightTab === 'factions' ? 'tabFactions' : 'tabTech';
   document.getElementById(tabId).classList.add('active');
 
   if (activeRightTab === 'upgrades') renderUpgradePanel();
   else if (activeRightTab === 'rooms') renderRoomsPanel();
-  else renderFactionsPanel();
+  else if (activeRightTab === 'factions') renderFactionsPanel();
+  else renderTechPanel();
 }
 
 function setRightTab(tab) {
@@ -2157,21 +2429,27 @@ function renderUpgradePanel() {
   const panel = document.getElementById('rightPanel');
   const affordable = affordableUpgradeKeys();
   const showUpgradeEmphasis = !!(game.flags?.earnedReward || game.flags?.resolvedEvent || game.flags?.upgradedOrRepaired);
-  const headerTag = affordable.length ? (showUpgradeEmphasis ? '<span class="tag good">Upgrade Available</span>' : '<span class="tag warn">Optional Preparation</span>') : '';
-  panel.innerHTML = `<h2>Fortress Upgrades ${headerTag}</h2><p class="smallNote">Upgrades are available, but first-time captains should travel a charted Current and complete a field event before focusing on refits.</p>` +
+  const recommended = affordable[0] || null;
+  const headerTag = recommended ? (showUpgradeEmphasis ? `<span class="tag good">Recommended: ${UPGRADE_DATA[recommended].name}</span>` : '<span class="tag warn">Optional Preparation</span>') : '';
+  const recommendedBox = recommended && showUpgradeEmphasis ? `<div class="recommendedUpgradeBox"><strong>Recommended Upgrade:</strong> ${UPGRADE_DATA[recommended].name}. ${UPGRADE_DATA[recommended].benefit}. Other refits remain available, but this is the clearest next improvement.</div>` : '';
+  panel.innerHTML = `<h2>Fortress Upgrades ${headerTag}</h2>
+    <p class="smallNote">Upgrade choices strengthen Brasswake, but route planning now drives exploration. Use the Tech tab to review locked travel breakthroughs.</p>
+    <div class="techTeaserCard"><strong>Travel Tech:</strong> Storm Keel is locked mid/late-game technology. <button class="btn ghost" style="margin-top:6px; width:100%;" onclick="setRightTab('tech')">View Tech</button></div>
+    ${recommendedBox}` +
     Object.entries(UPGRADE_DATA).map(([key,u]) => {
       const level = game.upgrades[key] || 0;
       const maxed = level >= u.max;
       const cost = upgradeCost(key);
       const can = !maxed && canAfford(cost);
-      const readyTag = can ? (showUpgradeEmphasis ? ' <span class="tag good">Ready</span>' : ' <span class="tag warn">Optional</span>') : '';
-      const pulse = can && showUpgradeEmphasis ? 'pulse' : '';
+      const isRecommended = key === recommended && showUpgradeEmphasis;
+      const readyTag = can ? (isRecommended ? ' <span class="tag good">Recommended</span>' : (showUpgradeEmphasis ? ' <span class="tag blue">Available</span>' : ' <span class="tag warn">Optional</span>')) : '';
+      const pulse = can && isRecommended ? 'pulse' : '';
       return `<div class="upgradeCard ${can ? 'affordable' : ''}">
         <div class="cardTitle"><span>${u.name} <span class="tag blue">Lv ${level}/${u.max}</span>${readyTag}</span><span class="cost">${maxed ? 'MAX' : formatCost(cost)}</span></div>
         <div class="smallNote">${u.desc}<br/><strong style="color:var(--brass2)">${u.benefit}</strong></div>
         <button class="btn primary ${pulse}" style="margin-top:8px; width:100%;" ${can ? '' : 'disabled'} onclick="buyUpgrade('${key}')">${maxed ? 'Fully Upgraded' : 'Upgrade'}</button>
       </div>`;
-    }).join('') + stormKeelCardHTML();
+    }).join('');
 }
 
 
@@ -2183,6 +2461,7 @@ function stormKeelRequirements() {
     { label: 'Sensors Lv 2', met: (game.upgrades.sensors || 0) >= 2 },
     { label: 'Explore one Storm Current or storm route', met: exploredStorm },
     { label: 'Complete one faction gate/contract job', met: gateContract },
+    { label: 'Recover Storm Keel Core from ruins (future content)', met: !!game.flags?.stormKeelCore },
     { label: `Pay ${formatCost(STORM_KEEL_RESEARCH_COST)}`, met: canAfford(STORM_KEEL_RESEARCH_COST) }
   ];
 }
@@ -2228,6 +2507,23 @@ function renderRoomsPanel() {
         ${r.base ? '' : `<button class="btn green" style="margin-top:8px; width:100%;" ${canBuild ? '' : 'disabled'} onclick="buildRoom('${key}')">${built ? 'Room Built' : 'Build Room'}</button>`}
       </div>`;
     }).join('');
+}
+
+function renderTechPanel() {
+  const panel = document.getElementById('rightPanel');
+  const directCount = knownRouteGraphRoutes().filter(r => r.fromId === game.currentLocationId || r.toId === game.currentLocationId).length;
+  const reachableCount = game.locations.filter(l => game.discovered[l.id] && isReachableThroughKnownCurrents(l.id)).length;
+  panel.innerHTML = `<h2>Travel Tech</h2>
+    <div class="routePlannerBox"><strong>Current Gate Network</strong><br/>
+      Early strategic travel is locked to charted Jet Stream Currents. Direct overworld bypass is unavailable until future Storm Keel breakthroughs.
+      <div class="routeSummaryGrid">
+        <div>Direct Currents: ${directCount}</div>
+        <div>Known Reachable Nodes: ${reachableCount}</div>
+        <div>Network Rule: Gate-Locked</div>
+        <div>Storm Keel: ${game.flags?.stormKeelPrototype ? 'Prototype' : 'Locked'}</div>
+      </div>
+    </div>` + stormKeelCardHTML() +
+    `<div class="smallNote">Future tech will add temporary current creation, limited range, high cost, hull/engine strain, cooldowns, and failure events. This build only shows the locked foundation.</div>`;
 }
 
 function renderFactionsPanel() {
@@ -2331,6 +2627,7 @@ function setOrderFlag(key) {
     firstFieldEventComplete: false,
     stormRouteExplored: false,
     gateContractComplete: false,
+    stormKeelCore: false,
     stormKeelPrototype: false
   }, game.flags || {});
   game.saveStatus = game.saveStatus || `Loaded Save Day ${game.day}`;
@@ -2351,6 +2648,8 @@ function getNextActionNudge() {
   if (hullPct < 0.35) return '<strong>Critical Hull:</strong> avoid combat. Reach a settlement and repair immediately.';
   if (hullPct < 0.65) return '<strong>Repairs Recommended:</strong> repair before another fight if you can.';
   if (!game.flags?.traveledOnce) return 'Start with a nearby salvage, resource, or contract tile connected by a Current. Strategic travel is gate-network locked until future Storm Keel tech.';
+  const combatNudge = combatTutorialRouteNudgeHTML();
+  if (combatNudge) return combatNudge;
   const up = affordableUpgradeKeys();
   if (up.length && (game.flags?.earnedReward || game.flags?.resolvedEvent || game.flags?.upgradedOrRepaired)) return `<strong>Upgrade Recommended:</strong> Brasswake can afford ${UPGRADE_DATA[up[0]].name}. Improving ${UPGRADE_DATA[up[0]].name.toLowerCase()} makes future routes and fights safer.`;
   if (current && ['skyport','settlement'].includes(current.type) && game.resources.fuel < 45 && canAfford({ gold: 30 })) return '<strong>Fuel Low:</strong> buy fuel before pushing deeper into the sky lanes.';
@@ -2378,6 +2677,7 @@ function selectLocation(id) {
   if (!game || !game.discovered[id]) return;
   const changed = game.selectedLocationId !== id;
   game.selectedLocationId = id;
+  if (game.plottedRoute && id !== game.plottedRoute.nextHopId && id !== game.plottedRoute.targetId) game.plottedRoute = null;
   const loc = getLocation(id);
   if (loc && ['salvage','contract','resource'].includes(loc.type) && loc.id !== game.currentLocationId) setOrderFlag('selectedFirst');
   renderUI();
@@ -2423,9 +2723,20 @@ function travelToSelected(forceDirect = false, forceRoute = false) {
 }
 
 function showNoChartedCurrentModal(loc, cur) {
+  const path = findCurrentRoutePath(cur.id, loc.id);
+  if (path) {
+    const summary = summarizeRoutePath(path);
+    const nextHop = getLocation(path.nodeIds[1]);
+    return showModal(`<h1>Route Available Through Gates</h1>
+      <p>No direct Current reaches <strong>${loc.name}</strong>, but a multi-hop route is charted.</p>
+      <div class="routePlannerBox"><strong>Next Hop:</strong> ${nextHop?.name || 'Unknown'}<br/>
+        ${path.routeIds.length} currents · ${summary.totalFuel} fuel · ${summary.totalDays} day${summary.totalDays !== 1 ? 's' : ''} · ${summary.totalToll} gold tolls<br/>
+        <div class="routePathLine">${routePathNames(path)}</div></div>
+      <div class="buttonGrid"><button class="btn blue" onclick="closeModal(); plotRouteTo('${loc.id}')">Plot Route / Select Next Hop</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
+  }
   showModal(`<h1>No Charted Current</h1>
     <p>No known Current Gate, Jet Stream, or slipstream links <strong>${cur.name}</strong> to <strong>${loc.name}</strong>.</p>
-    <div class="noChartedCurrentBox"><strong>Gate Network Required:</strong> At campaign start, Brasswake cannot bypass the sky-road network. Plot a route through connected gates, toll lanes, storm currents, or pirate slipstreams.</div>
+    <div class="noChartedCurrentBox"><strong>No known route through the current network:</strong> explore nearby gates to chart more routes, or select a connected Current first.</div>
     <p class="smallNote">Mid/late Storm Keel technology will eventually allow temporary conduit creation, but that engine is locked and not available to a new campaign.</p>
     <button class="btn primary" onclick="closeModal()">Plot Another Route</button>`);
 }
@@ -2560,6 +2871,7 @@ function resolveCurrentRouteEvent(destination) {
 function finishTravel(loc, days, mode) {
   game.currentLocationId = loc.id;
   loc.visited = true;
+  clearPlottedRouteIfArrived();
   setOrderFlag('traveledOnce');
   if (['skyport','settlement'].includes(loc.type) && game.day > 1) setOrderFlag('returnedForService');
   if (mode === 'current' && game.lastRouteTaken?.type === 'storm') setOrderFlag('stormRouteExplored');
@@ -3219,6 +3531,7 @@ function showResultModal(title, bodyHtml, button, callback) {
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('active');
   renderUI();
+  resetSelectedPanelScrollSoon();
 }
 
 // =============================================================
@@ -3373,6 +3686,7 @@ function normalizeLoadedGame() {
     firstFieldEventComplete: false,
     stormRouteExplored: false,
     gateContractComplete: false,
+    stormKeelCore: false,
     stormKeelPrototype: false
   }, game.flags || {});
   game.saveStatus = game.saveStatus || `Loaded Save Day ${game.day}`;
@@ -3382,6 +3696,7 @@ function normalizeLoadedGame() {
   game.rooms = Object.assign({ bridge: 1, engine: 1, barracks: 1, workshop: 1, storage: 1, hydroponics: 0, foundry: 0, radar: 0, hangar: 0, hospital: 0 }, game.rooms || {});
   game.upgrades = Object.assign({ engines: 0, armor: 0, weapons: 0, storage: 0, sensors: 0, repairs: 0, hangarCap: 0 }, game.upgrades || {});
   game.discovered = game.discovered || { [game.currentLocationId || 'loc_home']: true };
+  game.plottedRoute = game.plottedRoute || null;
   game.locations.forEach(l => { l.discovered = !!game.discovered[l.id]; });
   game.hull = Math.max(1, game.hull || 80);
   game.hexTiles = game.hexTiles || generateHexTilesFromLocations(game.locations);
@@ -3508,7 +3823,11 @@ function toggleMapFocus() {
 function resetSelectedPanelScrollSoon() {
   const panel = document.getElementById('selectedPanel');
   if (!panel) return;
+  panel.scrollTop = 0;
   requestAnimationFrame(() => { panel.scrollTop = 0; });
+  setTimeout(() => { panel.scrollTop = 0; }, 0);
+  setTimeout(() => { panel.scrollTop = 0; }, 60);
+  setTimeout(() => { panel.scrollTop = 0; }, 180);
 }
 
 // =============================================================
@@ -3552,9 +3871,9 @@ function showHelp() {
 
 function showBuildNotes() {
   showModal(`<h1>Build Notes — ${VERSION}</h1>
-    <p><strong>Implemented:</strong> Three.js strategic map, procedural hex-aligned locations, edge-to-edge pointy-top hex board fix, Current Gate route logic, gate tolls, blockade warnings, faction-flavored route events, gate-locked strategic travel, Storm Keel locked foundation, eventful Jet Stream travel overlay, travel, fuel costs, Captain’s Orders completion/Open Command state, combat readiness warnings, salvage, harvesting, trade, repairs, contracts, storm hazards, turn-based combat, rooms, upgrades, faction standing, AI world events, autosave/manual save, and polished Iron Kingdoms UI.</p>
-    <p><strong>Known limitations:</strong> Current Gates now define early strategic travel; no-charted-current destinations require route planning until future Storm Keel technology, faction permits/blockades are warning-and-event based rather than a full diplomacy system, room placement is still simplified to build slots, combat is panel-based rather than full spatial battles, AI is lightweight simulated movement/events, and audio is hook-only without external assets.</p>
-    <p><strong>Phase 2 hooks:</strong> deeper hex-overworld conversion, gate-locked jet-stream route planning, mid/late Storm Keel temporary current creation, tactical 3rd-person location flight, fortress hex modules, officers, crew stories, research trees, faction campaigns, fortress skins, damage simulation, custom escorts, cloud saves, and multiplayer sharing.</p>
+    <p><strong>Implemented:</strong> Three.js strategic map, procedural hex-aligned locations, edge-to-edge pointy-top hex board fix, Current Gate route logic, first multi-hop route planner, reachable/next-hop guidance, route focus highlighting, gate tolls, blockade warnings, faction-flavored route events, gate-locked strategic travel, visible locked Storm Keel tech, eventful Jet Stream travel overlay, travel, fuel costs, Captain’s Orders completion/Open Command state, combat route guidance, combat readiness warnings, salvage, harvesting, trade, repairs, contracts, storm hazards, turn-based combat, rooms, upgrades, faction standing, AI world events, autosave/manual save, and polished Iron Kingdoms UI.</p>
+    <p><strong>Known limitations:</strong> Current Gates now define early strategic travel; multi-hop route planning selects the next hop rather than auto-traveling an entire path, faction permits/blockades are warning-and-event based rather than a full diplomacy system, Storm Keel requires future core content and does not create currents yet, room placement is still simplified to build slots, combat is panel-based rather than full spatial battles, AI is lightweight simulated movement/events, and audio is hook-only without external assets.</p>
+    <p><strong>Phase 2 hooks:</strong> route planner polish, deeper hex-overworld conversion, gate-locked jet-stream route planning, Storm Keel Core recovery and temporary current creation, tactical 3rd-person location flight, fortress hex modules, officers, crew stories, research trees, faction campaigns, fortress skins, damage simulation, custom escorts, cloud saves, and multiplayer sharing.</p>
     <button class="btn primary" onclick="closeModal()">Close</button>`);
 }
 
@@ -3637,10 +3956,12 @@ function showHoverTooltip(e, loc) {
   if (!tip || !game || !loc) return;
   const cur = getLocation(game.currentLocationId);
   const route = getRouteBetween(cur.id, loc.id);
-  const cost = loc.id === cur.id ? 0 : routeTravelCost(cur, loc, route);
+  const path = !route && loc.id !== cur.id ? findCurrentRoutePath(cur.id, loc.id) : null;
+  const cost = loc.id === cur.id ? 0 : (route ? routeTravelCost(cur, loc, route) : 0);
   const danger = loc.danger ? ` · Danger ${loc.danger}` : '';
   const depleted = loc.depleted ? ' · Depleted' : '';
-  tip.innerHTML = `<strong>${loc.name}</strong><span class="mini">${prettyType(loc.type)}${danger}${depleted}<br/>${loc.id === cur.id ? 'Current position' : `${route ? 'Jet Stream Route' : 'No Charted Current'}${route ? ` · Fuel cost: ${cost}` : ''}`}</span>`;
+  const routeText = loc.id === cur.id ? 'Current position' : route ? `Direct Current · Fuel cost: ${cost}` : path ? `Reachable via ${path.routeIds.length} currents · Next hop: ${getLocation(path.nodeIds[1])?.name || 'unknown'}` : 'No known Current route';
+  tip.innerHTML = `<strong>${loc.name}</strong><span class="mini">${prettyType(loc.type)}${danger}${depleted}<br/>${routeText}</span>`;
   tip.style.left = Math.min(window.innerWidth - 300, e.clientX + 16) + 'px';
   tip.style.top = Math.min(window.innerHeight - 120, e.clientY + 16) + 'px';
   tip.style.display = 'block';
@@ -3740,6 +4061,16 @@ function refreshSelectionVisuals() {
   locationMeshes.forEach((mesh, id) => {
     const loc = getLocation(id);
     mesh.visible = !!game.discovered[id];
+    if (mesh.visible && loc) {
+      let scale = loc.depleted ? 0.72 : 1.0;
+      if (id === game.currentLocationId) scale = 1.16;
+      else if (id === game.selectedLocationId) scale = 1.10;
+      else if (isDirectlyConnectedToCurrent(id)) scale = 1.04;
+      else if (isReachableThroughKnownCurrents(id)) scale = 0.94;
+      else scale = 0.78;
+      if (loc.depleted) scale *= 0.82;
+      mesh.scale.setScalar(scale);
+    }
     mesh.traverse(child => {
       if (child.material && child.material.opacity !== undefined && loc?.depleted) child.material.opacity = Math.min(child.material.opacity, 0.48);
     });
