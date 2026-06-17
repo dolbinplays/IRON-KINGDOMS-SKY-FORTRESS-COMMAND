@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.17.0100</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.17.0200</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <style>
     :root {
@@ -395,10 +395,10 @@
       left: 12px;
       right: 12px;
       bottom: 12px;
-      height: 108px;
+      height: 124px;
       z-index: 10;
       display: grid;
-      grid-template-columns: 270px 1fr 260px;
+      grid-template-columns: 300px 1fr 380px;
       gap: 10px;
       pointer-events: none;
     }
@@ -418,7 +418,7 @@
     .logItem { margin-bottom: 5px; padding: 6px; font-size: 12px; color: #e9dfcf; }
     .logItem strong { color: var(--brass2); }
 
-    .controlsPanel .buttonGrid { grid-template-columns: repeat(4, 1fr); }
+    .controlsPanel .buttonGrid { grid-template-columns: repeat(5, 1fr); }
     .helpPanel { color: var(--muted); font-size: 12px; line-height: 1.3; }
 
     .modalOverlay {
@@ -583,8 +583,8 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
-      height: 72px;
-      overflow-y: auto;
+      height: 100px;
+      overflow-y: hidden;
       padding-right: 3px;
     }
 
@@ -687,6 +687,122 @@
     #hoverTooltip strong { color: var(--brass2); display:block; margin-bottom:3px; }
     #hoverTooltip .mini { color: var(--muted); font-size: 11px; }
 
+
+
+    .ordersActive {
+      border: 1px solid rgba(244,207,120,0.58);
+      background: rgba(217,164,65,0.10);
+      border-radius: 10px;
+      padding: 8px;
+      min-height: 74px;
+    }
+    .ordersStepLine {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--brass2);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .ordersObjective {
+      color: #fff6df;
+      font-size: 13px;
+      font-weight: 900;
+      margin-top: 4px;
+      line-height: 1.25;
+    }
+    .ordersHint {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+      margin-top: 3px;
+    }
+    .ordersCompact {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 6px;
+    }
+    .orderDot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(244,207,120,0.38);
+      color: var(--muted);
+      background: rgba(0,0,0,0.22);
+      font-size: 10px;
+      font-weight: 900;
+    }
+    .orderDot.done {
+      border-color: rgba(127,209,132,0.7);
+      color: #b7ffbd;
+      background: rgba(127,209,132,0.12);
+    }
+    .orderDot.active {
+      border-color: rgba(244,207,120,0.95);
+      color: var(--brass2);
+      box-shadow: 0 0 10px rgba(244,207,120,0.24);
+    }
+
+    .routePreview {
+      border: 1px solid rgba(128,185,255,0.45);
+      background: rgba(64,93,128,0.13);
+      border-radius: 10px;
+      padding: 8px;
+      margin: 8px 0;
+      font-size: 12px;
+      color: #d9ecff;
+      line-height: 1.32;
+    }
+    .routePreview strong { color: #b9ddff; }
+    .gateBadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(128,185,255,0.42);
+      color: #b9ddff;
+      background: rgba(128,185,255,0.08);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.45px;
+      margin-top: 4px;
+    }
+
+    .travelProgress {
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.12);
+      overflow: hidden;
+      margin: 12px 0;
+    }
+    .travelProgressFill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #5c8fb7, #f4cf78, #b586ff);
+      animation: currentTravelFill 1.35s ease-in-out forwards;
+    }
+    @keyframes currentTravelFill { from { width: 4%; } to { width: 100%; } }
+
+    .mapFocusToggle {
+      position: absolute;
+      top: 96px;
+      right: 12px;
+      z-index: 25;
+      display: none;
+    }
+    #gameRoot.mapFocus .leftColumn,
+    #gameRoot.mapFocus .rightColumn,
+    #gameRoot.mapFocus .bottomLog { display: none !important; }
+    #gameRoot.mapFocus .mapFocusToggle { display: block; }
+
     .hidden { display: none !important; }
 
     @media (max-width: 1120px) {
@@ -720,11 +836,12 @@
 
   <div class="toast" id="toast"></div>
   <div id="hoverTooltip"></div>
+  <button class="btn ghost mapFocusToggle" id="exitMapFocusBtn" onclick="toggleMapFocus()">Exit Map Focus</button>
 
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.17.0100</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.17.0200</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -759,6 +876,7 @@
         <button class="btn primary" onclick="saveGame()">Save</button>
         <button class="btn blue" onclick="loadGame()">Load</button>
         <button class="btn ghost" onclick="showHelp()">Help</button>
+        <button class="btn ghost" id="mapFocusBtn" onclick="toggleMapFocus()">Map</button>
         <button class="btn red" onclick="confirmReset()">Reset</button>
       </div>
     </div>
@@ -794,7 +912,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.17.0100 · Single-file HTML · Three.js CDN build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.17.0200 · Single-file HTML · Three.js CDN build</p>
     </div>
   </div>
 </div>
@@ -805,8 +923,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.17.0100';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0100';
+const VERSION = 'v0.26.06.17.0200';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0200';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -877,6 +995,14 @@ const LOCATION_NAMES = {
   contract: ['Courier Beacon', 'Distress Pennant', 'Mercenary Writ', 'Treaty Dispatch', 'Lost Convoy Trail']
 };
 
+
+const CURRENT_ROUTE_TYPES = {
+  safe: { label: 'Safe Current', color: 0x80b9ff, risk: 'Low', desc: 'A stabilized brass-and-wind corridor maintained by skyport vane crews.' },
+  trade: { label: 'Trade Current', color: 0xf4cf78, risk: 'Low', desc: 'A busy commercial current with toll beacons and patrol lanterns.' },
+  storm: { label: 'Storm Current', color: 0xb586ff, risk: 'Moderate', desc: 'A violet pressure-stream that cuts distance but shakes armor plates.' },
+  pirate: { label: 'Pirate Slipstream', color: 0x5de2df, risk: 'High', desc: 'A hidden smuggler current with poor charts and possible ambushes.' }
+};
+
 // =============================================================
 // GAME STATE
 // =============================================================
@@ -932,7 +1058,7 @@ function setupThree() {
   const wrap = document.getElementById('threeWrap');
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x08070d);
-  scene.fog = new THREE.FogExp2(0x07070c, 0.012);
+  scene.fog = new THREE.FogExp2(0x07070c, 0.0085);
 
   camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 900);
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -1035,6 +1161,7 @@ function createNewState() {
     upgrades: { engines: 0, armor: 0, weapons: 0, storage: 0, sensors: 0, repairs: 0, hangarCap: 0 },
     locations: [],
     hexTiles: [],
+    currentRoutes: [],
     aiFleets: [],
     currentLocationId: 'loc_home',
     selectedLocationId: 'loc_home',
@@ -1063,6 +1190,7 @@ function createNewState() {
 
   state.locations = generateLocations(rng);
   state.hexTiles = generateHexTilesFromLocations(state.locations);
+  state.currentRoutes = generateCurrentRoutes(rng, state.locations);
   state.aiFleets = generateAIFleets(rng, state.locations);
   state.log.push({ day: 1, text: 'The fortress-crown <strong>Brasswake</strong> takes command at Brassgate Anchorage.' });
   state.log.push({ day: 1, text: 'Captain’s Orders: complete a safe contract or salvage run, then upgrade or repair before taking bigger fights.' });
@@ -1159,6 +1287,91 @@ function generateHexTilesFromLocations(locations) {
     const locId = byCoord.get(`${c.q},${c.r}`);
     return { q: c.q, r: c.r, locId: locId || null };
   });
+}
+
+
+function generateCurrentRoutes(rng, locations) {
+  // Current Gate / Jet Stream foundation: a lightweight route network layered on top of the hex board.
+  const byId = Object.fromEntries(locations.map(l => [l.id, l]));
+  const routeSpecs = [
+    ['loc_home', 'loc_1', 'Brassgate Trade Current', 'trade', 'steam'],
+    ['loc_home', 'loc_2', 'Wreckfield Service Current', 'safe', 'steam'],
+    ['loc_home', 'loc_3', 'Green Shelf Current', 'safe', 'thorn'],
+    ['loc_home', 'loc_4', 'Saint Rivet Courier Current', 'trade', 'priest'],
+    ['loc_1', 'loc_5', 'Outer Patrol Current', 'safe', 'sky'],
+    ['loc_1', 'loc_6', 'Frostjaw Storm Current', 'storm', 'frost']
+  ];
+  const routes = [];
+  routeSpecs.forEach((s, idx) => {
+    const [fromId, toId, name, type, owner] = s;
+    if (!byId[fromId] || !byId[toId]) return;
+    byId[fromId].hasGate = true;
+    byId[toId].hasGate = true;
+    routes.push(makeCurrentRoute(idx, fromId, toId, name, type, owner, byId[fromId], byId[toId]));
+  });
+
+  // Add a few mid-map links so the board starts to feel like a route network without replacing fallback travel yet.
+  const candidates = locations.filter(l => l.id !== 'loc_home' && ['settlement','skyport','contract','ruins','storm','enemy'].includes(l.type));
+  for (let i = 0; i < candidates.length && routes.length < 12; i++) {
+    const a = candidates[i];
+    const nearby = candidates
+      .filter(b => b.id !== a.id && !getRouteBetweenIds(routes, a.id, b.id) && hexDistance(a.q, a.r, b.q, b.r) <= 2)
+      .sort((x, y) => distance2D(a, x) - distance2D(a, y))[0];
+    if (!nearby || rng() > 0.38) continue;
+    const type = a.type === 'storm' || nearby.type === 'storm' ? 'storm' : (a.type === 'enemy' || nearby.type === 'enemy' ? 'pirate' : 'trade');
+    const owner = a.faction || nearby.faction || 'steam';
+    a.hasGate = true; nearby.hasGate = true;
+    routes.push(makeCurrentRoute(routes.length, a.id, nearby.id, `${shortRouteName(a.name)} Current`, type, owner, a, nearby));
+  }
+  return routes;
+}
+
+function makeCurrentRoute(idx, fromId, toId, name, type, owner, a, b) {
+  const dist = Math.max(1, hexDistance(a.q, a.r, b.q, b.r));
+  return {
+    id: 'route_' + idx,
+    fromId,
+    toId,
+    name,
+    type,
+    owner,
+    travelDays: Math.max(1, Math.ceil(dist / 2)),
+    risk: CURRENT_ROUTE_TYPES[type]?.risk || 'Low',
+    gate: true
+  };
+}
+
+function getRouteBetweenIds(routes, a, b) {
+  return (routes || []).find(r => (r.fromId === a && r.toId === b) || (r.fromId === b && r.toId === a));
+}
+
+function getRouteBetween(a, b) {
+  return getRouteBetweenIds(game?.currentRoutes || [], a, b);
+}
+
+function shortRouteName(name) {
+  return String(name || 'Sky').replace(/\s+(I|II|III|IV|V|VI|VII|VIII|IX)$/,'').split(' ').slice(0,2).join(' ');
+}
+
+function routeTravelCost(a, b, route) {
+  const base = travelFuelCost(a, b);
+  if (!route) return base;
+  const mult = route.type === 'trade' || route.type === 'safe' ? 0.82 : route.type === 'storm' ? 0.95 : 1.05;
+  return Math.max(2, Math.ceil(base * mult));
+}
+
+function routePreviewHTML(loc, cur) {
+  if (!game || !loc || !cur || loc.id === cur.id) return '';
+  const route = getRouteBetween(cur.id, loc.id);
+  if (!route) {
+    return `<div class="routePreview"><strong>Direct Engine Travel</strong><br/>No charted Jet Stream Current is known for this leg yet. Brasswake can still travel under engine power as a prototype fallback.</div>`;
+  }
+  const meta = CURRENT_ROUTE_TYPES[route.type] || CURRENT_ROUTE_TYPES.safe;
+  const owner = FACTIONS[route.owner]?.name || 'Unclaimed';
+  return `<div class="routePreview"><strong>${route.name}</strong><br/>
+    <span class="gateBadge">${meta.label}</span><br/>
+    Owner: ${owner} · Risk: ${route.risk} · Travel Time: ${route.travelDays} day${route.travelDays > 1 ? 's' : ''}<br/>
+    ${meta.desc}</div>`;
 }
 
 function uniqueLocationName(rng, type, i) {
@@ -1271,7 +1484,7 @@ function buildHexLayer() {
 
     const edge = new THREE.LineSegments(
       new THREE.EdgesGeometry(hex.geometry),
-      new THREE.LineBasicMaterial({ color: loc && discovered ? (LOCATION_COLORS[loc.type] || 0xd9a441) : 0x3a3540, transparent: true, opacity: loc && discovered ? 0.32 : 0.13 })
+      new THREE.LineBasicMaterial({ color: loc && discovered ? (LOCATION_COLORS[loc.type] || 0xd9a441) : 0x3a3540, transparent: true, opacity: loc && discovered ? 0.56 : 0.22 })
     );
     edge.position.copy(hex.position);
     edge.rotation.copy(hex.rotation);
@@ -1281,26 +1494,26 @@ function buildHexLayer() {
 
 function createHexMaterial(type, loc) {
   const colors = {
-    empty: 0x16151d,
-    skyport: 0x6d5222,
-    settlement: 0x244562,
-    salvage: 0x4b4d54,
-    resource: 0x255c36,
-    storm: 0x382d58,
-    enemy: 0x5a1d1a,
-    ruins: 0x432e68,
-    contract: 0x68541e
+    empty: 0x1d1b24,
+    skyport: 0x8a682c,
+    settlement: 0x2d5d82,
+    salvage: 0x62656d,
+    resource: 0x2f7445,
+    storm: 0x493775,
+    enemy: 0x742721,
+    ruins: 0x573783,
+    contract: 0x7e6826
   };
-  const color = loc?.depleted ? 0x25262a : (colors[type] || colors.empty);
-  const opacity = type === 'empty' ? 0.18 : loc?.depleted ? 0.28 : 0.46;
+  const color = loc?.depleted ? 0x303238 : (colors[type] || colors.empty);
+  const opacity = type === 'empty' ? 0.24 : loc?.depleted ? 0.38 : 0.64;
   return new THREE.MeshStandardMaterial({
     color,
     transparent: true,
     opacity,
-    metalness: 0.12,
-    roughness: 0.9,
+    metalness: 0.14,
+    roughness: 0.86,
     emissive: color,
-    emissiveIntensity: type === 'empty' ? 0.01 : 0.025,
+    emissiveIntensity: type === 'empty' ? 0.018 : 0.055,
     depthWrite: false
   });
 }
@@ -1377,6 +1590,21 @@ function createLocationMarker(loc) {
     const light = new THREE.Mesh(new THREE.SphereGeometry(0.8, 12, 8), new THREE.MeshBasicMaterial({ color }));
     light.position.y = 4.0;
     group.add(light);
+  }
+
+
+  if (loc.hasGate) {
+    const gateMat = new THREE.MeshBasicMaterial({ color: 0x80b9ff, transparent: true, opacity: loc.depleted ? 0.22 : 0.62, side: THREE.DoubleSide });
+    const gateRing = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.08, 8, 32), gateMat);
+    gateRing.position.y = 2.25;
+    gateRing.rotation.x = Math.PI / 2;
+    group.add(gateRing);
+    for (let i = 0; i < 3; i++) {
+      const pylon = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 1.6, 8), gateMat);
+      const ang = i * Math.PI * 2 / 3;
+      pylon.position.set(Math.cos(ang) * 2.15, 1.25, Math.sin(ang) * 2.15);
+      group.add(pylon);
+    }
   }
 
   const halo = new THREE.Mesh(new THREE.RingGeometry(2.8, 3.05, 32), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: loc.depleted ? 0.10 : 0.42, side: THREE.DoubleSide }));
@@ -1469,27 +1697,50 @@ function createRing(color, radius) {
 function drawTravelLines() {
   lineGroup.clear();
   if (!game) return;
+  drawCurrentRoutes();
+  drawDirectFallbackLines();
+}
+
+function drawCurrentRoutes() {
+  (game.currentRoutes || []).forEach(route => {
+    const a = getLocation(route.fromId);
+    const b = getLocation(route.toId);
+    if (!a || !b || !game.discovered[a.id] || !game.discovered[b.id]) return;
+    const meta = CURRENT_ROUTE_TYPES[route.type] || CURRENT_ROUTE_TYPES.safe;
+    const mid = new THREE.Vector3((a.x + b.x) / 2, 2.2 + (route.type === 'storm' ? 1.1 : 0.55), (a.z + b.z) / 2);
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(a.x, 0.4, a.z),
+      mid,
+      new THREE.Vector3(b.x, 0.4, b.z)
+    ]);
+    const pts = curve.getPoints(24);
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    const mat = new THREE.LineBasicMaterial({ color: meta.color, transparent: true, opacity: route.type === 'pirate' ? 0.46 : 0.58 });
+    const line = new THREE.Line(geo, mat);
+    line.userData.routeId = route.id;
+    lineGroup.add(line);
+  });
+}
+
+function drawDirectFallbackLines() {
   const current = getLocation(game.currentLocationId);
   const stats = computeStats();
   const reachable = game.locations
-    .filter(loc => game.discovered[loc.id] && loc.id !== current.id)
+    .filter(loc => game.discovered[loc.id] && loc.id !== current.id && !getRouteBetween(current.id, loc.id))
     .map(loc => ({ loc, d: distance2D(current, loc) }))
     .filter(x => x.d <= stats.travelRange + 2)
     .sort((a, b) => a.d - b.d)
-    .slice(0, 12);
+    .slice(0, 7);
 
   reachable.forEach(({ loc }) => {
-    const cost = travelFuelCost(current, loc);
     const danger = loc.type === 'enemy' ? loc.danger || 1 : loc.type === 'storm' ? loc.danger || 1 : 0;
-    const lineColor = loc.depleted ? 0x62666b : danger >= 3 ? 0xe15f4f : loc.type === 'storm' ? 0xb586ff : 0xd9a441;
-    const material = new THREE.LineBasicMaterial({ color: lineColor, transparent: true, opacity: loc.depleted ? 0.08 : 0.28 });
+    const lineColor = loc.depleted ? 0x62666b : danger >= 3 ? 0xe15f4f : loc.type === 'storm' ? 0xb586ff : 0x8f7645;
+    const material = new THREE.LineBasicMaterial({ color: lineColor, transparent: true, opacity: loc.depleted ? 0.05 : 0.12 });
     const geo = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(current.x, 0.16, current.z),
-      new THREE.Vector3(loc.x, 0.16, loc.z)
+      new THREE.Vector3(current.x, 0.12, current.z),
+      new THREE.Vector3(loc.x, 0.12, loc.z)
     ]);
-    const line = new THREE.Line(geo, material);
-    line.userData.cost = cost;
-    lineGroup.add(line);
+    lineGroup.add(new THREE.Line(geo, material));
   });
 }
 
@@ -1569,7 +1820,8 @@ function renderSelectedPanel() {
   }
   const d = distance2D(cur, loc);
   const stats = computeStats();
-  const cost = travelFuelCost(cur, loc);
+  const route = getRouteBetween(cur.id, loc.id);
+  const cost = routeTravelCost(cur, loc, route);
   const statusTags = [];
   statusTags.push(`<span class="tag blue">${prettyType(loc.type)}</span>`);
   if (loc.faction) statusTags.push(`<span class="tag" style="border-color:${FACTIONS[loc.faction].accent}; color:${FACTIONS[loc.faction].accent}">${FACTIONS[loc.faction].name}</span>`);
@@ -1587,6 +1839,7 @@ function renderSelectedPanel() {
       <div class="statCard"><div class="k">Distance</div><div class="v">${Math.round(d)}</div></div>
       <div class="statCard"><div class="k">Fuel Cost</div><div class="v">${loc.id === cur.id ? 0 : cost}</div></div>
     </div>
+    ${routePreviewHTML(loc, cur)}
     ${loc.type === 'enemy' ? combatReadinessHTML(loc) : ''}
     ${getLocationNudgeHTML(loc)}
     ${actionHtml}
@@ -1596,9 +1849,11 @@ function renderSelectedPanel() {
 function locationActionButtons(loc, cur, cost, d) {
   const atLoc = loc.id === cur.id;
   if (!atLoc) {
+    const route = getRouteBetween(cur.id, loc.id);
     const canTravel = game.resources.fuel >= cost && d <= computeStats().travelRange && !isTraveling;
+    const verb = route ? 'Ride Current to' : 'Travel to';
     return `<div class="buttonStack">
-      <button class="btn primary" ${canTravel ? '' : 'disabled'} onclick="travelToSelected()">Travel to ${shortName(loc.name)} (${cost} Fuel)</button>
+      <button class="btn primary" ${canTravel ? '' : 'disabled'} onclick="travelToSelected()">${verb} ${shortName(loc.name)} (${cost} Fuel)</button>
       ${!canTravel ? `<div class="smallNote">${travelBlockReason(cost, d)}</div>` : ''}
       <button class="btn ghost" onclick="centerCameraOnSelected()">Center Camera</button>
     </div>`;
@@ -1610,7 +1865,12 @@ function locationActionButtons(loc, cur, cost, d) {
     const repairPulse = repairQuote.needed && canAfford({ steel: repairQuote.steelCost, gold: repairQuote.goldCost });
     buttons.push(`<button class="btn green" onclick="tradeFuel()">Buy Fuel: 25 for 30 Gold</button>`);
     buttons.push(`<button class="btn blue ${repairPulse ? 'pulse' : ''}" onclick="repairAtPort()">Repair Hull${repairQuote.needed ? ` (${repairQuote.steelCost} Steel · ${repairQuote.goldCost} Gold)` : ''}</button>`);
-    buttons.push(`<button class="btn" onclick="takeSettlementContract()">Take Local Contract</button>`);
+    if (loc.id === 'loc_home' && !game.flags?.traveledOnce) {
+      buttons.push(`<button class="btn" disabled>Local Contracts Locked</button>`);
+      buttons.push(`<div class="smallNote">First, select a nearby node and travel. Local contracts unlock after your first route.</div>`);
+    } else {
+      buttons.push(`<button class="btn" onclick="reviewSettlementContract()">Review Local Contract</button>`);
+    }
   }
   if (loc.type === 'salvage') buttons.push(`<button class="btn primary" ${loc.depleted ? 'disabled' : ''} onclick="salvageLocation()">Salvage Wreck Field</button>`);
   if (loc.type === 'resource') buttons.push(`<button class="btn primary" ${loc.depleted ? 'disabled' : ''} onclick="harvestLocation()">Harvest ${loc.resourceKind || 'Resources'}</button>`);
@@ -1703,24 +1963,35 @@ function updateSaveStatus() {
   document.getElementById('saveStatus').textContent = game.saveStatus || (localStorage.getItem(SAVE_KEY) ? `Saved Day ${game.day}` : 'Unsaved Campaign');
 }
 
+function tutorialSteps() {
+  return [
+    { key: 'selectedFirst', label: 'Select a nearby salvage, resource, or contract tile.', hint: 'Recommended: choose a safe tile connected to Brassgate by a visible current.' },
+    { key: 'traveledOnce', label: 'Travel through a sky current to the selected location.', hint: 'Use the route preview to see fuel, risk, and travel time.' },
+    { key: 'resolvedEvent', label: 'Resolve the local event.', hint: 'Salvage, harvest, answer a contract beacon, or explore safely.' },
+    { key: 'earnedReward', label: 'Earn resources for the fortress.', hint: 'Steel and gold become upgrades; fuel keeps the route network open.' },
+    { key: 'upgradedOrRepaired', label: 'Buy one upgrade or repair damage.', hint: 'Engines, armor, or weapons are good first upgrades.' },
+    { key: 'foughtLowDanger', label: 'Engage a Danger 1 enemy when ready.', hint: 'Check Combat Readiness before firing the first shot.' },
+    { key: 'returnedForService', label: 'Return to a settlement to repair or refuel.', hint: 'Port services keep Brasswake from entering a death spiral.' }
+  ];
+}
+
 function renderOrdersPanel() {
   const panel = document.getElementById('ordersList');
   if (!panel || !game) return;
   const flags = game.flags || {};
-  const orders = [
-    ['selectedFirst', 'Select a nearby salvage or contract node.'],
-    ['traveledOnce', 'Travel to the selected location.'],
-    ['resolvedEvent', 'Resolve the local event.'],
-    ['earnedReward', 'Earn steel, gold, fuel, or supplies.'],
-    ['upgradedOrRepaired', 'Buy one upgrade or repair damage.'],
-    ['foughtLowDanger', 'Engage a low-danger enemy when ready.'],
-    ['returnedForService', 'Return to a settlement to repair or refuel.']
-  ];
+  const steps = tutorialSteps();
+  let idx = steps.findIndex(s => !flags[s.key]);
+  if (idx < 0) idx = steps.length - 1;
+  const active = steps[idx];
+  const completed = steps.filter(s => flags[s.key]).length;
+  const compact = steps.map((s, i) => `<span title="${s.label}" class="orderDot ${flags[s.key] ? 'done' : i === idx ? 'active' : ''}">${flags[s.key] ? '✓' : i + 1}</span>`).join('');
   const nudge = getNextActionNudge();
-  panel.innerHTML = orders.map(([key, label]) => {
-    const done = !!flags[key];
-    return `<div class="orderItem ${done ? 'done' : ''}"><span class="orderCheck">${done ? '✓' : '•'}</span><span>${label}</span></div>`;
-  }).join('') + (nudge ? `<div class="nudgeBox">${nudge}</div>` : '');
+  panel.innerHTML = `<div class="ordersActive">
+    <div class="ordersStepLine"><span>Step ${Math.min(idx + 1, steps.length)} of ${steps.length}</span><span>${completed}/${steps.length} Complete</span></div>
+    <div class="ordersObjective">${active.label}</div>
+    <div class="ordersHint">${active.hint}</div>
+    <div class="ordersCompact">${compact}</div>
+  </div>${nudge ? `<div class="nudgeBox">${nudge}</div>` : ''}`;
 }
 
 function setOrderFlag(key) {
@@ -1786,28 +2057,51 @@ function travelToSelected() {
   const loc = getLocation(game.selectedLocationId);
   const cur = getLocation(game.currentLocationId);
   if (!loc || loc.id === cur.id || isTraveling) return;
-  const cost = travelFuelCost(cur, loc);
+  const route = getRouteBetween(cur.id, loc.id);
+  const cost = routeTravelCost(cur, loc, route);
   const stats = computeStats();
   if (distance2D(cur, loc) > stats.travelRange) return showToast('Route exceeds safe range. Upgrade engines or sensors.');
   if (game.resources.fuel < cost) return showToast('Not enough fuel for that route.');
 
   spendResources({ fuel: cost });
   isTraveling = true;
-  addLog(`Brasswake departs ${cur.name} for ${loc.name}. Fuel spent: ${cost}.`);
-  animateFortressTo(loc, () => {
-    game.currentLocationId = loc.id;
-    loc.visited = true;
-    setOrderFlag('traveledOnce');
-    if (['skyport','settlement'].includes(loc.type) && game.day > 1) setOrderFlag('returnedForService');
-    advanceDay(1);
-    revealNearby();
-    isTraveling = false;
-    addLog(`Arrived at ${loc.name}.`);
-    autoLocationPulse(loc);
-    buildWorldMeshes();
-    autoSave('Autosaved after travel');
-    renderUI();
-  });
+  if (route) {
+    addLog(`Brasswake enters ${route.name}. Fuel spent: ${cost}.`);
+    beginCurrentTravel(route, loc, cost);
+  } else {
+    addLog(`Brasswake departs ${cur.name} for ${loc.name} under engine power. Fuel spent: ${cost}.`);
+    animateFortressTo(loc, () => finishTravel(loc, 1, 'travel'));
+  }
+  renderUI();
+}
+
+function beginCurrentTravel(route, loc, cost) {
+  const meta = CURRENT_ROUTE_TYPES[route.type] || CURRENT_ROUTE_TYPES.safe;
+  const content = document.getElementById('modalContent');
+  content.innerHTML = `<h1>Entering Jet Stream Current</h1>
+    <p><strong>${route.name}</strong> · ${meta.label} · Risk: ${route.risk}</p>
+    <p>Brassgate’s vane-rings lock open. Brasswake enters a roaring gold-lit current as storm clouds shear across the hull, arcane wind burns along the brass rails, and lightning flickers through the pressure stream.</p>
+    <div class="travelProgress"><div class="travelProgressFill"></div></div>
+    <p class="smallNote">Travel is not instant. The fortress spends fuel, time, and momentum while crossing the living sky-road.</p>`;
+  document.getElementById('modalOverlay').classList.add('active');
+  setTimeout(() => {
+    document.getElementById('modalOverlay').classList.remove('active');
+    animateFortressTo(loc, () => finishTravel(loc, route.travelDays || 1, 'current'));
+  }, 1450);
+}
+
+function finishTravel(loc, days, mode) {
+  game.currentLocationId = loc.id;
+  loc.visited = true;
+  setOrderFlag('traveledOnce');
+  if (['skyport','settlement'].includes(loc.type) && game.day > 1) setOrderFlag('returnedForService');
+  advanceDay(days || 1);
+  revealNearby();
+  isTraveling = false;
+  addLog(`Arrived at ${loc.name}${mode === 'current' ? ' by Jet Stream Current' : ''}.`);
+  autoLocationPulse(loc);
+  buildWorldMeshes();
+  autoSave(mode === 'current' ? 'Autosaved after current travel' : 'Autosaved after travel');
   renderUI();
 }
 
@@ -1846,8 +2140,11 @@ function markEventResolved(kind = 'event') {
 }
 
 function showPostRewardNudge() {
-  const nudge = getNextActionNudge();
-  if (nudge) showToast(nudge.replace(/<[^>]+>/g, ''));
+  const stats = computeStats();
+  const hullPct = game.hull / stats.maxHull;
+  if (hullPct < 0.35) return showToast('Critical hull: reach a settlement and repair immediately.');
+  if (hullPct < 0.65) return showToast('Repairs recommended before another fight.');
+  if (game.resources.fuel < 35) return showToast('Fuel low: buy fuel or plan a safe return route.');
 }
 
 function salvageLocation() {
@@ -2059,15 +2356,50 @@ function repairAtPort() {
   renderUI();
 }
 
-function takeSettlementContract() {
+function settlementContractPreview(loc = getLocation(game.currentLocationId)) {
+  const safeIntro = loc?.id === 'loc_home' && game.day <= 3;
+  return {
+    title: safeIntro ? 'Training Escort Contract' : 'Local Patrol Contract',
+    reward: safeIntro ? '24–36 gold' : '20–52 gold',
+    extra: 'Relations improve with the local faction.',
+    damage: safeIntro ? '0–4 hull damage' : '0–14 hull damage',
+    risk: safeIntro ? 'Safe' : 'Risky'
+  };
+}
+
+function reviewSettlementContract() {
+  const loc = getLocation(game.currentLocationId);
+  if (!loc || !['skyport','settlement'].includes(loc.type)) return;
+  if (loc.id === 'loc_home' && !game.flags?.traveledOnce) {
+    showToast('First, select a nearby node and travel. Local contracts unlock after your first route.');
+    return;
+  }
+  const p = settlementContractPreview(loc);
+  showModal(`<h1>${p.title}</h1>
+    <p class="smallNote">${loc.name} offers paid work for Brasswake crews.</p>
+    <div class="statGrid" style="margin:10px 0;">
+      <div class="statCard"><div class="k">Reward</div><div class="v" style="font-size:14px;">${p.reward}</div></div>
+      <div class="statCard"><div class="k">Risk</div><div class="v">${p.risk}</div></div>
+      <div class="statCard"><div class="k">Possible Damage</div><div class="v" style="font-size:14px;">${p.damage}</div></div>
+      <div class="statCard"><div class="k">Bonus</div><div class="v" style="font-size:13px;">${p.extra}</div></div>
+    </div>
+    <div class="warningBox">Contracts may advance the campaign day and can produce light hull damage. Travel contracts and field sites remain the recommended first loop.</div>
+    <div class="buttonGrid"><button class="btn primary" onclick="closeModal(); takeSettlementContract(true)">Accept Contract</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
+}
+
+function takeSettlementContract(force = false) {
   const loc = getLocation(game.currentLocationId);
   if (!['skyport','settlement'].includes(loc.type)) return;
+  if (!force) return reviewSettlementContract();
+  const safeIntro = loc.id === 'loc_home' && game.day <= 3;
   const roll = Math.random();
-  if (roll < 0.62) {
-    const reward = 20 + Math.floor(Math.random()*22);
+  if (safeIntro || roll < 0.62) {
+    const reward = safeIntro ? 24 + Math.floor(Math.random()*13) : 20 + Math.floor(Math.random()*22);
     addResource('gold', reward);
     improveRelation(loc.faction, 4);
-    addLog(`Local escort contract completed for ${FACTIONS[loc.faction].name}: +${reward} gold, relations improved.`);
+    const dmg = safeIntro && Math.random() < 0.35 ? Math.floor(Math.random()*5) : 0;
+    if (dmg) game.hull = clamp(game.hull - dmg, 1, computeStats().maxHull);
+    addLog(`${safeIntro ? 'Training escort' : 'Local escort'} contract completed for ${FACTIONS[loc.faction].name}: +${reward} gold${dmg ? `, -${dmg} hull` : ''}, relations improved.`);
   } else {
     const dmg = 5 + Math.floor(Math.random()*10);
     const reward = 24 + Math.floor(Math.random()*28);
@@ -2496,6 +2828,7 @@ function normalizeLoadedGame() {
   game.locations.forEach(l => { l.discovered = !!game.discovered[l.id]; });
   game.hull = Math.max(1, game.hull || 80);
   game.hexTiles = game.hexTiles || generateHexTilesFromLocations(game.locations);
+  game.currentRoutes = game.currentRoutes || generateCurrentRoutes(Math.random, game.locations);
 }
 
 
@@ -2605,6 +2938,16 @@ function shortName(name) {
   return name.length > 22 ? name.slice(0, 20) + '…' : name;
 }
 
+
+function toggleMapFocus() {
+  const root = document.getElementById('gameRoot');
+  const on = !root.classList.contains('mapFocus');
+  root.classList.toggle('mapFocus', on);
+  const btn = document.getElementById('mapFocusBtn');
+  if (btn) btn.textContent = on ? 'Exit' : 'Map';
+  showToast(on ? 'Map focus enabled.' : 'Command panels restored.');
+}
+
 // =============================================================
 // MODALS AND MESSAGES
 // =============================================================
@@ -2637,8 +2980,8 @@ function showHelp() {
 
 function showBuildNotes() {
   showModal(`<h1>Build Notes — ${VERSION}</h1>
-    <p><strong>Implemented:</strong> Three.js strategic map, procedural hex-aligned locations, visible hex overworld foundation, travel, fuel costs, onboarding objectives, combat readiness warnings, salvage, harvesting, trade, repairs, contracts, storm hazards, turn-based combat, rooms, upgrades, faction standing, AI world events, autosave/manual save, and polished Iron Kingdoms UI.</p>
-    <p><strong>Known limitations:</strong> Hexes are currently a visual/structural overworld foundation rather than the final route-network system, room placement is still simplified to build slots, combat is panel-based rather than full spatial battles, diplomacy is numeric/simple, AI is lightweight simulated movement/events, and audio is hook-only without external assets.</p>
+    <p><strong>Implemented:</strong> Three.js strategic map, procedural hex-aligned locations, visible hex overworld foundation, Current Gate route foundation, eventful Jet Stream travel overlay, travel, fuel costs, Captain’s Orders 2.0, combat readiness warnings, salvage, harvesting, trade, repairs, contracts, storm hazards, turn-based combat, rooms, upgrades, faction standing, AI world events, autosave/manual save, and polished Iron Kingdoms UI.</p>
+    <p><strong>Known limitations:</strong> Current Gates are an early route foundation layered over fallback direct travel, not the final full route-network system, room placement is still simplified to build slots, combat is panel-based rather than full spatial battles, diplomacy is numeric/simple, AI is lightweight simulated movement/events, and audio is hook-only without external assets.</p>
     <p><strong>Phase 2 hooks:</strong> deeper hex-overworld conversion, jet-stream current routes, tactical 3rd-person location flight, fortress hex modules, officers, crew stories, research trees, faction campaigns, fortress skins, damage simulation, custom escorts, cloud saves, and multiplayer sharing.</p>
     <button class="btn primary" onclick="closeModal()">Close</button>`);
 }
@@ -2721,10 +3064,11 @@ function showHoverTooltip(e, loc) {
   const tip = document.getElementById('hoverTooltip');
   if (!tip || !game || !loc) return;
   const cur = getLocation(game.currentLocationId);
-  const cost = loc.id === cur.id ? 0 : travelFuelCost(cur, loc);
+  const route = getRouteBetween(cur.id, loc.id);
+  const cost = loc.id === cur.id ? 0 : routeTravelCost(cur, loc, route);
   const danger = loc.danger ? ` · Danger ${loc.danger}` : '';
   const depleted = loc.depleted ? ' · Depleted' : '';
-  tip.innerHTML = `<strong>${loc.name}</strong><span class="mini">${prettyType(loc.type)}${danger}${depleted}<br/>${loc.id === cur.id ? 'Current position' : `Fuel cost: ${cost}`}</span>`;
+  tip.innerHTML = `<strong>${loc.name}</strong><span class="mini">${prettyType(loc.type)}${danger}${depleted}<br/>${loc.id === cur.id ? 'Current position' : `${route ? 'Jet Stream Route' : 'Direct Engine Route'} · Fuel cost: ${cost}`}</span>`;
   tip.style.left = Math.min(window.innerWidth - 300, e.clientX + 16) + 'px';
   tip.style.top = Math.min(window.innerHeight - 120, e.clientY + 16) + 'px';
   tip.style.display = 'block';
@@ -2765,6 +3109,7 @@ function onKeyDown(e) {
   if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') cameraState.targetZ += step;
   if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') cameraState.targetX -= step;
   if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') cameraState.targetX += step;
+  if (e.key.toLowerCase() === 'm') toggleMapFocus();
 }
 
 function pickLocation(e) {
