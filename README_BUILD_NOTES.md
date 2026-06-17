@@ -1,40 +1,42 @@
-# IRON KINGDOMS: SKY FORTRESS COMMAND
+# IRON KINGDOMS: SKY FORTRESS COMMAND — v0.26.06.17.0300
 
-Version: v0.26.06.17.0200
+## Package Contents
 
-## Patch Focus
+- `index.html` — standalone single-file browser build.
 
-Focused onboarding, readability, and roadmap-foundation patch based on the v0.26.06.17.0100 gameplay review.
+## Version Consistency
 
-## Major Changes
+- Displayed version label: v0.26.06.17.0300
+- VERSION constant: v0.26.06.17.0300
+- Save key: IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0300
+- Package/folder name: IRON_KINGDOMS_SKY_FORTRESS_COMMAND_v0.26.06.17.0300
 
-- Updated all visible/version/package/save metadata to v0.26.06.17.0200.
-- Reworked Captain's Orders into an active Step 1-of-7 objective panel with compact progress dots.
-- Locked the starting skyport's Local Contract until the player completes the first travel route, preventing the tutorial loop from being bypassed.
-- Added local contract risk/reward preview before accepting contracts.
-- Reduced repeated upgrade-available toast spam while preserving upgrade indicators in the command UI.
-- Improved hex-board readability with brighter discovered tiles, stronger edges, reduced fog density, and clearer map contrast.
-- Added a Map Focus toggle/button that hides command panels to show more of the hex board.
-- Added Current Gate / Jet Stream Current route foundation:
-  - Current Gate markers on routed locations.
-  - Route network data stored in game state.
-  - Safe, Trade, Storm, and Pirate route types.
-  - Curved glowing current-route lines.
-  - Route previews in selected-location panel.
-  - Route-based travel costs layered over existing fallback direct travel.
-- Added an eventful non-instant Jet Stream travel overlay with fantasy-steampunk storm-current flavor.
-- Preserved existing systems: procedural hex map, travel, events, combat, rooms, upgrades, faction relations, AI events, autosave/manual save/load/reset, and Three.js CDN structure.
+## Summary of Changes
+
+- Fixed selected-location panel scroll retention when selecting a new map node.
+- Depleted enemy fleets no longer show active Combat Readiness; cleared enemy sites now show a resolved/secured state.
+- Captain’s Orders now uses “Next Order” language so out-of-order progress feels intentional rather than broken.
+- Free ruin/research upgrades now count as fortress improvement for the tutorial objective.
+- Added stronger one-time first-upgrade guidance and preferred early upgrade ordering for Engines, Armor, and Weapons.
+- Made Current Gates matter more by expanding the route web, making current travel cheaper, and making direct engine travel more expensive.
+- Added low-risk direct-travel hull strain for longer uncharted direct routes.
+- Added simple Jet Stream route events for tolls, turbulence, patrol/salvage-style outcomes, and smooth-current travel logs.
+- Improved Current Gate visuals with vertical vane-rings, brass pylons, and route-type glow so gates no longer read like selection rings.
+- Improved route hierarchy: brighter Current routes, dim dashed direct fallback lines, and a route legend in Help/Build Notes.
+- Added dynamic fantasy-steampunk current-travel text based on route type, departure, destination, and owner.
+- Updated the hex board to use true touching hex tile geometry with subtle grooves instead of visible open gaps.
 
 ## Known Limitations
 
-- Current Gates are an early route foundation and do not yet replace all direct travel.
-- Jet Stream travel has a short overlay/progress treatment, not a full cinematic or interactive travel scene.
-- Current route ownership, tolls, blockades, and hidden routes are not yet fully simulated.
-- The Storm Keel / player-created temporary current engine is not implemented yet.
-- Fortress rooms are still list/build-slot based, not the future fortress hex module builder.
-- Combat remains panel-based rather than direct third-person fortress combat.
-- Old saves from v0.26.06.17.0100 use a different save key and will not auto-load.
+- Current Gates are still a foundation system; full faction toll/blockade/permit logic is not complete.
+- Direct travel still exists as a safety fallback, though it is now less efficient and can lightly strain the hull.
+- Route events are lightweight log/toast outcomes, not full encounters.
+- Storm Keel temporary-current engine is not implemented yet.
+- Fortress hex module construction is not implemented yet.
+- Tactical 3rd-person fortress flight is not implemented yet.
+- Combat remains panel-based.
+- Saves from earlier versions use different save keys and will not auto-load in this build.
 
 ## Recommended Next Patch
 
-Continue building the Current Gate system by adding deeper route logic: gate tolls, faction-controlled gates, route risk events, route locks, and a first Storm Keel research/unlock stub for temporary current creation.
+Recommended next patch: expand the Current Gate system with faction-controlled tolls, blockades, permits, and route event variety, or begin the Storm Keel / temporary current unlock foundation once route logic feels stable.
