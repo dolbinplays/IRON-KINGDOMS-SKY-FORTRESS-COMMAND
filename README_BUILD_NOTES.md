@@ -1,43 +1,23 @@
-# IRON KINGDOMS: SKY FORTRESS COMMAND — v0.26.06.17.0500
+# IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.17.0700
 
-Focused first-loop safety, tutorial polish, gate-locked travel, and Storm Keel foundation patch.
-
-## Version Consistency
-
-- Displayed version: v0.26.06.17.0500
-- VERSION constant: v0.26.06.17.0500
-- Save key: IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0500
-- Package folder: IRON_KINGDOMS_SKY_FORTRESS_COMMAND_v0.26.06.17.0500
-
-## Major Changes
-
-- Gate-locked early travel: strategic overworld movement now requires charted Current Gate / Jet Stream routes.
-- No-charted-current destinations now explain that Storm Keel technology is required for future temporary conduit creation.
-- Route graph generation now builds a connected charted sky-road network so the campaign remains navigable without freeform direct travel.
-- First field salvage event is protected from forced ambushes.
-- Later salvage ambushes now present a choice: engage, retreat before contact, or hide/pay off scavengers.
-- Early ambush danger is capped before the first low-danger hostile contact.
-- Retreating or escaping a low-danger ambush now satisfies the adapted hostile-contact tutorial step.
-- Right-side upgrade emphasis is softened before the first travel/reward loop.
-- Selected-location panel scroll now resets after travel and context changes.
-- Added Storm Keel Engine locked foundation card as a mid/late-game research goal.
-- Storm Keel prototype can be researched only after major requirements, but full temporary current creation remains a future patch.
-- Empty hex tiles are slightly more solid to support a physical tabletop-board read.
+## Patch Summary
+- Introduced the Celestial Navigation Automaton as the official route-calculation system, with Clockwork Navigator as its crew/public nickname.
+- Added visible 1-jump plot capacity language so one-hop route locking feels intentional instead of a UI limitation.
+- Added persistent plotted-route context showing final destination, locked next jump, remaining currents, estimated fuel, tolls, and highest risk.
+- Added navigator recalculation messages when Brasswake arrives at a gate/anchor during a plotted route.
+- Added locked Saint Elmo Navigation Core and Astrolabe Engine roadmap hooks in the Tech tab.
+- Clarified that Clockwork Navigator calculates known routes, Saint Elmo improves calculations later, and Storm Keel physically creates temporary currents in a future mid/late-game phase.
+- Hardened selected-location panel scroll reset after selection, plotting, travel, modal close, and event/combat results.
+- Made pre-first-travel upgrade presentation quieter while keeping optional upgrades available.
+- Hid hostile action buttons on depleted enemy locations and reinforced cleared-state text.
+- Improved plotted route visual hierarchy with final destination and locked-jump rings plus brighter current-leg highlighting.
 
 ## Known Limitations
-
-- Storm Keel does not yet create temporary currents or new route links.
-- Faction gate policies remain lightweight.
-- Route events are still log/modal outcomes, not full encounters.
-- Combat is still panel-based.
-- Fortress hex module construction is not implemented yet.
-- Tactical 3rd-person location flight is not implemented yet.
-- Older saves use a different save key and will not auto-load.
+- The Clockwork Navigator estimates multi-hop routes but only locks the next jump; it does not auto-travel the full route.
+- Saint Elmo Navigation Core and Astrolabe Engine are visible roadmap hooks only, not functional upgrade systems yet.
+- Storm Keel remains locked and does not create temporary currents in this build.
+- Faction permits/blockades remain warning-and-event based rather than full diplomacy.
+- Combat is still panel-based rather than a full spatial battle scene.
 
 ## Recommended Next Patch
-
-Continue with one focused roadmap pillar:
-
-1. Full Storm Keel short-range temporary-current creation foundation, or
-2. Deeper route-event and faction gate diplomacy, or
-3. First fortress hex module builder foundation.
+Continue with Navigation Automaton upgrade levels: add limited upgrades that increase plot capacity, improve toll/risk forecasting, and introduce the first Saint Elmo Core recovery/installation event without unlocking Storm Keel temporary current creation yet.
