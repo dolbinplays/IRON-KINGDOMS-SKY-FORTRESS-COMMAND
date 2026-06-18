@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.18.0900</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.18.1000</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <style>
     :root {
@@ -244,6 +244,33 @@
       padding-right: 3px;
       scrollbar-width: thin;
       max-height: 100%;
+    }
+
+    /* HUD polish: Selected Location uses a real flex scroller so bottom content
+       remains visible instead of hiding under the panel border. */
+    .leftColumn .panel:last-child {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    #selectedPanel {
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: none;
+      padding-right: 6px;
+      padding-bottom: 28px;
+      scroll-padding-bottom: 38px;
+    }
+
+    #selectedPanel .selectedPanelInner {
+      padding-bottom: 42px;
+    }
+
+    #selectedPanel .selectedPanelInner::after {
+      content: "";
+      display: block;
+      height: 30px;
     }
 
     .statGrid {
@@ -973,6 +1000,145 @@
       line-height: 1.25;
     }
 
+    .captainWingsPanel {
+      position: relative;
+      min-height: 104px;
+      height: 100%;
+      overflow: hidden;
+      border: 1px solid rgba(127,209,132,0.68);
+      background:
+        radial-gradient(circle at 50% 16%, rgba(244,207,120,0.18), transparent 42%),
+        linear-gradient(180deg, rgba(56,43,24,0.68), rgba(18,14,14,0.82));
+      border-radius: 10px;
+      padding: 8px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 0 18px rgba(127,209,132,0.08);
+    }
+
+    .captainWingsHeader {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: #dfffe1;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.65px;
+      margin-bottom: 4px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .captainWingsTitle {
+      color: #fff6df;
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.15;
+      position: relative;
+      z-index: 2;
+    }
+
+    .captainWingsSub {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.22;
+      margin-top: 2px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .wingBadge {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      opacity: 0.92;
+      transition: opacity 0.2s ease, filter 0.2s ease;
+    }
+
+    .captainWingsPanel.hasAlert .wingBadge {
+      opacity: 0.22;
+      filter: saturate(0.7);
+    }
+
+    .wingFeather {
+      width: 70px;
+      height: 24px;
+      border-top: 2px solid rgba(244,207,120,0.85);
+      border-bottom: 1px solid rgba(217,164,65,0.35);
+      background:
+        repeating-linear-gradient(135deg, rgba(244,207,120,0.22) 0 5px, transparent 5px 10px),
+        linear-gradient(90deg, rgba(244,207,120,0.08), rgba(244,207,120,0.26));
+      box-shadow: 0 0 12px rgba(244,207,120,0.12);
+    }
+    .wingFeather.left { border-radius: 999px 10px 10px 999px; transform: skewY(-9deg); }
+    .wingFeather.right { border-radius: 10px 999px 999px 10px; transform: skewY(9deg) scaleX(-1); }
+
+    .captainShield {
+      min-width: 64px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+      border: 1px solid rgba(244,207,120,0.86);
+      border-radius: 12px 12px 16px 16px;
+      color: var(--brass2);
+      background: linear-gradient(180deg, rgba(83,54,24,0.98), rgba(30,19,16,0.98));
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: 0.6px;
+      text-align: center;
+      text-shadow: 0 1px 0 #000;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 0 16px rgba(217,164,65,0.18);
+    }
+
+    .captainWingsSuggestion {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      bottom: 54px;
+      z-index: 2;
+      color: #ffe9b8;
+      font-size: 10.5px;
+      line-height: 1.2;
+      text-align: center;
+      opacity: 0.92;
+    }
+
+    .hudAlertCard {
+      position: absolute;
+      inset: 8px;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border: 1px solid rgba(244,207,120,0.68);
+      border-radius: 9px;
+      padding: 8px;
+      background: linear-gradient(180deg, rgba(44,35,26,0.94), rgba(18,13,15,0.95));
+      color: #fff4d0;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.24), inset 0 0 0 1px rgba(255,255,255,0.05);
+    }
+    .hudAlertCard.danger { border-color: rgba(225,95,79,0.78); background: linear-gradient(180deg, rgba(75,26,22,0.95), rgba(18,10,12,0.96)); }
+    .hudAlertCard.good { border-color: rgba(127,209,132,0.72); background: linear-gradient(180deg, rgba(24,60,31,0.93), rgba(12,19,14,0.96)); }
+    .hudAlertLabel {
+      color: var(--brass2);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      font-weight: 900;
+      margin-bottom: 3px;
+    }
+    .hudAlertText {
+      font-size: 12px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+
     .ordersActive.complete {
       min-height: 0;
       overflow: visible;
@@ -1019,7 +1185,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.18.0900</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.18.1000</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1091,7 +1257,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.18.0900 · Single-file HTML · Three.js CDN build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.18.1000 · Single-file HTML · Three.js CDN build</p>
     </div>
   </div>
 </div>
@@ -1102,8 +1268,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.18.0900';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_18_0900';
+const VERSION = 'v0.26.06.18.1000';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_18_1000';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -1206,6 +1372,7 @@ let isTraveling = false;
 let hoverLocationId = null;
 let selectedMesh = null;
 let toastTimer = null;
+let currentHudAlert = null;
 
 // Three.js objects
 let scene, camera, renderer, raycaster, mouse, clock;
@@ -2234,8 +2401,8 @@ function drawCurrentRoutes() {
     ]);
     const pts = curve.getPoints(24);
     const geo = new THREE.BufferGeometry().setFromPoints(pts);
-    const glowOpacity = onSelectedPath ? 0.82 : connectedToCurrent ? 0.64 : 0.30;
-    const lineOpacity = onSelectedPath ? 1.0 : connectedToCurrent ? 0.98 : (route.type === 'pirate' ? 0.56 : 0.66);
+    const glowOpacity = onSelectedPath ? 0.72 : connectedToCurrent ? 0.48 : 0.13;
+    const lineOpacity = onSelectedPath ? 1.0 : connectedToCurrent ? 0.92 : (route.type === 'pirate' ? 0.34 : 0.42);
     const glowMat = new THREE.LineBasicMaterial({ color: meta.color, transparent: true, opacity: glowOpacity });
     const glow = new THREE.Line(geo, glowMat);
     glow.scale.setScalar(onSelectedPath ? 1.014 : 1.006);
@@ -2330,7 +2497,8 @@ function renderSelectedPanel() {
   const loc = getLocation(game.selectedLocationId);
   const cur = getLocation(game.currentLocationId);
   if (!loc || !game.discovered[loc.id]) {
-    panel.innerHTML = `<p class="smallNote">Select a discovered sky mark to inspect it.</p>`;
+    panel.innerHTML = `<div class="selectedPanelInner"><p class="smallNote">Select a discovered sky mark to inspect it.</p></div>`;
+    resetSelectedPanelScrollSoon();
     return;
   }
   const d = distance2D(cur, loc);
@@ -2351,7 +2519,7 @@ function renderSelectedPanel() {
   if (d > stats.travelRange) statusTags.push(`<span class="tag warn">Beyond Safe Range</span>`);
 
   const actionHtml = locationActionButtons(loc, cur, cost, d);
-  panel.innerHTML = `
+  const selectedInnerHTML = `
     <div class="locationName">${loc.name}</div>
     <div class="locationMeta">${statusTags.join('')}</div>
     <div class="desc">${loc.desc}</div>
@@ -2365,9 +2533,10 @@ function renderSelectedPanel() {
     ${getLocationNudgeHTML(loc)}
     ${actionHtml}
   `;
+  panel.innerHTML = `<div class="selectedPanelInner">${selectedInnerHTML}</div>`;
   if (priorContext !== contextKey) {
     panel.dataset.contextKey = contextKey;
-    requestAnimationFrame(() => { panel.scrollTop = 0; });
+    resetSelectedPanelScrollSoon();
   }
 }
 
@@ -2585,6 +2754,58 @@ function tutorialSteps() {
   ];
 }
 
+function isCaptainOrdersComplete() {
+  if (!game) return false;
+  const flags = game.flags || {};
+  const steps = tutorialSteps();
+  return steps.every(s => !!flags[s.key]);
+}
+
+function escapeHTML(text) {
+  return String(text ?? '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+}
+
+function getActiveHudAlert() {
+  if (!currentHudAlert) return null;
+  if (Date.now() > currentHudAlert.expiresAt) {
+    currentHudAlert = null;
+    return null;
+  }
+  return currentHudAlert;
+}
+
+function getPostTutorialUrgentAlert() {
+  if (!game) return null;
+  const stats = computeStats();
+  const hullPct = game.hull / stats.maxHull;
+  if (hullPct < 0.35) return { text: 'Critical hull. Reach a settlement and repair immediately.', tone: 'danger', label: 'Command Alert' };
+  if (hullPct < 0.65) return { text: 'Repairs recommended before seeking another battle.', tone: 'danger', label: 'Command Alert' };
+  if (game.resources.fuel < 35) return { text: 'Fuel low. Return to a settlement or plan a short Current route.', tone: 'warn', label: 'Command Alert' };
+  if (game.plottedRoute) {
+    const target = getLocation(game.plottedRoute.targetId);
+    const next = getLocation(game.plottedRoute.nextHopId);
+    return { text: `Clockwork Navigator route active: ${target?.name || 'destination'}. Locked jump: ${next?.name || 'next hop'}.`, tone: 'good', label: 'Navigator Alert' };
+  }
+  return null;
+}
+
+function captainWingsHTML(alert, compact) {
+  const suggestion = escapeHTML(openCommandSuggestion());
+  const alertHTML = alert ? `<div class="hudAlertCard ${alert.tone || ''}"><div class="hudAlertLabel">${escapeHTML(alert.label || 'Command Alert')}</div><div class="hudAlertText">${escapeHTML(alert.text)}</div></div>` : '';
+  return `<div class="captainWingsPanel ${alert ? 'hasAlert' : ''}">
+    <div class="captainWingsHeader"><span>Captain's Wings Earned</span><span>Open Command</span></div>
+    <div class="captainWingsTitle">First command cycle complete.</div>
+    <div class="captainWingsSub">Brasswake recognizes your command. Tutorial orders are complete.</div>
+    ${alert ? '' : `<div class="captainWingsSuggestion">Open Command: ${suggestion}</div>`}
+    <div class="wingBadge" aria-hidden="true">
+      <div class="wingFeather left"></div>
+      <div class="captainShield">OPEN<br/>COMMAND</div>
+      <div class="wingFeather right"></div>
+    </div>
+    ${alertHTML}
+  </div>`;
+}
+
 function renderOrdersPanel() {
   const panel = document.getElementById('ordersList');
   if (!panel || !game) return;
@@ -2596,16 +2817,8 @@ function renderOrdersPanel() {
   const active = steps[idx];
   const compact = steps.map((s, i) => `<span title="${s.label}" class="orderDot ${flags[s.key] ? 'done' : i === idx && !allDone ? 'active' : ''}">${flags[s.key] ? '✓' : i + 1}</span>`).join('');
   if (allDone) {
-    panel.innerHTML = `<div class="ordersActive complete">
-      <div class="ordersStepLine"><span>Captain's Orders Complete</span><span>${completed}/${steps.length} Complete</span></div>
-      <div class="ordersObjective">Brasswake has completed the first command cycle.</div>
-      <div class="ordersHint">You are ready for open command.</div>
-      <ul class="openCommandList">
-        <li>${openCommandSuggestion()}</li>
-        <li>${secondaryOpenCommandSuggestion()}</li>
-      </ul>
-      <div class="ordersCompact">${compact}</div>
-    </div>`;
+    const alert = getActiveHudAlert() || getPostTutorialUrgentAlert();
+    panel.innerHTML = captainWingsHTML(alert, compact);
     return;
   }
   const nudge = getNextActionNudge();
@@ -3860,6 +4073,18 @@ function showToast(text) {
   t.classList.add('active');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('active'), 2400);
+  if (game && isCaptainOrdersComplete()) {
+    const lower = String(text || '').toLowerCase();
+    const tone = lower.includes('critical') || lower.includes('damage') || lower.includes('not enough') || lower.includes('warning') ? 'danger' : (lower.includes('complete') || lower.includes('upgraded') || lower.includes('route') ? 'good' : '');
+    currentHudAlert = { text, tone, label: lower.includes('navigator') || lower.includes('route') ? 'Navigator Alert' : 'Command Alert', expiresAt: Date.now() + 5200 };
+    renderOrdersPanel();
+    setTimeout(() => {
+      if (currentHudAlert && Date.now() > currentHudAlert.expiresAt) {
+        currentHudAlert = null;
+        renderOrdersPanel();
+      }
+    }, 5400);
+  }
 }
 
 function showModal(html) {
@@ -3892,8 +4117,8 @@ function showHelp() {
 
 function showBuildNotes() {
   showModal(`<h1>Build Notes — ${VERSION}</h1>
-    <p><strong>Implemented:</strong> Three.js strategic map, procedural hex-aligned locations, edge-to-edge pointy-top hex board fix, Current Gate route logic, first multi-hop route planner, reachable/next-hop guidance, route focus highlighting, gate tolls, blockade warnings, faction-flavored route events, gate-locked strategic travel, visible locked Storm Keel tech, eventful Jet Stream travel overlay, travel, fuel costs, Captain’s Orders completion/Open Command state, combat route guidance, combat readiness warnings, salvage, harvesting, trade, repairs, contracts, storm hazards, turn-based combat, rooms, upgrades, faction standing, AI world events, autosave/manual save, procedural modular Brasswake marker, and a zoom-out map/readability HUD layout pass.</p>
-    <p><strong>Known limitations:</strong> Current Gates now define early strategic travel; v0900 improves zoomed-out map readability and fixes bottom HUD/Captain’s Orders clipping; multi-hop route planning selects the next hop rather than auto-traveling an entire path, faction permits/blockades are warning-and-event based rather than a full diplomacy system, Storm Keel requires future core content and does not create currents yet, room placement is still simplified to build slots, combat is panel-based rather than full spatial battles, AI is lightweight simulated movement/events, and audio is hook-only without external assets.</p>
+    <p><strong>Implemented:</strong> Three.js strategic map, procedural hex-aligned locations, edge-to-edge pointy-top hex board fix, Current Gate route logic, first multi-hop route planner, reachable/next-hop guidance, route focus highlighting, gate tolls, blockade warnings, faction-flavored route events, gate-locked strategic travel, visible locked Storm Keel tech, eventful Jet Stream travel overlay, travel, fuel costs, Captain’s Orders completion/Open Command state, combat route guidance, combat readiness warnings, salvage, harvesting, trade, repairs, contracts, storm hazards, turn-based combat, rooms, upgrades, faction standing, AI world events, autosave/manual save, procedural modular Brasswake marker, zoom-out map/readability HUD layout pass, Captain’s Wings post-tutorial panel, temporary HUD alert overlay, and Selected Location scroll-bottom padding fix.</p>
+    <p><strong>Known limitations:</strong> Current Gates now define early strategic travel; multi-hop route planning selects the next hop rather than auto-traveling an entire path, faction permits/blockades are warning-and-event based rather than a full diplomacy system, Storm Keel requires future core content and does not create currents yet, room placement is still simplified to build slots, combat is panel-based rather than full spatial battles, AI is lightweight simulated movement/events, and audio is hook-only without external assets.</p>
     <p><strong>Phase 2 hooks:</strong> route planner polish, deeper hex-overworld conversion, gate-locked jet-stream route planning, Storm Keel Core recovery and temporary current creation, tactical 3rd-person location flight, fortress hex modules, officers, crew stories, research trees, faction campaigns, fortress skins, damage simulation, custom escorts, cloud saves, and multiplayer sharing.</p>
     <button class="btn primary" onclick="closeModal()">Close</button>`);
 }
