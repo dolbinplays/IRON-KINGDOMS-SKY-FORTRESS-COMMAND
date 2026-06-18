@@ -1,30 +1,31 @@
-# IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.17.0800
+# IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.18.0900
 
-## Patch Summary
+Focused UI/map readability patch.
 
-This focused patch upgrades Brasswake's overworld marker from a simple airship placeholder into a lightweight procedural modular hex-built sky fortress model using only built-in Three.js geometry.
+## Changes
+- Updated all build/version/save labels to v0.26.06.18.0900.
+- Improved zoomed-out map readability without removing the dark fantasy-steampunk mood.
+- Reduced excessive distance fog and slightly lifted scene/background lighting.
+- Increased hex tile visibility, route line readability, marker emissive strength, gate glow, and grid readability.
+- Increased bottom HUD height and added safe side-panel bottom gutters so Command/Fleet/Orders no longer overlap Selected Location.
+- Made Captain's Orders content scroll cleanly instead of clipping completed-orders suggestions.
+- Preserved gate-locked travel, Current routes, Clockwork Navigator route planning, modular Brasswake marker, combat, salvage/harvest/trade/contracts/storm/ruin systems, upgrades/rooms/factions/tech tabs, and save/load behavior.
 
-## Brasswake Model Changes
+## Validation
+- JavaScript syntax check passed with `node --check`.
+- Version consistency check passed.
+- ZIP integrity check passed.
+- No GLB/GLTF loader added.
+- No embedded preview generated.
 
-- Replaced `createFortressModel()` with a procedural modular hex fortress marker.
-- Added a raised central command/bridge hex with warm window glow and signal mast.
-- Added outer functional hex modules: engine/workshop, boiler, cannon decks, storage, barracks, dock platform, and an empty future expansion frame.
-- Added underside blue-white arc-lift rings, small lift pods, a central lift assembly, pipes, catwalks, support braces, cables/chains, smokestacks, cannons, rivets, patch plates, vents, railings, crane detail, and warm lantern/window glow.
-- Added subtle arc-lift pulse/rotation while preserving the current fortress bobbing behavior.
+## Known limitations
+- This is a readability/layout patch only.
+- It does not add new gameplay systems.
+- It does not unlock Storm Keel route creation.
+- It does not add tactical 3D mode or fortress builder.
+- Browser playthrough was not run here to avoid embedded preview load.
 
-## Preserved Systems
-
-- Single-file HTML structure.
-- Three.js CDN usage.
-- Existing overworld, hex board, Current Gate network, gate-locked strategic travel, multi-hop route planner, Clockwork Navigator / Celestial Navigation Automaton systems, Tech tab, Storm Keel locked state, combat, salvage, contracts, rooms/upgrades/factions, save/load/autosave, and all existing UI flows.
-
-## Known Limitations
-
-- This is still a lightweight in-map representation, not the final fortress-builder system.
-- Visible modules are not yet mechanically tied to actual rooms/upgrades.
-- No GLB asset is loaded yet; the model remains procedural to keep the game single-file and stable.
-- Storm Keel temporary current generation remains locked for future progression.
-
-## Recommended Next Patch
-
-Tie visible Brasswake modules to room/upgrade state in a controlled way: installed rooms could subtly light or add detail to matching hex modules, while future rooms could fill empty expansion frames.
+## Recommended next patch
+Run a short playtest of v0.26.06.18.0900. If the map and HUD are readable, the next patch should either:
+- tie Brasswake visible modules to actual room/upgrade state, or
+- continue route planner/Clockwork Navigator polish with better route path visualization and navigation upgrades.
