@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.17.0700</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.17.0800</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <style>
     :root {
@@ -1050,7 +1050,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.17.0700</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.17.0800</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1122,7 +1122,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.17.0700 · Single-file HTML · Three.js CDN build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.17.0800 · Single-file HTML · Three.js CDN build</p>
     </div>
   </div>
 </div>
@@ -1133,8 +1133,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.17.0700';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0700';
+const VERSION = 'v0.26.06.17.0800';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0800';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -2263,42 +2263,391 @@ function createLocationMarker(loc) {
 }
 
 function createFortressModel() {
+  // Procedural Brasswake marker v0.26.06.17.0800
+  // Lightweight in-game representation of the starting fortress: a modular hex-built sky city.
+  // Future fortress-builder work can map actual rooms/upgrades to these visible hex modules.
   const group = new THREE.Group();
-  const brass = new THREE.MeshStandardMaterial({ color: 0xb98935, metalness: 0.65, roughness: 0.38, emissive: 0x2a1804, emissiveIntensity: 0.08 });
-  const steel = new THREE.MeshStandardMaterial({ color: 0x7e8a92, metalness: 0.62, roughness: 0.36 });
-  const red = new THREE.MeshStandardMaterial({ color: 0xb72d2d, metalness: 0.35, roughness: 0.52, emissive: 0x1e0503, emissiveIntensity: 0.1 });
-  const glow = new THREE.MeshBasicMaterial({ color: 0xffd56a });
+  group.name = 'Brasswake Modular Hex Fortress Marker';
+  group.userData.brasswakeMarker = true;
 
-  const hull = new THREE.Mesh(new THREE.BoxGeometry(5.6, 1.3, 3.2), steel);
-  hull.castShadow = true;
-  hull.position.y = 1.0;
-  group.add(hull);
-  const deck = new THREE.Mesh(new THREE.BoxGeometry(4.0, 1.3, 2.15), brass);
-  deck.position.y = 2.15;
-  deck.castShadow = true;
-  group.add(deck);
-  const bridge = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.1, 1.55), red);
-  bridge.position.set(-0.35, 3.2, 0);
-  bridge.castShadow = true;
-  group.add(bridge);
-  for (let i = 0; i < 3; i++) {
-    const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 1.8, 10), brass);
-    stack.position.set(1.2 + i * 0.75, 3.1, -0.95 + i*0.95);
+  const mat = {
+    darkIron: new THREE.MeshStandardMaterial({ color: 0x252b31, metalness: 0.72, roughness: 0.55, emissive: 0x05070a, emissiveIntensity: 0.03 }),
+    wornIron: new THREE.MeshStandardMaterial({ color: 0x3b444c, metalness: 0.58, roughness: 0.62, emissive: 0x06090b, emissiveIntensity: 0.025 }),
+    brass: new THREE.MeshStandardMaterial({ color: 0xb78335, metalness: 0.74, roughness: 0.44, emissive: 0x241404, emissiveIntensity: 0.07 }),
+    brassBright: new THREE.MeshStandardMaterial({ color: 0xd2a34a, metalness: 0.70, roughness: 0.36, emissive: 0x2f1d05, emissiveIntensity: 0.09 }),
+    soot: new THREE.MeshStandardMaterial({ color: 0x15181c, metalness: 0.45, roughness: 0.78 }),
+    woodDeck: new THREE.MeshStandardMaterial({ color: 0x5f4027, metalness: 0.15, roughness: 0.76 }),
+    windowGlow: new THREE.MeshBasicMaterial({ color: 0xffbf4a }),
+    arcGlow: new THREE.MeshBasicMaterial({ color: 0x80eaff, transparent: true, opacity: 0.78, side: THREE.DoubleSide }),
+    arcCore: new THREE.MeshBasicMaterial({ color: 0xb9f7ff, transparent: true, opacity: 0.92 }),
+    cable: new THREE.LineBasicMaterial({ color: 0x171a20, transparent: true, opacity: 0.76 }),
+    emptyFrame: new THREE.LineBasicMaterial({ color: 0xb78335, transparent: true, opacity: 0.74 })
+  };
+
+  const hexR = 0.72;
+  const hexH = 0.48;
+  const hexWidth = Math.sqrt(3) * hexR;
+  const hexRow = 1.5 * hexR;
+  const modulePositions = new Map();
+  const rivetGeom = new THREE.SphereGeometry(0.035, 6, 4);
+  const jointGeom = new THREE.SphereGeometry(0.075, 8, 6);
+
+  function hpos(q, r) {
+    return new THREE.Vector3(hexWidth * (q + r / 2), 0, hexRow * r);
+  }
+
+  function hexGeometry(radius = hexR, height = hexH) {
+    const geo = new THREE.CylinderGeometry(radius, radius, height, 6, 1, false);
+    geo.rotateY(Math.PI / 6);
+    return geo;
+  }
+
+  function placeMesh(parent, mesh, x, y, z) {
+    mesh.position.set(x || 0, y || 0, z || 0);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    parent.add(mesh);
+    return mesh;
+  }
+
+  function addRivetsAroundHex(parent, radius, y, material, scale = 1) {
+    for (let side = 0; side < 6; side++) {
+      const a0 = Math.PI / 6 + side * Math.PI / 3;
+      const a1 = Math.PI / 6 + (side + 1) * Math.PI / 3;
+      for (let step = 1; step <= 3; step++) {
+        const t = step / 4;
+        const x = Math.cos(a0) * radius * (1 - t) + Math.cos(a1) * radius * t;
+        const z = Math.sin(a0) * radius * (1 - t) + Math.sin(a1) * radius * t;
+        const rivet = new THREE.Mesh(rivetGeom, material || mat.brassBright);
+        rivet.scale.setScalar(scale);
+        rivet.position.set(x, y, z);
+        parent.add(rivet);
+      }
+    }
+  }
+
+  function addWindowStrip(parent, radius, y, count = 3, startAngle = 0) {
+    for (let i = 0; i < count; i++) {
+      const angle = startAngle + (i - (count - 1) / 2) * 0.18;
+      const win = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.16, 0.025), mat.windowGlow);
+      win.position.set(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
+      win.rotation.y = -angle + Math.PI / 2;
+      parent.add(win);
+      const lamp = new THREE.PointLight(0xffb64a, 0.09, 1.6);
+      lamp.position.copy(win.position);
+      parent.add(lamp);
+    }
+  }
+
+  function addLiftEngine(parent, x, z, size = 1) {
+    const pod = new THREE.Mesh(new THREE.CylinderGeometry(0.16 * size, 0.21 * size, 0.34 * size, 10), mat.darkIron);
+    pod.position.set(x, -0.43 * size, z);
+    parent.add(pod);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.31 * size, 0.025 * size, 8, 24), mat.arcGlow.clone());
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(x, -0.67 * size, z);
+    ring.userData.arcLiftRing = true;
+    ring.userData.baseOpacity = 0.70;
+    ring.userData.spin = 0.9 + size * 0.4;
+    parent.add(ring);
+    const glowCore = new THREE.Mesh(new THREE.SphereGeometry(0.08 * size, 8, 6), mat.arcCore.clone());
+    glowCore.position.set(x, -0.66 * size, z);
+    glowCore.userData.arcLiftGlow = true;
+    parent.add(glowCore);
+    const light = new THREE.PointLight(0x80eaff, 0.35 * size, 3.0 * size);
+    light.position.set(x, -0.70 * size, z);
+    parent.add(light);
+  }
+
+  function addVents(parent, x, y, z, count = 4) {
+    for (let i = 0; i < count; i++) {
+      const vent = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.20, 0.04), mat.soot);
+      vent.position.set(x + (i - (count - 1) / 2) * 0.11, y, z);
+      parent.add(vent);
+    }
+  }
+
+  function addSmokestack(parent, x, z, h = 0.92) {
+    const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, h, 10), mat.soot);
+    stack.position.set(x, 0.64 + h * 0.5, z);
     stack.castShadow = true;
-    group.add(stack);
+    parent.add(stack);
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.095, 0.055, 10), mat.brassBright);
+    band.position.y = h * 0.25;
+    stack.add(band);
   }
-  const core = new THREE.Mesh(new THREE.SphereGeometry(0.38, 12, 8), glow);
-  core.position.set(-2.4, 1.1, 0);
-  group.add(core);
-  for (let z of [-2.0, 2.0]) {
-    const wing = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.25, 0.55), brass);
-    wing.position.set(0.2, 1.35, z);
-    group.add(wing);
+
+  function addCannon(parent, x, z, yaw = 0, scale = 1) {
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.16 * scale, 0.20 * scale, 0.12 * scale, 10), mat.soot);
+    base.position.set(x, 0.41, z);
+    parent.add(base);
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.035 * scale, 0.045 * scale, 0.58 * scale, 8), mat.brassBright);
+    const aim = new THREE.Vector3(Math.sin(yaw), 0.12, Math.cos(yaw)).normalize();
+    barrel.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), aim);
+    barrel.position.set(x + aim.x * 0.20 * scale, 0.48 + aim.y * 0.1, z + aim.z * 0.20 * scale);
+    parent.add(barrel);
   }
-  const light = new THREE.PointLight(0xffc76b, 0.9, 12);
-  light.position.set(-2.4, 2.2, 0);
-  group.add(light);
-  group.scale.set(1.1, 1.1, 1.1);
+
+  function addPatchPlates(parent, count = 3) {
+    for (let i = 0; i < count; i++) {
+      const plate = new THREE.Mesh(new THREE.BoxGeometry(0.30 + 0.1 * (i % 2), 0.025, 0.18), i % 2 ? mat.wornIron : mat.brass);
+      plate.position.set(-0.34 + i * 0.32, 0.276, -0.16 + (i % 2) * 0.30);
+      plate.rotation.y = (i - 1) * 0.28;
+      parent.add(plate);
+    }
+  }
+
+  function createHexModule(cfg) {
+    const parent = new THREE.Group();
+    parent.name = cfg.type + ' hex module';
+    const baseMat = cfg.material || mat.darkIron;
+    const pos = hpos(cfg.q, cfg.r);
+    parent.position.copy(pos);
+    modulePositions.set(cfg.key, pos.clone());
+
+    const body = new THREE.Mesh(hexGeometry(cfg.radius || hexR, cfg.height || hexH), baseMat);
+    body.position.y = cfg.y || 0.05;
+    body.castShadow = true;
+    body.receiveShadow = true;
+    parent.add(body);
+
+    const topTrim = new THREE.Mesh(hexGeometry((cfg.radius || hexR) * 1.015, 0.055), mat.brassBright);
+    topTrim.position.y = (cfg.y || 0.05) + (cfg.height || hexH) / 2 + 0.035;
+    parent.add(topTrim);
+    const bottomTrim = new THREE.Mesh(hexGeometry((cfg.radius || hexR) * 1.01, 0.045), mat.brass);
+    bottomTrim.position.y = (cfg.y || 0.05) - (cfg.height || hexH) / 2 - 0.02;
+    parent.add(bottomTrim);
+    addRivetsAroundHex(parent, (cfg.radius || hexR) * 0.94, topTrim.position.y + 0.045, mat.brassBright, 0.82);
+    addPatchPlates(parent, cfg.patchCount || 2);
+    if (cfg.lift !== false) addLiftEngine(parent, 0, 0, cfg.liftSize || 0.82);
+    return parent;
+  }
+
+  function createBridgeModule() {
+    const m = createHexModule({ key: 'bridge', type: 'command bridge', q: 0, r: 0, radius: 0.86, height: 0.62, y: 0.18, material: mat.brass });
+    const tower = new THREE.Mesh(hexGeometry(0.46, 0.52), mat.brassBright);
+    tower.position.y = 0.87;
+    m.add(tower);
+    const roof = new THREE.Mesh(hexGeometry(0.52, 0.10), mat.darkIron);
+    roof.position.y = 1.18;
+    m.add(roof);
+    addWindowStrip(m, 0.49, 0.92, 5, Math.PI / 2);
+    addWindowStrip(m, 0.52, 0.08, 3, -Math.PI / 2);
+    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.035, 0.78, 8), mat.brassBright);
+    mast.position.y = 1.65;
+    m.add(mast);
+    const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), mat.windowGlow);
+    lamp.position.y = 2.05;
+    lamp.userData.windowGlow = true;
+    m.add(lamp);
+    const signal = new THREE.PointLight(0xffc35a, 0.35, 3.2);
+    signal.position.y = 2.05;
+    m.add(signal);
+    return m;
+  }
+
+  function createEngineWorkshopModule() {
+    const m = createHexModule({ key: 'engine', type: 'engine workshop', q: 0, r: -1, material: mat.darkIron, liftSize: 1.0, patchCount: 4 });
+    const grille = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.26, 0.055), mat.soot);
+    grille.position.set(0, 0.28, -0.68);
+    m.add(grille);
+    addVents(m, 0, 0.31, -0.718, 6);
+    for (let i = -1; i <= 1; i++) {
+      const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.82, 8), mat.brass);
+      pipe.rotation.x = Math.PI / 2;
+      pipe.position.set(i * 0.18, 0.52, -0.20);
+      m.add(pipe);
+    }
+    return m;
+  }
+
+  function createBoilerModule() {
+    const m = createHexModule({ key: 'boiler', type: 'boiler utility', q: 0, r: 1, material: mat.wornIron, liftSize: 0.72 });
+    addSmokestack(m, -0.20, 0.10, 0.98);
+    addSmokestack(m, 0.22, 0.02, 1.08);
+    const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.62, 10), mat.brass);
+    tank.rotation.z = Math.PI / 2;
+    tank.position.set(0.03, 0.52, -0.28);
+    m.add(tank);
+    addWindowStrip(m, 0.66, 0.18, 2, 0);
+    return m;
+  }
+
+  function createCannonModule(key, q, r, yaw) {
+    const m = createHexModule({ key, type: 'cannon deck', q, r, material: mat.darkIron, liftSize: 0.70 });
+    addCannon(m, 0, 0, yaw, 1.1);
+    const armor = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.10, 0.14), mat.brass);
+    armor.position.set(0, 0.39, yaw < 0 ? -0.48 : 0.48);
+    armor.rotation.y = yaw;
+    m.add(armor);
+    return m;
+  }
+
+  function createBarracksModule() {
+    const m = createHexModule({ key: 'barracks', type: 'barracks storage', q: -1, r: 1, material: mat.wornIron, liftSize: 0.66, patchCount: 4 });
+    addWindowStrip(m, 0.66, 0.19, 3, Math.PI);
+    addWindowStrip(m, 0.66, 0.19, 2, Math.PI / 3);
+    const cloth = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.24, 0.015), new THREE.MeshBasicMaterial({ color: 0x8e3a2b }));
+    cloth.position.set(-0.50, 0.12, -0.38);
+    cloth.rotation.y = -0.45;
+    m.add(cloth);
+    return m;
+  }
+
+  function createDockModule() {
+    const m = createHexModule({ key: 'dock', type: 'dock platform', q: 1, r: -1, material: mat.wornIron, liftSize: 0.66 });
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.08, 0.44), mat.woodDeck);
+    deck.position.set(0.60, 0.36, -0.10);
+    deck.rotation.y = -0.16;
+    m.add(deck);
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.90, 0.05, 0.05), mat.brass);
+    rail.position.set(0.60, 0.50, -0.34);
+    rail.rotation.y = -0.16;
+    m.add(rail);
+    const crane = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.72, 0.07), mat.soot);
+    crane.position.set(0.86, 0.72, 0.12);
+    crane.rotation.z = -0.45;
+    m.add(crane);
+    const hookLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(1.08, 0.50, 0.12), new THREE.Vector3(1.08, 0.18, 0.12)]), mat.cable);
+    m.add(hookLine);
+    const crate = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.16, 0.16), mat.brass);
+    crate.position.set(0.34, 0.48, -0.08);
+    m.add(crate);
+    return m;
+  }
+
+  function createStorageModule() {
+    const m = createHexModule({ key: 'storage', type: 'storage utility', q: 1, r: 0, material: mat.darkIron, liftSize: 0.72 });
+    const hatch = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.03, 0.24), mat.soot);
+    hatch.position.set(0.06, 0.43, 0.08);
+    hatch.rotation.y = 0.22;
+    m.add(hatch);
+    addWindowStrip(m, 0.66, 0.18, 2, 0.15);
+    return m;
+  }
+
+  function createEmptyExpansionFrame() {
+    const m = new THREE.Group();
+    m.name = 'empty future expansion frame hex';
+    const pos = hpos(2, -1);
+    m.position.copy(pos);
+    modulePositions.set('empty', pos.clone());
+    const edgeGeo = new THREE.EdgesGeometry(hexGeometry(hexR * 0.95, 0.35));
+    const frame = new THREE.LineSegments(edgeGeo, mat.emptyFrame);
+    frame.position.y = 0.06;
+    m.add(frame);
+    for (let i = 0; i < 6; i++) {
+      const ang = Math.PI / 6 + i * Math.PI / 3;
+      const joint = new THREE.Mesh(jointGeom, mat.brassBright);
+      joint.position.set(Math.cos(ang) * hexR * 0.9, 0.19, Math.sin(ang) * hexR * 0.9);
+      m.add(joint);
+    }
+    addLiftEngine(m, 0, 0, 0.45);
+    return m;
+  }
+
+  function addConnector(fromKey, toKey, kind = 'catwalk') {
+    const a = modulePositions.get(fromKey);
+    const b = modulePositions.get(toKey);
+    if (!a || !b) return;
+    const mid = new THREE.Vector3().addVectors(a, b).multiplyScalar(0.5);
+    const dx = b.x - a.x;
+    const dz = b.z - a.z;
+    const len = Math.hypot(dx, dz);
+    const angle = Math.atan2(-dz, dx);
+    const beamMat = kind === 'pipe' ? mat.brass : mat.soot;
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(len * 0.55, 0.055, kind === 'catwalk' ? 0.22 : 0.07), beamMat);
+    beam.position.set(mid.x, 0.48, mid.z);
+    beam.rotation.y = angle;
+    beam.castShadow = true;
+    group.add(beam);
+    if (kind === 'catwalk') {
+      const railA = new THREE.Mesh(new THREE.BoxGeometry(len * 0.50, 0.035, 0.035), mat.brass);
+      railA.position.set(mid.x, 0.62, mid.z + 0.13);
+      railA.rotation.y = angle;
+      group.add(railA);
+      const railB = new THREE.Mesh(new THREE.BoxGeometry(len * 0.50, 0.035, 0.035), mat.brass);
+      railB.position.set(mid.x, 0.62, mid.z - 0.13);
+      railB.rotation.y = angle;
+      group.add(railB);
+    }
+  }
+
+  function addPipeBetween(fromKey, toKey, y = 0.12) {
+    const a = modulePositions.get(fromKey);
+    const b = modulePositions.get(toKey);
+    if (!a || !b) return;
+    const start = new THREE.Vector3(a.x, y, a.z);
+    const end = new THREE.Vector3(b.x, y + 0.04, b.z);
+    const dir = new THREE.Vector3().subVectors(end, start);
+    const len = dir.length();
+    const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, len * 0.66, 8), mat.brass);
+    pipe.position.copy(start.clone().add(end).multiplyScalar(0.5));
+    pipe.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
+    group.add(pipe);
+  }
+
+  function addCable(fromKey, toKey, sag = 0.20) {
+    const a = modulePositions.get(fromKey);
+    const b = modulePositions.get(toKey);
+    if (!a || !b) return;
+    const pts = [
+      new THREE.Vector3(a.x, 1.02, a.z),
+      new THREE.Vector3((a.x + b.x) / 2, 0.82 - sag, (a.z + b.z) / 2),
+      new THREE.Vector3(b.x, 1.02, b.z)
+    ];
+    const curve = new THREE.CatmullRomCurve3(pts);
+    const cable = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(10)), mat.cable);
+    group.add(cable);
+  }
+
+  const modules = [
+    createBridgeModule(),
+    createEngineWorkshopModule(),
+    createBoilerModule(),
+    createCannonModule('leftCannon', -1, 0, -Math.PI / 2),
+    createStorageModule(),
+    createBarracksModule(),
+    createDockModule(),
+    createCannonModule('rightCannon', 1, 1, Math.PI / 2),
+    createEmptyExpansionFrame()
+  ];
+  modules.forEach(m => group.add(m));
+
+  addConnector('bridge', 'engine', 'catwalk');
+  addConnector('bridge', 'boiler', 'catwalk');
+  addConnector('bridge', 'storage', 'catwalk');
+  addConnector('bridge', 'leftCannon', 'catwalk');
+  addConnector('storage', 'dock', 'catwalk');
+  addConnector('dock', 'empty', 'pipe');
+  addPipeBetween('engine', 'bridge', -0.02);
+  addPipeBetween('boiler', 'bridge', 0.18);
+  addPipeBetween('storage', 'dock', 0.10);
+  addCable('leftCannon', 'boiler', 0.18);
+  addCable('dock', 'empty', 0.26);
+
+  // Central underside lift assembly: visible blue-white arc machinery beneath the command core.
+  const centralStrut = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.18, 0.86, 12), mat.darkIron);
+  centralStrut.position.set(0, -0.28, 0);
+  group.add(centralStrut);
+  const centralRing = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.04, 10, 36), mat.arcGlow.clone());
+  centralRing.rotation.x = Math.PI / 2;
+  centralRing.position.set(0, -0.84, 0);
+  centralRing.userData.arcLiftRing = true;
+  centralRing.userData.baseOpacity = 0.76;
+  centralRing.userData.spin = 1.2;
+  group.add(centralRing);
+  const coreLight = new THREE.PointLight(0x80eaff, 0.9, 5.0);
+  coreLight.position.set(0, -0.72, 0);
+  group.add(coreLight);
+
+  // A tiny forward lantern gives the marker a readable nose without turning it into a smooth ship hull.
+  const noseLamp = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), mat.windowGlow);
+  noseLamp.position.set(0, 0.55, -hexRow * 1.52);
+  group.add(noseLamp);
+
+  group.scale.setScalar(1.32);
+  group.rotation.y = -0.18;
   return group;
 }
 
@@ -4048,9 +4397,9 @@ function showHelp() {
 
 function showBuildNotes() {
   showModal(`<h1>Build Notes — ${VERSION}</h1>
-    <p><strong>Implemented:</strong> Three.js strategic map, procedural hex-aligned locations, edge-to-edge pointy-top hex board fix, Current Gate route logic, gate-locked strategic travel, first multi-hop route planner, ${NAVIGATION_SYSTEM.officialName} / ${NAVIGATION_SYSTEM.commonName} foundation, 1-jump plot capacity, persistent plotted-route context, navigator recalculation at gates, route focus highlighting, gate tolls, blockade warnings, faction-flavored route events, visible locked Storm Keel tech, locked ${NAVIGATION_SYSTEM.saintElmoName} card, ${NAVIGATION_SYSTEM.astrolabeName} roadmap hook, eventful Jet Stream travel overlay, Captain’s Orders completion/Open Command state, combat route guidance, combat readiness warnings, salvage, harvesting, trade, repairs, contracts, storm hazards, turn-based combat, rooms, upgrades, faction standing, AI world events, autosave/manual save, and polished Iron Kingdoms UI.</p>
-    <p><strong>Known limitations:</strong> Current Gates define early strategic travel; ${NAVIGATION_SYSTEM.commonName} estimates multi-hop routes but locks only the next jump, faction permits/blockades are warning-and-event based rather than a full diplomacy system, ${NAVIGATION_SYSTEM.saintElmoName} and ${NAVIGATION_SYSTEM.astrolabeName} are locked roadmap hooks, Storm Keel requires future core content and does not create currents yet, room placement is still simplified to build slots, combat is panel-based rather than full spatial battles, AI is lightweight simulated movement/events, and audio is hook-only without external assets.</p>
-    <p><strong>Phase 2 hooks:</strong> navigation automaton upgrade levels, Saint Elmo Core recovery/installation, route plot capacity upgrades, route planner polish, deeper gate diplomacy, Storm Keel Core recovery and temporary current creation, tactical 3rd-person location flight, fortress hex modules, officers, crew stories, research trees, faction campaigns, cloud saves, and multiplayer sharing.</p>
+    <p><strong>Implemented:</strong> Three.js strategic map, procedural hex-aligned locations, edge-to-edge pointy-top hex board fix, Current Gate route logic, gate-locked strategic travel, first multi-hop route planner, ${NAVIGATION_SYSTEM.officialName} / ${NAVIGATION_SYSTEM.commonName} foundation, 1-jump plot capacity, persistent plotted-route context, navigator recalculation at gates, route focus highlighting, gate tolls, blockade warnings, faction-flavored route events, <strong>procedural modular hex-built Brasswake overworld marker</strong>, visible locked Storm Keel tech, locked ${NAVIGATION_SYSTEM.saintElmoName} card, ${NAVIGATION_SYSTEM.astrolabeName} roadmap hook, eventful Jet Stream travel overlay, Captain’s Orders completion/Open Command state, combat route guidance, combat readiness warnings, salvage, harvesting, trade, repairs, contracts, storm hazards, turn-based combat, rooms, upgrades, faction standing, AI world events, autosave/manual save, and polished Iron Kingdoms UI.</p>
+    <p><strong>Known limitations:</strong> Current Gates define early strategic travel; ${NAVIGATION_SYSTEM.commonName} estimates multi-hop routes but locks only the next jump, the new Brasswake marker is a lightweight procedural in-map representation rather than the final fortress-builder model, visible modules are not yet tied to actual room/upgrades, faction permits/blockades are warning-and-event based rather than a full diplomacy system, ${NAVIGATION_SYSTEM.saintElmoName} and ${NAVIGATION_SYSTEM.astrolabeName} are locked roadmap hooks, Storm Keel requires future core content and does not create currents yet, room placement is still simplified to build slots, combat is panel-based rather than full spatial battles, AI is lightweight simulated movement/events, and audio is hook-only without external assets.</p>
+    <p><strong>Phase 2 hooks:</strong> navigation automaton upgrade levels, Saint Elmo Core recovery/installation, route plot capacity upgrades, route planner polish, deeper gate diplomacy, Storm Keel Core recovery and temporary current creation, tying visible Brasswake modules to actual rooms/upgrades, optional future GLB asset swap after the design stabilizes, tactical 3rd-person location flight, fortress hex modules, officers, crew stories, research trees, faction campaigns, cloud saves, and multiplayer sharing.</p>
     <button class="btn primary" onclick="closeModal()">Close</button>`);
 }
 
@@ -4076,7 +4425,20 @@ function animate() {
     });
     if (fortressGroup.visible) {
       fortressGroup.position.y = 4.8 + Math.sin(elapsed * 1.6) * 0.18;
-      fortressGroup.rotation.y = Math.sin(elapsed * 0.6) * 0.08;
+      fortressGroup.rotation.y = -0.18 + Math.sin(elapsed * 0.6) * 0.08;
+      // Subtle in-map life for Brasswake's arc-lift engines; no external assets required.
+      fortressGroup.traverse(child => {
+        if (child.userData?.arcLiftRing) {
+          child.rotation.y += dt * (child.userData.spin || 1.0);
+          if (child.material && child.material.opacity !== undefined) {
+            const base = child.userData.baseOpacity || 0.72;
+            child.material.opacity = clamp(base + Math.sin(elapsed * 3.2 + child.position.x) * 0.11, 0.45, 0.95);
+          }
+        }
+        if (child.userData?.arcLiftGlow && child.material && child.material.opacity !== undefined) {
+          child.material.opacity = clamp(0.75 + Math.sin(elapsed * 4.0 + child.position.z) * 0.18, 0.45, 1.0);
+        }
+      });
     }
     if (selectionRing.visible) selectionRing.rotation.z += dt * 0.65;
     if (hoverRing.visible) hoverRing.rotation.z -= dt * 0.9;

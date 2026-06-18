@@ -1,23 +1,30 @@
-# IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.17.0700
+# IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.17.0800
 
 ## Patch Summary
-- Introduced the Celestial Navigation Automaton as the official route-calculation system, with Clockwork Navigator as its crew/public nickname.
-- Added visible 1-jump plot capacity language so one-hop route locking feels intentional instead of a UI limitation.
-- Added persistent plotted-route context showing final destination, locked next jump, remaining currents, estimated fuel, tolls, and highest risk.
-- Added navigator recalculation messages when Brasswake arrives at a gate/anchor during a plotted route.
-- Added locked Saint Elmo Navigation Core and Astrolabe Engine roadmap hooks in the Tech tab.
-- Clarified that Clockwork Navigator calculates known routes, Saint Elmo improves calculations later, and Storm Keel physically creates temporary currents in a future mid/late-game phase.
-- Hardened selected-location panel scroll reset after selection, plotting, travel, modal close, and event/combat results.
-- Made pre-first-travel upgrade presentation quieter while keeping optional upgrades available.
-- Hid hostile action buttons on depleted enemy locations and reinforced cleared-state text.
-- Improved plotted route visual hierarchy with final destination and locked-jump rings plus brighter current-leg highlighting.
+
+This focused patch upgrades Brasswake's overworld marker from a simple airship placeholder into a lightweight procedural modular hex-built sky fortress model using only built-in Three.js geometry.
+
+## Brasswake Model Changes
+
+- Replaced `createFortressModel()` with a procedural modular hex fortress marker.
+- Added a raised central command/bridge hex with warm window glow and signal mast.
+- Added outer functional hex modules: engine/workshop, boiler, cannon decks, storage, barracks, dock platform, and an empty future expansion frame.
+- Added underside blue-white arc-lift rings, small lift pods, a central lift assembly, pipes, catwalks, support braces, cables/chains, smokestacks, cannons, rivets, patch plates, vents, railings, crane detail, and warm lantern/window glow.
+- Added subtle arc-lift pulse/rotation while preserving the current fortress bobbing behavior.
+
+## Preserved Systems
+
+- Single-file HTML structure.
+- Three.js CDN usage.
+- Existing overworld, hex board, Current Gate network, gate-locked strategic travel, multi-hop route planner, Clockwork Navigator / Celestial Navigation Automaton systems, Tech tab, Storm Keel locked state, combat, salvage, contracts, rooms/upgrades/factions, save/load/autosave, and all existing UI flows.
 
 ## Known Limitations
-- The Clockwork Navigator estimates multi-hop routes but only locks the next jump; it does not auto-travel the full route.
-- Saint Elmo Navigation Core and Astrolabe Engine are visible roadmap hooks only, not functional upgrade systems yet.
-- Storm Keel remains locked and does not create temporary currents in this build.
-- Faction permits/blockades remain warning-and-event based rather than full diplomacy.
-- Combat is still panel-based rather than a full spatial battle scene.
+
+- This is still a lightweight in-map representation, not the final fortress-builder system.
+- Visible modules are not yet mechanically tied to actual rooms/upgrades.
+- No GLB asset is loaded yet; the model remains procedural to keep the game single-file and stable.
+- Storm Keel temporary current generation remains locked for future progression.
 
 ## Recommended Next Patch
-Continue with Navigation Automaton upgrade levels: add limited upgrades that increase plot capacity, improve toll/risk forecasting, and introduce the first Saint Elmo Core recovery/installation event without unlocking Storm Keel temporary current creation yet.
+
+Tie visible Brasswake modules to room/upgrade state in a controlled way: installed rooms could subtly light or add detail to matching hex modules, while future rooms could fill empty expansion frames.
