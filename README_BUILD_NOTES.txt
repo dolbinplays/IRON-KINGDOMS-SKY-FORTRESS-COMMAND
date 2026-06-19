@@ -1,41 +1,30 @@
-IRON KINGDOMS: SKY FORTRESS COMMAND — v0.26.06.17.0600
+IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.18.1200
 
-Focused gate-locked route planning, tutorial guidance, and Storm Keel visibility patch.
+Source verification:
+- Patched from verified source: /mnt/data/IRON_KINGDOMS_SKY_FORTRESS_COMMAND_v0.26.06.18.1000/index.html
+- Source version before patch: v0.26.06.18.1000
+- Captain's Wings / Open Command behavior present: yes
+- Modular Brasswake marker present in source before patch: no — restored from the v0800 procedural marker line
 
-Package contents:
-- index.html — single-file browser build using Three.js CDN
-- README_BUILD_NOTES.txt — this file
-
-Version consistency:
-- Displayed version label: v0.26.06.17.0600
-- VERSION constant: v0.26.06.17.0600
-- Save key metadata: IK_SKY_FORTRESS_COMMAND_v0_26_06_17_0600
-- Package/folder name: IRON_KINGDOMS_SKY_FORTRESS_COMMAND_v0.26.06.17.0600
-
-Summary of changes:
-- Added first multi-hop Current Gate route planner using the existing route graph.
-- Destinations without direct Current routes can now show reachable multi-hop paths, next hop, total fuel, total days, tolls, highest risk, and route path text.
-- Added Plot Route / Select Next Hop behavior instead of restoring direct overworld travel.
-- Improved No Charted Current messaging for truly unreachable destinations.
-- Added route visual hierarchy: current-adjacent routes are brighter, selected/plotted paths are highlighted, unrelated routes are dimmer.
-- Added map/tooltip feedback for direct, multi-hop reachable, and unreachable Current destinations.
-- Added combat tutorial guidance that can plot a route to the nearest reachable Danger 1 enemy.
-- Hardened selected-location panel scroll reset after selection, travel, events, and modal close.
-- Added a Tech tab and made Storm Keel more visible as locked mid/late travel technology.
-- Added Storm Keel Core as a future-content requirement so Storm Keel remains a major later milestone.
-- Tuned upgrade panel emphasis to recommend one upgrade instead of making every affordable refit feel equally urgent.
+Patch summary:
+- Updated all visible/build/save/package version references to v0.26.06.18.1200.
+- Rebuilt Selected Location and right-side panels as flex-column shells with header/tabs outside scroll bodies.
+- Added scrollContent bottom gutters so long panel content can scroll to the true bottom.
+- Cleaned Captain's Wings / Open Command completed-state layout so text, alert, and badge do not overlap.
+- Restored the lightweight procedural modular Brasswake hex-fortress marker using built-in Three.js geometry only.
+- Added subtle arc-lift ring animation/glow support for the restored Brasswake marker.
+- Added clearer Danger 1 guidance when Captain's Orders still needs low-danger combat and the selected enemy is Danger 2+.
+- Updated in-game build notes with v1200 source-consolidation and roadmap notes.
 
 Known limitations:
-- The multi-hop route planner selects the next hop; it does not auto-travel the full route yet.
-- Storm Keel temporary current creation is still not implemented.
-- Storm Keel Core recovery is marked as future content.
-- Faction permits/blockades remain warning/event based rather than full diplomacy.
-- Combat remains modal/panel-based rather than tactical 3D.
-- Fortress rooms are still list-based, not hex-module placement.
-- Audio/music is still hook-only with no external assets bundled.
+- Multi-hop route plotting still selects the next hop rather than auto-traveling the full route.
+- Storm Keel temporary current creation remains locked for a future patch.
+- Visible Brasswake modules are not yet tied to actual rooms/upgrades/damage states.
+- Combat remains panel-based rather than tactical 3D.
+- Faction permits/blockades remain lightweight event/warning systems.
 
-Recommended next patch:
-- Route planner polish and route event expansion, or
-- deeper faction gate diplomacy/permits/blockades, or
-- Storm Keel Core/research progression, or
-- fortress hex module builder foundation.
+Validation performed:
+- JavaScript syntax extracted and checked with node --check.
+- Version string consistency checked.
+- Package/ZIP integrity checked.
+- Static source checks confirmed panel shell classes, Captain's Wings cleanup, restored modular marker, and Danger 1 guidance are present.
