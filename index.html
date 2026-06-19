@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.18.1300</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.18.1400</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <style>
     :root {
@@ -239,7 +239,7 @@
     .panel h2 { font-size: 18px; }
     .panel h3 { font-size: 14px; text-transform: uppercase; }
 
-    /* v1300 preserves the side-panel HUD shell fix: side panels are true flex columns. Headers/tabs stay
+    /* v1400 preserves the side-panel HUD shell fix: side panels are true flex columns. Headers/tabs stay
        outside the scroll body, and only the content body scrolls to a safe bottom. */
     .panelShell {
       display: flex;
@@ -892,7 +892,7 @@
     }
 
 
-    /* v1300 Clockwork Navigator clarity and HUD polish */
+    /* v1400 Clockwork Navigator clarity and HUD polish */
     .navigatorCard, .routeContextCard, .techChainCard {
       border: 1px solid rgba(128,185,255,0.55);
       background: linear-gradient(180deg, rgba(30,57,78,0.24), rgba(0,0,0,0.18));
@@ -1238,6 +1238,30 @@
       flex: 0 0 auto;
     }
 
+
+
+    /* v1400 first-session flow polish */
+    #selectedPanel, .selectedPanelInner { overflow-anchor: none; scroll-behavior: auto; }
+    .primaryActionBlock.firstSessionPrimary { border-color: rgba(244,207,120,0.72); box-shadow: inset 0 0 0 1px rgba(244,207,120,0.10); }
+    .compactNavigatorCard .navigatorGrid, .compactRouteContext .navigatorGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .compactNavigatorCard, .compactRouteContext { padding: 7px; margin: 7px 0; }
+    .roadmapDoctrineCard, .nextGoalsCard, .balanceRoadmapCard {
+      border: 1px solid rgba(181,134,255,0.48);
+      background: rgba(81,55,124,0.15);
+      color: #eadcff;
+      border-radius: 10px;
+      padding: 8px;
+      margin: 8px 0;
+      font-size: 12px;
+      line-height: 1.32;
+    }
+    .roadmapDoctrineCard strong, .nextGoalsCard strong, .balanceRoadmapCard strong { color: #f4cf78; }
+    .roadmapDoctrineCard ul, .nextGoalsCard ul, .balanceRoadmapCard ul { margin: 6px 0 0 0; padding-left: 17px; }
+    .nextGoalsCard.compact { font-size: 10.5px; line-height: 1.18; padding: 6px; margin: 4px 0 0; }
+    .nextGoalsCard.compact ul { margin-top: 4px; padding-left: 14px; }
+    .captainWingsPanel .wingBadge { display: none !important; }
+    .captainWingsMessage { align-items: flex-start; }
+
     .hidden { display: none !important; }
 
     @media (max-width: 1120px) {
@@ -1276,7 +1300,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.18.1300</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.18.1400</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1350,7 +1374,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.18.1300 · Single-file HTML · Three.js CDN build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.18.1400 · Single-file HTML · Three.js CDN build</p>
     </div>
   </div>
 </div>
@@ -1361,8 +1385,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.18.1300';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_18_1300';
+const VERSION = 'v0.26.06.18.1400';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_18_1400';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -2096,8 +2120,25 @@ function combatTutorialRouteNudgeHTML() {
   const target = nearestReachableDangerOneEnemy();
   if (!target) return '<strong>Combat Training:</strong> no reachable Danger 1 fleet is currently charted. Explore connected routes to find a safe hostile contact.';
   if (target.loc.id === game.currentLocationId) return `<strong>Combat Training:</strong> ${target.loc.name} is here. Review readiness, then engage or retreat if needed.`;
+
+  const activeRouteToTarget = game.plottedRoute && game.plottedRoute.targetId === target.loc.id;
+  if (activeRouteToTarget) {
+    const nextHop = getLocation(game.plottedRoute.nextHopId);
+    const direct = !!getRouteBetween(game.currentLocationId, game.plottedRoute.nextHopId);
+    return `<strong>Combat Training:</strong> route already plotted to ${target.loc.name}. ${direct ? `Use the left-panel Ride Locked Jump button for ${nextHop?.name || 'the next hop'}.` : `Continue the plotted route toward ${nextHop?.name || 'the next hop'}.`}<br/><button class="btn blue" style="margin-top:6px; width:100%;" onclick="continuePlottedRoute()">Continue Plotted Route</button>`;
+  }
+
   const nextHop = getLocation(target.path.nodeIds[1]);
   return `<strong>Combat Training:</strong> nearest reachable Danger 1 fleet is ${target.loc.name}. Next hop: ${nextHop?.name || 'unknown'} (${target.path.routeIds.length} current${target.path.routeIds.length !== 1 ? 's' : ''}).<br/><button class="btn blue" style="margin-top:6px; width:100%;" onclick="plotRouteToDangerOne()">Plot Route to Danger 1 Fleet</button>`;
+}
+
+function continuePlottedRoute() {
+  if (!game?.plottedRoute?.nextHopId) return showToast('No plotted route is active.');
+  game.selectedLocationId = game.plottedRoute.nextHopId;
+  renderUI();
+  resetSelectedPanelScrollSoon();
+  const next = getLocation(game.plottedRoute.nextHopId);
+  showToast(`Continue plotted route. Use Ride Locked Jump to ${next?.name || 'the next hop'}.`);
 }
 
 function routeGatePolicy(route) {
@@ -2184,6 +2225,54 @@ function routePreviewHTML(loc, cur) {
 
 function stormKeelLockedInlineHTML() {
   return `<div class="techTeaserCard"><strong>Storm Keel Locked:</strong> future mid-to-late-game travel tech for temporary conduits. Current campaigns must use charted Current Gates.</div>`;
+}
+
+
+function roadmapDoctrineHTML(compact = false) {
+  const cls = compact ? 'roadmapDoctrineCard compact' : 'roadmapDoctrineCard';
+  return `<div class="${cls}"><strong>Navigation Doctrine / Roadmap Bible</strong>
+    <ul>
+      <li><strong>Celestial Navigation Automaton</strong> is the official system name; <strong>Clockwork Navigator</strong> is the common nickname.</li>
+      <li>Starting Plot Capacity is <strong>1 Current Gate jump</strong>. The automaton locks the next jump while the captain keeps final-destination context.</li>
+      <li>Future upgrades can increase plot capacity and add stronger route-memory, risk prediction, and faction gate handling.</li>
+      <li><strong>Saint Elmo Navigation Core</strong> is a future advanced component; <strong>Astrolabe Engine</strong> is a future built-in alternate navigation system.</li>
+      <li><strong>Storm Keel Engine</strong> remains locked mid/late-game technology for temporary currents and conduits.</li>
+      <li><strong>Brasswake</strong> should keep evolving into a modular flying fortress/city with room and module visual links.</li>
+      <li>Future faction-gate gameplay should include permits, inspections, tolls, blockades, favored routes, and smuggler alternatives.</li>
+    </ul>
+  </div>`;
+}
+
+function nextCampaignGoalsHTML(compact = false) {
+  const cls = compact ? 'nextGoalsCard compact' : 'nextGoalsCard';
+  return `<div class="${cls}"><strong>Next Campaign Goals</strong>
+    <ul>
+      <li>Continue charting Current Gates and safe return routes.</li>
+      <li>Repair or refuel at settlements when hull or fuel run low.</li>
+      <li>Take faction contracts to improve gate access and standing.</li>
+      <li>Explore ruins for future navigation components.</li>
+      <li>Prepare for storm routes and stronger fleets before pushing outward.</li>
+      <li>Upgrade the Clockwork Navigator when future tech unlocks.</li>
+    </ul>
+  </div>`;
+}
+
+function balanceRoadmapHTML() {
+  return `<div class="balanceRoadmapCard"><strong>Future Balance Review</strong>
+    <ul>
+      <li>Starting resource generosity and early upgrade pacing.</li>
+      <li>Danger 1 combat difficulty after multiple early upgrades.</li>
+      <li>Repair pressure and fuel pressure over longer route chains.</li>
+    </ul>
+  </div>`;
+}
+
+function routeCleanPassageLabel(route) {
+  if (!route) return 'Current Passage';
+  if (route.type === 'trade') return 'Orderly Passage';
+  if (route.type === 'storm') return 'Clean Storm Passage';
+  if (route.type === 'pirate') return 'Quiet Slipstream';
+  return 'Smooth Current';
 }
 
 function uniqueLocationName(rng, type, i) {
@@ -2460,7 +2549,7 @@ function createLocationMarker(loc) {
 }
 
 function createFortressModel() {
-  // Procedural Brasswake marker v0.26.06.18.1300
+  // Procedural Brasswake marker v0.26.06.18.1400
   // Lightweight in-game representation of the starting fortress: a modular hex-built sky city.
   // Future fortress-builder work can map actual rooms/upgrades to these visible hex modules.
   const group = new THREE.Group();
@@ -3012,7 +3101,7 @@ function renderSelectedPanel() {
   const cost = loc.id === cur.id ? 0 : (route ? routeTravelCost(cur, loc, route) : 0);
   const costDisplay = loc.id === cur.id ? '0' : (route ? String(cost) : (pathSummaryForDisplay ? `${pathSummaryForDisplay.totalFuel}` : 'No Route'));
   const costLabel = loc.id === cur.id ? 'Fuel Cost' : (route ? 'Fuel Cost' : (pathSummaryForDisplay ? 'Total Path Fuel' : 'Fuel Cost'));
-  const contextKey = `${game.selectedLocationId}|${game.currentLocationId}|${loc.depleted ? 'D' : 'A'}|${game.day}|${game.plottedRoute?.targetId || ''}|${game.plottedRoute?.nextHopId || ''}`;
+  const contextKey = `${game.selectedLocationId}|${game.currentLocationId}|${loc.depleted ? 'D' : 'A'}|${game.day}|${game.plottedRoute?.targetId || ''}|${game.plottedRoute?.nextHopId || ''}|${loc.type}`;
   const priorContext = panel.dataset.contextKey || '';
   const statusTags = [];
   statusTags.push(`<span class="tag blue">${prettyType(loc.type)}</span>`);
@@ -3024,8 +3113,14 @@ function renderSelectedPanel() {
 
   const actionHtml = locationActionButtons(loc, cur, cost, d);
   const atLoc = loc.id === cur.id;
-  const travelActionHtml = !atLoc ? actionHtml : '';
-  const localActionHtml = atLoc ? actionHtml : '';
+  const clearedHtml = loc.depleted ? clearedLocationHTML(loc) : '';
+  const enemyReadinessHtml = loc.type === 'enemy' && !loc.depleted ? combatReadinessHTML(loc) : '';
+  const nudgeHtml = getLocationNudgeHTML(loc);
+  const routeContextHtml = plottedRouteSummaryHTML();
+  const navigatorHtml = !atLoc ? navigatorStatusHTML('selected') : '';
+  const routePreview = routePreviewHTML(loc, cur);
+  const legend = routeLegendMiniHTML();
+
   const selectedInnerHTML = `
     <div class="locationName">${loc.name}</div>
     <div class="locationMeta">${statusTags.join('')}</div>
@@ -3034,14 +3129,14 @@ function renderSelectedPanel() {
       <div class="statCard"><div class="k">Distance</div><div class="v">${Math.round(d)}</div></div>
       <div class="statCard"><div class="k">${costLabel}</div><div class="v">${costDisplay}</div></div>
     </div>
-    ${plottedRouteSummaryHTML()}
-    ${!atLoc ? navigatorStatusHTML('selected') : ''}
-    ${travelActionHtml}
-    ${routePreviewHTML(loc, cur)}
-    ${routeLegendMiniHTML()}
-    ${loc.type === 'enemy' ? (loc.depleted ? clearedLocationHTML(loc) : combatReadinessHTML(loc)) : ''}
-    ${getLocationNudgeHTML(loc)}
-    ${localActionHtml}
+    ${clearedHtml}
+    ${actionHtml}
+    ${routeContextHtml}
+    ${navigatorHtml}
+    ${routePreview}
+    ${legend}
+    ${enemyReadinessHtml}
+    ${nudgeHtml}
   `;
   panel.innerHTML = `<div class="scrollContent selectedPanelInner">${selectedInnerHTML}</div>`;
   if (priorContext !== contextKey) {
@@ -3054,31 +3149,37 @@ function locationActionButtons(loc, cur, cost, d) {
   const atLoc = loc.id === cur.id;
   if (!atLoc) {
     const route = getRouteBetween(cur.id, loc.id);
+    const isLockedNextHop = !!(game.plottedRoute && game.plottedRoute.nextHopId === loc.id);
     if (!route) {
       const path = findCurrentRoutePath(cur.id, loc.id);
       if (path && path.nodeIds.length > 1) {
         const nextHop = getLocation(path.nodeIds[1]);
-        return `<div class="primaryActionBlock buttonStack">
+        return `<div class="primaryActionBlock firstSessionPrimary buttonStack">
           <button class="btn blue" onclick="plotRouteTo('${loc.id}')">Plot with Clockwork Navigator</button>
           <div class="smallNote">Plot Capacity: 1 Jump. The automaton will lock the next Current Gate jump to ${nextHop?.name || 'the next hop'} while keeping ${loc.name} as the final destination.</div>
           <button class="btn ghost" onclick="centerCameraOnSelected()">Center Camera</button>
         </div>`;
       }
-      return `<div class="primaryActionBlock buttonStack">
+      return `<div class="primaryActionBlock firstSessionPrimary buttonStack">
         <button class="btn" disabled>No Charted Current</button>
         <div class="smallNote">Strategic travel is gate-network locked. Explore connected Current Gates first. Storm Keel temporary conduits remain locked for later progression.</div>
         <button class="btn ghost" onclick="centerCameraOnSelected()">Center Camera</button>
       </div>`;
     }
     const canTravel = game.resources.fuel >= cost && d <= computeStats().travelRange && !isTraveling;
-    return `<div class="primaryActionBlock buttonStack">
-      <button class="btn primary" ${canTravel ? '' : 'disabled'} onclick="travelToSelected()">Ride Current to ${shortName(loc.name)} (${cost} Fuel)</button>
-      ${!canTravel ? `<div class="smallNote">${travelBlockReason(cost, d)}</div>` : '<div class="smallNote">Current Gate travel is charted and available from your present location.</div>'}
+    const label = isLockedNextHop ? `Ride Locked Jump to ${shortName(loc.name)} (${cost} Fuel)` : `Ride Current to ${shortName(loc.name)} (${cost} Fuel)`;
+    const note = isLockedNextHop ? 'Clockwork Navigator route active. This is the stored one-jump path toward your final destination.' : 'Current Gate travel is charted and available from your present location.';
+    return `<div class="primaryActionBlock firstSessionPrimary buttonStack">
+      <button class="btn primary" ${canTravel ? '' : 'disabled'} onclick="travelToSelected()">${label}</button>
+      ${!canTravel ? `<div class="smallNote">${travelBlockReason(cost, d)}</div>` : `<div class="smallNote">${note}</div>`}
       <button class="btn ghost" onclick="centerCameraOnSelected()">Center Camera</button>
     </div>`;
   }
 
   const buttons = [];
+  if (loc.depleted) {
+    buttons.push(`<div class="smallNote">This site is already resolved. Choose another charted Current, return to port, or use emergency drift only if stranded.</div>`);
+  }
   if (loc.type === 'skyport' || loc.type === 'settlement') {
     const repairQuote = getRepairQuote();
     const repairPulse = repairQuote.needed && canAfford({ steel: repairQuote.steelCost, gold: repairQuote.goldCost });
@@ -3098,7 +3199,7 @@ function locationActionButtons(loc, cur, cost, d) {
   if (loc.type === 'ruins') buttons.push(`<button class="btn primary" ${loc.depleted ? 'disabled' : ''} onclick="exploreRuins()">Explore Ruins</button>`);
   if (loc.type === 'contract') buttons.push(`<button class="btn primary" ${loc.depleted ? 'disabled' : ''} onclick="completeContract()">Answer Contract Beacon</button>`);
   buttons.push(`<button class="btn ghost" onclick="emergencyDrift()">Emergency Drift/Scavenge</button>`);
-  return `<div class="buttonStack">${buttons.join('')}<div class="smallNote">Emergency drift is a last-resort option for fuel starvation. It damages the fortress but prevents early soft-locks.</div></div>`;
+  return `<div class="primaryActionBlock firstSessionPrimary buttonStack">${buttons.join('')}<div class="smallNote">Emergency drift is a last-resort option for fuel starvation. It damages the fortress but prevents early soft-locks.</div></div>`;
 }
 
 function travelBlockReason(cost, d) {
@@ -3239,7 +3340,7 @@ function renderTechPanel() {
       Advanced navigation component for improving a Celestial Navigation Automaton or future Astrolabe Engine. Recovery/install content is planned for later roadmap work.</div>
     <div class="techChainCard locked"><strong>Astrolabe Engine</strong> <span class="tag warn">Future Alternate System</span><br/>
       Built-in navigation alternative for craft that do not rely on an onboard automaton. Not installed in Brasswake yet.</div>` + stormKeelCardHTML() +
-    `<div class="smallNote">Future tech will add route plot capacity upgrades, Saint Elmo Core installation, alternate Astrolabe navigation, and eventually Storm Keel temporary current creation with cost, risk, cooldowns, and failure events. This patch keeps Storm Keel locked.</div>`;
+    `<div class="smallNote">Future tech will add route plot capacity upgrades, Saint Elmo Core installation, alternate Astrolabe navigation, and eventually Storm Keel temporary current creation with cost, risk, cooldowns, and failure events. This patch keeps Storm Keel locked.</div>${roadmapDoctrineHTML()}${nextCampaignGoalsHTML()}${balanceRoadmapHTML()}`;
   setRightPanelContent(html);
 }
 
@@ -3334,13 +3435,9 @@ function captainWingsHTML(alert, compact) {
     <div class="captainWingsTitle">First command cycle complete.</div>
     <div class="captainWingsSub">Brasswake recognizes your command. Tutorial orders are complete.</div>
     <div class="captainWingsMessage">
-      ${alert ? alertHTML : `<div class="captainWingsSuggestion">Open Command: ${suggestion}</div>`}
+      ${alert ? alertHTML : `<div><div class="captainWingsSuggestion">Open Command: ${suggestion}</div>${nextCampaignGoalsHTML(true)}</div>`}
     </div>
-    ${routeContext ? '' : `<div class="wingBadge" aria-hidden="true">
-      <div class="wingFeather left"></div>
-      <div class="captainShield">OPEN<br/>COMMAND</div>
-      <div class="wingFeather right"></div>
-    </div>`}
+    ${routeContext ? routeContext : ''}
   </div>`;
 }
 
@@ -3635,7 +3732,7 @@ function resolveCurrentRouteEvent(destination) {
     addResource('steel', steel);
     text = `Salvage glimpse in the current: crews hook drifting plate fragments for +${steel} steel.`;
   } else {
-    text = `Smooth Current: ${route.name} carried Brasswake cleanly to ${destination.name}.`;
+    text = `${routeCleanPassageLabel(route)}: ${route.name} carried Brasswake cleanly to ${destination.name}.`;
   }
   addLog(text);
   game.lastRouteTaken = null;
@@ -3815,6 +3912,7 @@ function harvestLocation() {
   showPostRewardNudge();
   rebuildLocationMesh(loc.id);
   renderUI();
+  resetSelectedPanelScrollSoon();
 }
 
 function braveStorm() {
@@ -3836,6 +3934,7 @@ function braveStorm() {
   autoSave('Autosaved after storm');
   rebuildLocationMesh(loc.id);
   renderUI();
+  resetSelectedPanelScrollSoon();
   showToast(game.hull / computeStats().maxHull < 0.65 ? 'Storm survived. Repairs recommended.' : 'Storm survived. Hull damage reported.');
 }
 
@@ -3955,6 +4054,7 @@ function completeContract() {
   showPostRewardNudge();
   rebuildLocationMesh(loc.id);
   renderUI();
+  resetSelectedPanelScrollSoon();
 }
 
 function tradeFuel() {
@@ -4304,6 +4404,7 @@ function endCombat(victory, retreated, destroyed = false) {
   modal.classList.add('active');
   buildWorldMeshes();
   renderUI();
+  resetSelectedPanelScrollSoon();
 }
 
 function showResultModal(title, bodyHtml, button, callback) {
@@ -4607,11 +4708,19 @@ function toggleMapFocus() {
 function resetSelectedPanelScrollSoon() {
   const panel = document.getElementById('selectedPanel');
   if (!panel) return;
-  panel.scrollTop = 0;
-  requestAnimationFrame(() => { panel.scrollTop = 0; });
-  setTimeout(() => { panel.scrollTop = 0; }, 0);
-  setTimeout(() => { panel.scrollTop = 0; }, 60);
-  setTimeout(() => { panel.scrollTop = 0; }, 180);
+  const forceTop = () => {
+    panel.scrollTop = 0;
+    if (typeof panel.scrollTo === 'function') panel.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    const inner = panel.querySelector('.selectedPanelInner');
+    if (inner) inner.scrollTop = 0;
+  };
+  forceTop();
+  requestAnimationFrame(forceTop);
+  requestAnimationFrame(() => requestAnimationFrame(forceTop));
+  setTimeout(forceTop, 0);
+  setTimeout(forceTop, 40);
+  setTimeout(forceTop, 120);
+  setTimeout(forceTop, 260);
 }
 
 // =============================================================
@@ -4668,16 +4777,21 @@ function showHelp() {
       <div><span class="legendSwatch" style="background:#8f7645"></span>No Charted Current</div>
     </div>
     <p class="smallNote">Early strategic travel is gate-network locked. If no charted Current connects the selected destination, plot through known gates. Use the Clockwork Navigator to plot one Current Gate jump at a time. Mid/late Storm Keel technology will eventually allow temporary current creation.</p>
+    ${roadmapDoctrineHTML()}
+    ${nextCampaignGoalsHTML()}
     <button class="btn primary" onclick="closeModal()">Understood</button>`);
 }
 
 function showBuildNotes() {
   showModal(`<h1>Build Notes — ${VERSION}</h1>
-    <p><strong>Implemented:</strong> v1300 is a focused Clockwork Navigator clarity and HUD polish patch. It makes the Celestial Navigation Automaton / Clockwork Navigator visible as an installed navigation system, shows Plot Capacity: 1 Jump, consolidates duplicate multi-hop route buttons, improves plotted-route context, cleans the Selected Location primary action order, and clarifies total path fuel language.</p>
-    <p><strong>HUD polish:</strong> Captain's Wings / Open Command now hides or shrinks the decorative badge when alerts would otherwise clip it, while preserving post-tutorial Open Command behavior. Travel modal messaging suppresses stale toasts so route events do not overlap the Jet Stream overlay.</p>
-    <p><strong>Preserved:</strong> Three.js strategic map, procedural hex-aligned locations, edge-to-edge pointy-top hex board, Current Gate route logic, multi-hop next-hop route planner, gate tolls, blockade warnings, faction-flavored route events, gate-locked strategic travel, locked Storm Keel tech, eventful Jet Stream travel overlay, Captain's Orders and Captain's Wings, combat readiness warnings, salvage, harvesting, trade, repairs, contracts, storm hazards, turn-based combat, rooms, upgrades, faction standing, AI world events, autosave/manual save, and the modular Brasswake marker.</p>
-    <p><strong>Roadmap/Bible notes:</strong> Saint Elmo Navigation Core is now represented as a locked advanced navigation component; Astrolabe Engine is listed as a future alternate built-in navigation system; Storm Keel remains locked mid-to-late-game technology and does not create temporary currents yet.</p>
-    <p><strong>Suggested next steps:</strong> add Clockwork Navigator upgrade levels, route plot capacity upgrades, Saint Elmo recovery/install content, deeper faction gate diplomacy, and later Brasswake room-module visual links.</p>
+    <p><strong>Implemented:</strong> v1400 is a focused First Session Flow + Roadmap Foundation patch. It fixes Selected Location scroll/top-context behavior, keeps current-location action buttons near the top, prevents Captain's Wings badge clipping, makes Captain's Orders route nudges state-aware, and polishes route-event wording.</p>
+    <p><strong>Selected Location flow:</strong> location name, tags, description, distance/fuel, and the primary action now stay ahead of Navigator detail, route previews, legends, and readiness blocks. Enemy, resource, salvage, contract, ruin, and storm actions are easier to find when Brasswake is already at the site.</p>
+    <p><strong>Captain's Orders / Open Command:</strong> the combat-training nudge now changes from Plot Route to Continue Plotted Route when a Clockwork Navigator route is already active, and it points the player back to the left-panel Ride Locked Jump button when appropriate. The compact Captain's Wings badge is hidden in bottom-right Open Command mode to prevent clipping.</p>
+    <p><strong>Navigation preserved:</strong> Celestial Navigation Automaton / Clockwork Navigator remains installed with Plot Capacity: 1 Jump. Gate-locked early travel, multi-hop route context, tolls, blockade warnings, route events, and one-current-at-a-time travel are preserved. Storm Keel temporary current creation remains locked.</p>
+    <p><strong>Roadmap/Bible foundation:</strong> Saint Elmo Navigation Core remains a future advanced navigation component; Astrolabe Engine remains a future built-in alternate navigation system; Brasswake should continue evolving into a modular flying fortress/city with room/module links; faction gate diplomacy should grow into permits, inspections, blockades, favored routes, and smuggler alternatives.</p>
+    ${roadmapDoctrineHTML()}
+    ${nextCampaignGoalsHTML()}
+    ${balanceRoadmapHTML()}
     <button class="btn primary" onclick="closeModal()">Close</button>`);
 }
 
