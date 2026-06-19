@@ -1,30 +1,57 @@
-IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.18.1200
+IRON KINGDOMS: SKY FORTRESS COMMAND
+Build v0.26.06.18.1300
 
-Source verification:
-- Patched from verified source: /mnt/data/IRON_KINGDOMS_SKY_FORTRESS_COMMAND_v0.26.06.18.1000/index.html
-- Source version before patch: v0.26.06.18.1000
-- Captain's Wings / Open Command behavior present: yes
-- Modular Brasswake marker present in source before patch: no — restored from the v0800 procedural marker line
+Patch Scope:
+Focused Clockwork Navigator clarity and HUD polish patch for the v0.26.06.18.1200 source line.
 
-Patch summary:
-- Updated all visible/build/save/package version references to v0.26.06.18.1200.
-- Rebuilt Selected Location and right-side panels as flex-column shells with header/tabs outside scroll bodies.
-- Added scrollContent bottom gutters so long panel content can scroll to the true bottom.
-- Cleaned Captain's Wings / Open Command completed-state layout so text, alert, and badge do not overlap.
-- Restored the lightweight procedural modular Brasswake hex-fortress marker using built-in Three.js geometry only.
-- Added subtle arc-lift ring animation/glow support for the restored Brasswake marker.
-- Added clearer Danger 1 guidance when Captain's Orders still needs low-danger combat and the selected enemy is Danger 2+.
-- Updated in-game build notes with v1200 source-consolidation and roadmap notes.
+Implemented:
+- Updated visible title, version label, VERSION constant, SAVE_KEY, build notes, package name, and README to v0.26.06.18.1300.
+- Added visible Celestial Navigation Automaton / Clockwork Navigator UI.
+- Added Plot Capacity: 1 Jump language and rule explanation.
+- Consolidated duplicate multi-hop route buttons into a single primary Clockwork Navigator action.
+- Improved plotted-route context with final destination, next hop, remaining hops, total path fuel, tolls, highest risk, and route path text.
+- Changed awkward multi-hop fuel wording from "Fuel Cost: X Path" to clearer total path fuel language.
+- Polished No Charted Current language and reduced repeated Storm Keel warnings.
+- Moved primary travel/route action higher in the Selected Location panel.
+- Cleaned Captain's Wings / Open Command layout by suppressing the decorative wing badge when alerts would clip it and shrinking the badge in non-alert states.
+- Suppressed stale toast messages when the Jet Stream travel overlay opens and simplified post-travel route event notification behavior.
+- Added Tech tab roadmap cards for Saint Elmo Navigation Core and Astrolabe Engine future hooks.
 
-Known limitations:
-- Multi-hop route plotting still selects the next hop rather than auto-traveling the full route.
-- Storm Keel temporary current creation remains locked for a future patch.
-- Visible Brasswake modules are not yet tied to actual rooms/upgrades/damage states.
-- Combat remains panel-based rather than tactical 3D.
-- Faction permits/blockades remain lightweight event/warning systems.
+Preserved:
+- Single-file HTML build.
+- Three.js CDN usage.
+- Three.js overworld.
+- Procedural edge-to-edge hex-board layout.
+- Current Gate / Jet Stream route network.
+- Gate-locked early strategic travel.
+- No early freeform direct overworld bypass travel.
+- Multi-hop Current Gate route planner.
+- Persistent plotted-route context.
+- Eventful current travel overlay and faction-flavored route events.
+- Gate tolls, permits/inspection, blockade risk warnings.
+- Captain's Orders tutorial progression.
+- Captain's Wings / Open Command post-tutorial behavior.
+- Modular Brasswake marker.
+- Salvage, harvest, trade, repair, contracts, storms, ruins, combat.
+- Upgrades / rooms / factions / tech tabs.
+- Autosave/manual save/load/reset.
 
-Validation performed:
-- JavaScript syntax extracted and checked with node --check.
-- Version string consistency checked.
-- Package/ZIP integrity checked.
-- Static source checks confirmed panel shell classes, Captain's Wings cleanup, restored modular marker, and Danger 1 guidance are present.
+Roadmap/Bible Notes:
+- Celestial Navigation Automaton is now visible as the official installed navigation system.
+- Clockwork Navigator is now used as the public/common nickname.
+- Plot Capacity: 1 Jump is now presented as intentional gameplay.
+- Saint Elmo Navigation Core remains a locked advanced navigation component/future installation path.
+- Astrolabe Engine remains a future alternate built-in navigation system.
+- Storm Keel remains locked mid-to-late-game technology; temporary current/conduit creation was not implemented in this patch.
+
+Suggested Next Steps:
+1. Add Clockwork Navigator upgrade levels and route plot capacity upgrades.
+2. Add Saint Elmo Core recovery/installation content.
+3. Deepen faction gate diplomacy: permits, inspections, toll discounts, blockades, and route event consequences.
+4. Tie visible Brasswake hex modules to rooms/upgrades/damage state.
+5. After the strategic navigation layer is clearer, prototype the first local fly-around skyspace hex.
+
+Validation:
+- JavaScript syntax check passed via node --check after extracting inline script.
+- Version consistency confirmed for v0.26.06.18.1300.
+- No embedded playable preview was created.
