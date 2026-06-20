@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.19.2223</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.20.1139</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <style>
     :root {
@@ -202,7 +202,7 @@
       position: absolute;
       top: 96px;
       left: 12px;
-      bottom: 180px;
+      bottom: 56px;
       width: 340px;
       z-index: 10;
       display: flex;
@@ -239,7 +239,7 @@
     .panel h2 { font-size: 18px; }
     .panel h3 { font-size: 14px; text-transform: uppercase; }
 
-    /* v1400 preserves the side-panel HUD shell fix: side panels are true flex columns. Headers/tabs stay
+    /* Side-panel HUD shell fix: side panels are true flex columns. Headers/tabs stay
        outside the scroll body, and only the content body scrolls to a safe bottom. */
     .panelShell {
       display: flex;
@@ -437,18 +437,18 @@
 
     .bottomLog {
       position: absolute;
-      left: 12px;
+      left: 364px;
       right: 12px;
       bottom: 12px;
       height: 156px;
       z-index: 10;
       display: grid;
-      grid-template-columns: 300px minmax(280px, 1fr) 430px;
+      grid-template-columns: minmax(280px, 1fr);
       gap: 10px;
       pointer-events: none;
     }
 
-    .logPanel, .controlsPanel, .helpPanel {
+    .logPanel, .controlsPanel, .helpPanel, .commandMenuPanel {
       pointer-events: auto;
       border: 1px solid rgba(217,164,65,0.55);
       background: linear-gradient(180deg, rgba(39,30,27,0.94), rgba(16,12,15,0.94));
@@ -469,7 +469,72 @@
     .logItem { margin-bottom: 5px; padding: 6px; font-size: 12px; color: #e9dfcf; }
     .logItem strong { color: var(--brass2); }
 
-    .controlsPanel .buttonGrid { grid-template-columns: repeat(5, 1fr); }
+    .commandDock {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      width: 340px;
+      z-index: 38;
+      pointer-events: none;
+    }
+
+    .commandMenu {
+      position: relative;
+      pointer-events: auto;
+    }
+
+    .commandMenu summary {
+      list-style: none;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .commandMenu summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .commandMenuButton {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      min-height: 36px;
+      border: 1px solid rgba(217,164,65,0.68);
+      background: linear-gradient(180deg, rgba(62,42,24,0.96), rgba(20,15,16,0.96));
+      color: var(--brass2);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      box-shadow: 0 10px 24px var(--shadow), inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    .commandMenuButton span:last-child {
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.3px;
+    }
+
+    .commandMenu[open] .commandMenuButton span:last-child {
+      color: #ffe9b8;
+    }
+
+    .commandMenuPanel {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 44px;
+      max-height: min(360px, calc(100vh - 140px));
+      overflow-y: auto;
+    }
+
+    .commandMenuPanel .buttonGrid {
+      margin-bottom: 8px;
+    }
+
+    .commandMenuPanel .buttonGrid { grid-template-columns: repeat(5, 1fr); }
     .helpPanel { color: var(--muted); font-size: 12px; line-height: 1.3; }
 
     .modalOverlay {
@@ -631,6 +696,10 @@
       display: flex;
       flex-direction: column;
       min-height: 0;
+    }
+
+    .leftOrdersPanel {
+      max-height: 190px;
     }
 
     .ordersList {
@@ -892,7 +961,7 @@
     }
 
 
-    /* v1400 Clockwork Navigator clarity and HUD polish */
+    /* Clockwork Navigator clarity and HUD polish */
     .navigatorCard, .routeContextCard, .techChainCard {
       border: 1px solid rgba(128,185,255,0.55);
       background: linear-gradient(180deg, rgba(30,57,78,0.24), rgba(0,0,0,0.18));
@@ -1023,7 +1092,8 @@
     }
     #gameRoot.mapFocus .leftColumn,
     #gameRoot.mapFocus .rightColumn,
-    #gameRoot.mapFocus .bottomLog { display: none !important; }
+    #gameRoot.mapFocus .bottomLog,
+    #gameRoot.mapFocus .commandDock { display: none !important; }
     #gameRoot.mapFocus .mapFocusToggle { display: block; }
 
 
@@ -1240,7 +1310,7 @@
 
 
 
-    /* v1400 first-session flow polish */
+    /* First-session flow polish */
     #selectedPanel, .selectedPanelInner { overflow-anchor: none; scroll-behavior: auto; }
     .primaryActionBlock.firstSessionPrimary { border-color: rgba(244,207,120,0.72); box-shadow: inset 0 0 0 1px rgba(244,207,120,0.10); }
     .compactNavigatorCard .navigatorGrid, .compactRouteContext .navigatorGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1258,6 +1328,8 @@
     .roadmapDoctrineCard strong, .nextGoalsCard strong, .balanceRoadmapCard strong { color: #f4cf78; }
     .roadmapDoctrineCard ul, .nextGoalsCard ul, .balanceRoadmapCard ul { margin: 6px 0 0 0; padding-left: 17px; }
     .nextGoalsCard.compact { font-size: 10.5px; line-height: 1.18; padding: 6px; margin: 4px 0 0; }
+    .nextGoalsCard.compact ul { list-style: none; padding-left: 0; }
+    .nextGoalsCard.compact li { margin-bottom: 2px; }
     .nextGoalsCard.compact ul { margin-top: 4px; padding-left: 14px; }
     .captainWingsPanel .wingBadge { display: none !important; }
     .captainWingsMessage { align-items: flex-start; }
@@ -1323,15 +1395,17 @@
       .topbar { grid-template-columns: 1fr; right: 12px; }
       .resourcesBar { grid-template-columns: repeat(5, 1fr); }
       .dayBox { display: none; }
-      .leftColumn { top: 178px; width: 310px; bottom: 168px; }
+      .leftColumn { top: 178px; width: 310px; bottom: 56px; }
       .rightColumn { top: 178px; width: 340px; bottom: 168px; }
-      .bottomLog { grid-template-columns: 1fr; height: 136px; }
-      .helpPanel, .controlsPanel { display: none; }
+      .bottomLog { left: 334px; grid-template-columns: 1fr; height: 136px; }
+      .commandDock { width: 310px; }
+      .helpPanel { display: none; }
     }
 
     @media (max-width: 760px) {
       .leftColumn, .rightColumn { position: absolute; top: auto; bottom: 12px; width: calc(50vw - 18px); height: 240px; }
       .bottomLog { display: none; }
+      .commandDock { display: none; }
       .resourcesBar { grid-template-columns: repeat(3, 1fr); }
       .topbar { max-height: 170px; overflow: hidden; }
       .miniLegend { grid-template-columns: 1fr 1fr; }
@@ -1355,7 +1429,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.19.2223</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.20.1139</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1365,6 +1439,10 @@
     <div class="panel" style="flex:0 0 auto;">
       <h2>Fortress Status</h2>
       <div id="fortressStats" class="statGrid"></div>
+    </div>
+    <div class="panel panelShell ordersPanel leftOrdersPanel" style="flex:0 0 auto;">
+      <div class="panelHeader"><h2>Captain's Orders</h2></div>
+      <div id="ordersList" class="ordersList"></div>
     </div>
     <div class="panel panelShell selectedPanelShell" style="flex:1 1 auto; min-height:0;">
       <div class="panelHeader"><h2>Selected Location</h2></div>
@@ -1386,33 +1464,33 @@
     </div>
   </div>
 
+  <div class="commandDock hidden" id="hudCommand">
+    <details class="commandMenu">
+      <summary><span class="commandMenuButton"><span>Command Menu</span><span>Save / Audio / Help</span></span></summary>
+      <div class="commandMenuPanel">
+        <div class="buttonGrid">
+          <button class="btn primary" onclick="saveGame()">Save</button>
+          <button class="btn blue" onclick="loadGame()">Load</button>
+          <button class="btn ghost" onclick="showHelp()">Help</button>
+          <button class="btn ghost" id="mapFocusBtn" onclick="toggleMapFocus()">Map</button>
+          <button class="btn red" onclick="confirmReset()">Reset</button>
+        </div>
+        <div class="audioControls">
+          <button class="btn ghost" id="musicToggleBtn" onclick="toggleMusicMuted()">Music On</button>
+          <input id="musicVolumeSlider" type="range" min="0" max="100" value="42" oninput="onMusicVolumeInput(this.value)" aria-label="Music volume" />
+          <div class="nowPlaying" id="nowPlayingLabel">Music queued until first click.</div>
+          <div class="nowPlaying musicDebugLine" id="musicDebugLabel">Debug: state=title / file=none / loops=0 / fade=no</div>
+        </div>
+      </div>
+    </details>
+  </div>
+
   <div class="bottomLog hidden" id="hudBottom">
-    <div class="controlsPanel">
-      <h3>Command</h3>
-      <div class="buttonGrid">
-        <button class="btn primary" onclick="saveGame()">Save</button>
-        <button class="btn blue" onclick="loadGame()">Load</button>
-        <button class="btn ghost" onclick="showHelp()">Help</button>
-        <button class="btn ghost" id="mapFocusBtn" onclick="toggleMapFocus()">Map</button>
-        <button class="btn red" onclick="confirmReset()">Reset</button>
-      </div>
-      <div class="audioControls">
-        <button class="btn ghost" id="musicToggleBtn" onclick="toggleMusicMuted()">Music On</button>
-        <input id="musicVolumeSlider" type="range" min="0" max="100" value="42" oninput="onMusicVolumeInput(this.value)" aria-label="Music volume" />
-        <div class="nowPlaying" id="nowPlayingLabel">Music queued until first click.</div>
-        <div class="nowPlaying musicDebugLine" id="musicDebugLabel">Debug: state=title · file=none · loops=0 · fade=no</div>
-      </div>
-    </div>
     <div class="logPanel">
       <h3>Fleet Log</h3>
       <div id="eventLog"></div>
     </div>
-    <div class="helpPanel ordersPanel">
-      <h3>Captain's Orders</h3>
-      <div id="ordersList" class="ordersList"></div>
-    </div>
   </div>
-
   <div class="modalOverlay" id="modalOverlay">
     <div class="modal" id="modalContent"></div>
   </div>
@@ -1435,7 +1513,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.19.2223 · Single-file HTML code · External MP3 music assets · Three.js CDN build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.20.1139 - Single-file HTML code - External MP3 music assets - Three.js CDN build</p>
     </div>
   </div>
 </div>
@@ -1446,8 +1524,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.19.2223';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_19_2223';
+const VERSION = 'v0.26.06.20.1139';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_20_1139';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -1552,9 +1630,10 @@ let selectedMesh = null;
 let toastTimer = null;
 let currentHudAlert = null;
 let deferredToastText = null;
+let combatResultMusicToken = 0;
 
 // =============================================================
-// MUSIC MANAGER - v0.26.06.19.2223 / singleton double-play prevention
+// MUSIC MANAGER - v0.26.06.20.1139 / singleton double-play prevention
 // =============================================================
 const MUSIC_SETTINGS_KEY = SAVE_KEY + '_MUSIC_SETTINGS';
 const MUSIC_TRACKS = {
@@ -2280,6 +2359,19 @@ const MusicManager = (() => {
     fadingLoop = null;
   }
 
+  function completeCrossfadeNow(reason = 'complete-crossfade') {
+    fadeToken += 1;
+    if (fadeTimer) {
+      clearInterval(fadeTimer);
+      fadeTimer = null;
+    }
+    crossfadeActive = false;
+    if (fadingLoop && fadingLoop !== activeLoop) cleanupLoopAudio(fadingLoop, reason);
+    fadingLoop = null;
+    if (activeLoop) activeLoop.volume = effectiveVolume();
+    enforceSingleLoopAudio(reason);
+  }
+
   function createLoopAudio(pick, stateName) {
     const audio = new Audio(pick.src);
     audio.loop = true;
@@ -2436,6 +2528,7 @@ const MusicManager = (() => {
       stinger.volume = effectiveVolume(options.volumeScale || 1.05);
       stinger.dataset.stingerName = stingerName;
       activeStingers.add(stinger);
+      stinger._cleanupTimer = setTimeout(() => cleanupStinger(stinger, 'timeout'), Math.max(800, options.maxDurationMs || 7000));
       if (activeLoop && options.duck !== false) activeLoop.volume = effectiveVolume(0.42);
       stinger.addEventListener('ended', () => cleanupStinger(stinger, 'ended'));
       stinger.addEventListener('error', () => {
@@ -2465,9 +2558,13 @@ const MusicManager = (() => {
 
   function cleanupStinger(stinger, reason = 'stinger-cleanup') {
     if (!stinger) return;
+    if (stinger._cleanupTimer) {
+      clearTimeout(stinger._cleanupTimer);
+      stinger._cleanupTimer = null;
+    }
     safeReset(stinger, true);
     activeStingers.delete(stinger);
-    if (activeLoop) activeLoop.volume = effectiveVolume();
+    if (activeLoop) activeLoop.volume = activeStingers.size ? effectiveVolume(0.42) : effectiveVolume();
     enforceSingleLoopAudio('stinger-complete:' + reason);
     updateMusicUI();
   }
@@ -2533,7 +2630,8 @@ const MusicManager = (() => {
     }
     if (debug) {
       const file = currentTrackPath ? currentTrackPath.split('/').pop() : 'none';
-      debug.textContent = `Debug: state=${currentState || pendingState || 'none'} · file=${file} · loops=${managerLoops.size} · fade=${crossfadeActive ? 'yes' : 'no'}`;
+      debug.dataset.activeStingers = String(activeStingers.size);
+      debug.textContent = `Debug: state=${currentState || pendingState || 'none'} - file=${file} - loops=${managerLoops.size} - fade=${crossfadeActive ? 'yes' : 'no'} - stingers=${activeStingers.size}`;
     }
   }
 
@@ -2547,6 +2645,7 @@ const MusicManager = (() => {
     init,
     playMusicState,
     playStinger,
+    completeCrossfadeNow,
     setVolume,
     setMuted,
     isMuted,
@@ -2647,10 +2746,16 @@ function updateMusicForRightTab(tab) {
 }
 
 function playCombatResultMusic(result) {
+  const restoreToken = ++combatResultMusicToken;
+  const resultLoopState = MusicManager.getCurrentState();
   if (result === 'victory') MusicManager.playStinger('victory', { duck: true });
   else if (result === 'retreat') MusicManager.playStinger('retreat', { duck: true });
   else MusicManager.playStinger('defeat', { duck: true });
-  setTimeout(() => updateMusicForContext('combat-result'), 1700);
+  setTimeout(() => {
+    if (restoreToken !== combatResultMusicToken) return;
+    if (MusicManager.getCurrentState() !== resultLoopState) return;
+    updateMusicForContext('combat-result');
+  }, 1700);
 }
 
 
@@ -2854,7 +2959,7 @@ function createNewState() {
   state.currentRoutes = generateCurrentRoutes(rng, state.locations);
   state.aiFleets = generateAIFleets(rng, state.locations);
   state.log.push({ day: 1, text: 'The fortress-crown <strong>Brasswake</strong> takes command at Brassgate Anchorage.' });
-  state.log.push({ day: 1, text: 'Captain’s Orders: complete a safe contract or salvage run, then upgrade or repair before taking bigger fights.' });
+  state.log.push({ day: 1, text: 'Captain\'s Orders: complete a safe contract or salvage run, then upgrade or repair before taking bigger fights.' });
   revealNearby(state);
   return state;
 }
@@ -3132,7 +3237,7 @@ function summarizeRoutePath(path) {
 
 function routePathNames(path) {
   if (!path) return '';
-  return path.nodeIds.map(id => getLocation(id)?.name || id).join(' → ');
+  return path.nodeIds.map(id => getLocation(id)?.name || id).join(' -> ');
 }
 
 function selectedRoutePath() {
@@ -3239,8 +3344,9 @@ function plotRouteTo(targetId) {
   if (!path || path.nodeIds.length < 2) return showToast('No known Current route reaches that destination yet.');
   game.plottedRoute = { targetId, routeIds: path.routeIds, nodeIds: path.nodeIds, nextHopId: path.nodeIds[1] };
   game.selectedLocationId = path.nodeIds[1];
-  MusicManager.playMusicState('navigator');
-  MusicManager.playStinger('routeLocked', { duck: true, primary: true });
+  MusicManager.playMusicState('navigator', { fadeMs: 120, primary: true });
+  MusicManager.completeCrossfadeNow('navigator-route-plot');
+  MusicManager.playStinger('routeLocked', { duck: true, primary: true, volumeScale: 0.72, maxDurationMs: 2600 });
   MusicManager.enforceSingleLoopAudio('route-locked');
   const target = getLocation(targetId);
   const nextHop = getLocation(path.nodeIds[1]);
@@ -3341,9 +3447,9 @@ function routePolicySummary(route) {
   const policy = routeGatePolicy(route);
   const owner = FACTIONS[route.owner]?.name || 'Unclaimed';
   const tollText = policy.toll > 0 ? `${policy.toll} gold` : (policy.friendlyDiscount ? 'waived by friendly standing' : 'none');
-  const warning = policy.blockadeRisk ? ' · Blockade Risk' : '';
-  const permit = policy.permitRequired ? ' · Permit/inspection risk' : '';
-  return `Owner: ${owner} · Standing: ${policy.standing} ${policy.relation} · Toll: ${tollText} · Event Risk: ${policy.eventRisk}${warning}${permit}`;
+  const warning = policy.blockadeRisk ? ' - Blockade Risk' : '';
+  const permit = policy.permitRequired ? ' - Permit/inspection risk' : '';
+  return `Owner: ${owner} - Standing: ${policy.standing} ${policy.relation} - Toll: ${tollText} - Event Risk: ${policy.eventRisk}${warning}${permit}`;
 }
 
 function routeLegendMiniHTML() {
@@ -3368,8 +3474,7 @@ function routeTravelCost(a, b, route) {
 }
 
 function directTravelCost(a, b) {
-  // Current Gates should feel like the preferred sky-road. Direct engine travel remains as a safe prototype fallback,
-  // but it costs more and can strain the hull on longer uncharted routes.
+  // Legacy estimate retained for route math only. New campaigns cannot bypass the Current Gate network.
   return Math.max(3, Math.ceil(travelFuelCost(a, b) * 1.30));
 }
 
@@ -3395,7 +3500,7 @@ function routePreviewHTML(loc, cur) {
   const owner = FACTIONS[route.owner]?.name || 'Unclaimed';
   return `<div class="routePreview"><strong>${route.name}</strong><br/>
     <span class="gateBadge">${meta.label}</span><br/>
-    Owner: ${owner} · Risk: ${route.risk} · Travel Time: ${route.travelDays} day${route.travelDays > 1 ? 's' : ''}<br/>
+    Owner: ${owner} - Risk: ${route.risk} - Travel Time: ${route.travelDays} day${route.travelDays > 1 ? 's' : ''}<br/>
     <div class="gatePolicyLine">${routePolicySummary(route)}</div>
     ${meta.desc}</div>`;
 }
@@ -3422,6 +3527,9 @@ function roadmapDoctrineHTML(compact = false) {
 
 function nextCampaignGoalsHTML(compact = false) {
   const cls = compact ? 'nextGoalsCard compact' : 'nextGoalsCard';
+  if (compact) {
+    return `<div class="${cls}"><strong>Open Command:</strong> Chart currents - Secure contracts - Prepare repairs/upgrades - Investigate ruins.</div>`;
+  }
   return `<div class="${cls}"><strong>Open Command Directives</strong>
     <ul>
       <li><strong>Chart:</strong> reveal connected Current Gates and keep a safe return route.</li>
@@ -3724,7 +3832,7 @@ function createLocationMarker(loc) {
 }
 
 function createFortressModel() {
-  // Procedural Brasswake marker v0.26.06.19.2223
+  // Procedural Brasswake marker v0.26.06.20.1139
   // Lightweight in-game representation of the starting fortress: a modular hex-built sky city.
   // Future fortress-builder work can map actual rooms/upgrades to these visible hex modules.
   const group = new THREE.Group();
@@ -4211,7 +4319,7 @@ function startNewGame() {
 
 
 function showHUD(show) {
-  ['hudTop','hudLeft','hudRight','hudBottom'].forEach(id => document.getElementById(id).classList.toggle('hidden', !show));
+  ['hudTop','hudLeft','hudRight','hudBottom','hudCommand'].forEach(id => document.getElementById(id).classList.toggle('hidden', !show));
 }
 
 function renderUI() {
@@ -4257,7 +4365,7 @@ function renderFortressStats() {
   const hullPct = Math.round(game.hull) + '/' + stats.maxHull;
   const entries = [
     ['Hull', hullPct], ['Armor', stats.armor], ['Weapons', stats.weaponPower], ['Crew Power', stats.crewPower],
-    ['Fuel Cost', stats.fuelCostMod.toFixed(2) + '×'], ['Range', Math.round(stats.travelRange)], ['Sensors', Math.round(stats.sensorRadius)], ['Repair', stats.repairPower]
+    ['Fuel Cost', stats.fuelCostMod.toFixed(2) + 'x'], ['Range', Math.round(stats.travelRange)], ['Sensors', Math.round(stats.sensorRadius)], ['Repair', stats.repairPower]
   ];
   document.getElementById('fortressStats').innerHTML = entries.map(([k,v]) => `<div class="statCard"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
 }
@@ -4364,7 +4472,7 @@ function locationActionButtons(loc, cur, cost, d) {
     const repairQuote = getRepairQuote();
     const repairPulse = repairQuote.needed && canAfford({ steel: repairQuote.steelCost, gold: repairQuote.goldCost });
     buttons.push(`<button class="btn green" onclick="tradeFuel()">Buy Fuel: 25 for 30 Gold</button>`);
-    buttons.push(`<button class="btn blue ${repairPulse ? 'pulse' : ''}" onclick="repairAtPort()">Repair Hull${repairQuote.needed ? ` (${repairQuote.steelCost} Steel · ${repairQuote.goldCost} Gold)` : ''}</button>`);
+    buttons.push(`<button class="btn blue ${repairPulse ? 'pulse' : ''}" onclick="repairAtPort()">Repair Hull${repairQuote.needed ? ` (${repairQuote.steelCost} Steel - ${repairQuote.goldCost} Gold)` : ''}</button>`);
     if (loc.id === 'loc_home' && !game.flags?.traveledOnce) {
       buttons.push(`<button class="btn" disabled>Local Contracts Locked</button>`);
       buttons.push(`<div class="smallNote">First, select a nearby node and travel. Local contracts unlock after your first route.</div>`);
@@ -4478,7 +4586,7 @@ function canResearchStormKeel() {
 function stormKeelCardHTML() {
   const installed = !!game.flags?.stormKeelPrototype;
   const reqs = stormKeelRequirements();
-  const reqHtml = reqs.map(r => `<li class="${r.met ? 'met' : 'missing'}">${r.met ? '✓' : '•'} ${r.label}</li>`).join('');
+  const reqHtml = reqs.map(r => `<li class="${r.met ? 'met' : 'missing'}">${r.met ? 'OK' : '-'} ${r.label}</li>`).join('');
   const status = installed ? '<span class="tag good">Prototype Installed</span>' : (canResearchStormKeel() ? '<span class="tag good">Research Ready</span>' : '<span class="tag warn">Mid/Late Unlock</span>');
   return `<div class="stormKeelCard ${installed ? '' : 'locked'}">
     <div class="cardTitle"><span>Storm Keel Engine ${status}</span><span class="cost">${installed ? 'INSTALLED' : formatCost(STORM_KEEL_RESEARCH_COST)}</span></div>
@@ -4638,10 +4746,10 @@ function captainWingsHTML(alert, compact) {
   const alertHTML = alert ? `<div class="hudAlertCard ${alert.tone || ''}"><div class="hudAlertLabel">${escapeHTML(alert.label || 'Command Alert')}</div><div class="hudAlertText">${escapeHTML(alert.text)}</div></div>` : '';
   return `<div class="captainWingsPanel ${alert ? 'hasAlert' : ''}">
     <div class="captainWingsHeader"><span>Captain's Wings Earned</span><span>Open Command</span></div>
-    <div class="captainWingsTitle">First command cycle complete.</div>
-    <div class="captainWingsSub">Brasswake recognizes your command. Tutorial orders are complete.</div>
+    <div class="captainWingsTitle">Command cycle complete.</div>
+    <div class="captainWingsSub">Open Command is unlocked.</div>
     <div class="captainWingsMessage">
-      ${alert ? alertHTML : `<div><div class="captainWingsSuggestion">Open Command: ${suggestion}</div>${nextCampaignGoalsHTML(true)}</div>`}
+      ${alert ? alertHTML : `<div><div class="captainWingsSuggestion">${suggestion}</div>${nextCampaignGoalsHTML(true)}</div>`}
     </div>
     ${routeContext ? routeContext : ''}
   </div>`;
@@ -4656,7 +4764,7 @@ function renderOrdersPanel() {
   const allDone = completed >= steps.length;
   const idx = allDone ? steps.length - 1 : Math.max(0, steps.findIndex(s => !flags[s.key]));
   const active = steps[idx];
-  const compact = steps.map((s, i) => `<span title="${s.label}" class="orderDot ${flags[s.key] ? 'done' : i === idx && !allDone ? 'active' : ''}">${flags[s.key] ? '✓' : i + 1}</span>`).join('');
+  const compact = steps.map((s, i) => `<span title="${s.label}" class="orderDot ${flags[s.key] ? 'done' : i === idx && !allDone ? 'active' : ''}">${flags[s.key] ? 'OK' : i + 1}</span>`).join('');
   if (allDone) {
     const alert = getActiveHudAlert() || getPostTutorialUrgentAlert();
     panel.innerHTML = captainWingsHTML(alert, compact);
@@ -4807,7 +4915,7 @@ function showNoChartedCurrentModal(loc, cur) {
     return showModal(`<h1>Route Available Through Gates</h1>
       <p>No direct Current reaches <strong>${loc.name}</strong>, but a multi-hop route is charted.</p>
       <div class="routePlannerBox"><strong>Next Hop:</strong> ${nextHop?.name || 'Unknown'}<br/>
-        ${path.routeIds.length} currents · ${summary.totalFuel} fuel · ${summary.totalDays} day${summary.totalDays !== 1 ? 's' : ''} · ${summary.totalToll} gold tolls<br/>
+        ${path.routeIds.length} currents - ${summary.totalFuel} fuel - ${summary.totalDays} day${summary.totalDays !== 1 ? 's' : ''} - ${summary.totalToll} gold tolls<br/>
         <div class="routePathLine">${routePathNames(path)}</div></div>
       <div class="buttonGrid"><button class="btn blue" onclick="closeModal(); plotRouteTo('${loc.id}')">Plot with Clockwork Navigator</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
   }
@@ -4819,27 +4927,11 @@ function showNoChartedCurrentModal(loc, cur) {
 }
 
 function shouldConfirmDirectTravel(cur, loc, cost) {
-  const strain = directTravelStrainPreview(cur, loc);
-  const hullPct = game.hull / computeStats().maxHull;
-  const d = distance2D(cur, loc);
-  return !!strain.chance || cost >= 18 || hullPct < 0.65 || d >= 24;
+  return false;
 }
 
 function confirmDirectTravel(cur, loc, cost) {
-  const strain = directTravelStrainPreview(cur, loc);
-  const hullPct = game.hull / computeStats().maxHull;
-  const hullWarn = hullPct < 0.35 ? '<div class="warningBox danger"><strong>Critical Hull:</strong> Brasswake is badly damaged. Long direct travel may leave the fortress vulnerable before the next battle.</div>' : hullPct < 0.65 ? '<div class="warningBox danger"><strong>Damaged Hull:</strong> direct travel may strain already weakened plates.</div>' : '';
-  showModal(`<h1>Confirm Direct Engine Travel</h1>
-    <p>No charted Current reaches <strong>${loc.name}</strong> from <strong>${cur.name}</strong>.</p>
-    <div class="statGrid" style="margin:10px 0;">
-      <div class="statCard"><div class="k">Fuel Cost</div><div class="v">${cost}</div></div>
-      <div class="statCard"><div class="k">Strain Chance</div><div class="v">${Math.round((strain.chance || 0) * 100)}%</div></div>
-      <div class="statCard"><div class="k">Possible Damage</div><div class="v">${strain.max ? `${strain.min}–${strain.max}` : 'None'}</div></div>
-      <div class="statCard"><div class="k">Recommendation</div><div class="v" style="font-size:13px;">Use Current Gates when possible</div></div>
-    </div>
-    ${hullWarn}
-    <p class="smallNote">Direct engine travel remains available as a prototype fallback, but it costs more fuel and may strain the hull on longer uncharted routes.</p>
-    <div class="buttonGrid"><button class="btn red" onclick="closeModal(); travelToSelected(true)">Proceed Direct</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
+  return showNoChartedCurrentModal(loc, cur);
 }
 
 function confirmCurrentGateTravel(route, loc, policy, cost) {
@@ -4875,7 +4967,7 @@ function beginCurrentTravel(route, loc, cost) {
   deferredToastText = null;
   const content = document.getElementById('modalContent');
   content.innerHTML = `<h1>Entering Jet Stream Current</h1>
-    <p><strong>${route.name}</strong> · ${meta.label} · Risk: ${route.risk} · ${cost} Fuel</p>
+    <p><strong>${route.name}</strong> - ${meta.label} - Risk: ${route.risk} - ${cost} Fuel</p>
     <p>${currentTravelText(route, cur, loc)}</p>
     <div class="travelProgress"><div class="travelProgressFill"></div></div>
     <p class="smallNote">Travel is not instant. The fortress spends fuel, time, and momentum while crossing the living sky-road.</p>`;
@@ -5204,7 +5296,7 @@ function combatReadinessHTML(loc) {
     : '';
   return `<div class="readinessBox warningBox ${r.cls === 'danger' ? 'danger' : r.cls === 'good' ? 'good' : ''}">
     <strong>Combat Readiness: ${r.status}</strong><br/>
-    Enemy Danger ${loc.danger || 1} · Est. Hull ${r.enemyHull} · Est. Weapons ${r.enemyWeapons}<br/>
+    Enemy Danger ${loc.danger || 1} - Est. Hull ${r.enemyHull} - Est. Weapons ${r.enemyWeapons}<br/>
     Brasswake Rating ${r.playerScore} vs Enemy Rating ${r.enemyScore}<br/>
     ${hullText}
   </div>${tutorialWarn}`;
@@ -5323,9 +5415,9 @@ function settlementContractPreview(loc = getLocation(game.currentLocationId)) {
   const safeIntro = loc?.id === 'loc_home' && game.day <= 3;
   return {
     title: safeIntro ? 'Training Escort Contract' : 'Local Patrol Contract',
-    reward: safeIntro ? '24–36 gold' : '20–52 gold',
+    reward: safeIntro ? '24-36 gold' : '20-52 gold',
     extra: 'Relations improve with the local faction.',
-    damage: safeIntro ? '0–4 hull damage' : '0–14 hull damage',
+    damage: safeIntro ? '0-4 hull damage' : '0-14 hull damage',
     risk: safeIntro ? 'Safe' : 'Risky'
   };
 }
@@ -5565,7 +5657,7 @@ function combatSummaryHTML(c, titleText) {
     const delta = Math.round((after.resources[k] || 0) - (before.resources[k] || 0));
     if (!delta) return '';
     return `${delta > 0 ? '+' : ''}${delta} ${k}`;
-  }).filter(Boolean).join(' · ') || 'No net resource change';
+  }).filter(Boolean).join(' - ') || 'No net resource change';
   const relDelta = c.faction && before.relations ? Math.round((game.relations[c.faction] || 0) - (before.relations[c.faction] || 0)) : 0;
   const stats = computeStats();
   const hullPct = game.hull / stats.maxHull;
@@ -5637,7 +5729,7 @@ function endCombat(victory, retreated, destroyed = false) {
   resetSelectedPanelScrollSoon();
 }
 
-function showResultModal(title, bodyHtml, button, callback) {
+function showResultModal(title, bodyHtml, button) {
   const content = document.getElementById('modalContent');
   content.innerHTML = `<h1>${title}</h1><div>${bodyHtml}</div><button class="btn primary" onclick="closeModal()">${button}</button>`;
   document.getElementById('modalOverlay').classList.add('active');
@@ -5909,7 +6001,7 @@ function canAfford(cost) {
 
 function formatCost(cost) {
   if (!cost) return '';
-  return Object.entries(cost).map(([k,v]) => `${v} ${k}`).join(' · ');
+  return Object.entries(cost).map(([k,v]) => `${v} ${k}`).join(' - ');
 }
 
 function improveRelation(faction, amount, silent = false) {
@@ -5938,7 +6030,7 @@ function prettyType(type) {
 }
 
 function shortName(name) {
-  return name.length > 22 ? name.slice(0, 20) + '…' : name;
+  return name.length > 22 ? name.slice(0, 20) + '...' : name;
 }
 
 
@@ -6018,7 +6110,7 @@ function showHelp() {
       <li>Return to settlements to refuel and repair.</li>
     </ol>
     <p>Mouse drag pans the camera. Mouse wheel zooms. Click glowing nodes to inspect them.</p>
-    <p class="smallNote"><strong>Music:</strong> browser audio starts after your first click/tap/key press. Use the Music On/Off toggle and volume slider in the Command panel.</p>
+    <p class="smallNote"><strong>Music:</strong> browser audio starts after your first click/tap/key press. Use the Music On/Off toggle and volume slider in the Command Menu.</p>
     <h2>Route Legend</h2>
     <div class="routeLegend">
       <div><span class="legendSwatch" style="background:#80b9ff"></span>Safe Current</div>
@@ -6035,11 +6127,11 @@ function showHelp() {
 
 function showBuildNotes() {
   showModal(`<h1>Build Notes - ${VERSION}</h1>
-    <p><strong>Video QA patch:</strong> this build keeps the single-file HTML game code, Three.js CDN loading, and external MP3 music assets under <code>assets/audio/music/</code>. It addresses first-session recording findings without changing route rules or combat balance.</p>
-    <p><strong>Fixes made:</strong> the music debug line is hidden by default to prevent bottom-panel clipping; right-panel content reliably returns to its top context after rerenders; plotted routes now distinguish Final Destination from Current Jump / Next Hop; travel-in-progress has a visible status cue; disabled skiff launch now explains that a Hangar is required.</p>
-    <p><strong>Roadmap start:</strong> Open Command now presents concrete post-tutorial directives - Chart, Secure, Prepare, and Investigate - matching the roadmap/bible direction for post-Captain's Orders campaign guidance.</p>
+    <p><strong>Navigator audio patch:</strong> this build addresses the player-reported double-music issue after using Captain's Orders to plot toward a Danger 1 enemy with the Clockwork Navigator.</p>
+    <p><strong>Fixes made:</strong> route plotting now hard-settles the previous loop before Navigator music starts; route-lock stingers are quieter, shorter, and self-cleaning; combat-result music restore ignores stale timers; stale direct-engine travel confirmation is hard-disabled; Command now lives behind a menu button and Captain's Orders sits in the left HUD above an expanded Selected Location panel.</p>
+    <p><strong>Roadmap notes:</strong> Open Command stays as the post-Captain's Orders planner with Chart, Secure, Prepare, and Investigate directives. The Celestial Navigation Automaton remains the official system name, Clockwork Navigator remains the public nickname, and starting Plot Capacity remains 1 Current Gate jump.</p>
     <p><strong>Preserved:</strong> gate-locked Current Gate / Jet Stream travel, Clockwork Navigator route plotting, Plot Capacity: 1 Jump, Captain's Orders onboarding, modular Brasswake rooms/upgrades/status, route tolls/events, combat balance, and the singleton music model with one active loop plus one optional fading loop.</p>
-    <p><strong>Validation:</strong> JavaScript syntax, inline button handlers, version strings, external music paths, and package contents were checked for this build. No embedded playable preview is included.</p>
+    <p><strong>Validation:</strong> JavaScript syntax, inline button handlers, version strings, external music paths, and single-file HTML / Three.js CDN structure were checked. No embedded playable preview is included.</p>
     ${roadmapDoctrineHTML()}
     ${nextCampaignGoalsHTML()}
     ${balanceRoadmapHTML()}
@@ -6140,9 +6232,9 @@ function showHoverTooltip(e, loc) {
   const route = getRouteBetween(cur.id, loc.id);
   const path = !route && loc.id !== cur.id ? findCurrentRoutePath(cur.id, loc.id) : null;
   const cost = loc.id === cur.id ? 0 : (route ? routeTravelCost(cur, loc, route) : 0);
-  const danger = loc.danger ? ` · Danger ${loc.danger}` : '';
-  const depleted = loc.depleted ? ' · Depleted' : '';
-  const routeText = loc.id === cur.id ? 'Current position' : route ? `Direct Current · Fuel cost: ${cost}` : path ? `Reachable via ${path.routeIds.length} currents · Next hop: ${getLocation(path.nodeIds[1])?.name || 'unknown'}` : 'No known Current route';
+  const danger = loc.danger ? ` - Danger ${loc.danger}` : '';
+  const depleted = loc.depleted ? ' - Depleted' : '';
+  const routeText = loc.id === cur.id ? 'Current position' : route ? `Direct Current - Fuel cost: ${cost}` : path ? `Reachable via ${path.routeIds.length} currents - Next hop: ${getLocation(path.nodeIds[1])?.name || 'unknown'}` : 'No known Current route';
   tip.innerHTML = `<strong>${loc.name}</strong><span class="mini">${prettyType(loc.type)}${danger}${depleted}<br/>${routeText}</span>`;
   tip.style.left = Math.min(window.innerWidth - 300, e.clientX + 16) + 'px';
   tip.style.top = Math.min(window.innerHeight - 120, e.clientY + 16) + 'px';
