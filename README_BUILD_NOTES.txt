@@ -1,51 +1,53 @@
 IRON KINGDOMS: SKY FORTRESS COMMAND
-Version: v0.26.06.19.2148
+Version: v0.26.06.19.2223
 
-Focused QA stabilization pass.
+Focused gameplay-video QA and first roadmap implementation pass.
 
-SOURCE OF TRUTH CHECK
-- Title before patch used the previous suffixed music build label
-- Visible versionLabel before patch used the previous suffixed music build label
-- VERSION before patch used the previous suffixed music build label
-- SAVE_KEY before patch used the previous suffixed music build label
-- Build notes before patch mixed older HUD-polish and music-integration labels
-- External music paths are referenced under assets/audio/music/
-- Build appears to be the music singleton / double-play prevention build
+PATCH INTENT
+- Fix clear issues observed in the new-campaign gameplay recording.
+- Improve early onboarding clarity without redesigning the game.
+- Start the safest roadmap/bible item: post-tutorial Open Command directives.
+- Preserve gate-locked travel, Clockwork Navigator, Plot Capacity: 1 Jump, Captain's Orders, singleton music, and combat balance.
 
-FINDINGS
-Critical: no syntax crash found.
-High: stale version/build-note strings; failed next-loop crossfade could lose the intended active loop.
-Medium: save/load/reset and save-status paths needed storage/DOM guards; stinger play-block warnings could repeat.
-Low: README/package notes were stale.
+VIDEO FINDINGS ADDRESSED
+- Music debug text clipped in the command panel.
+- Right upgrade panel could feel stuck deep in the list after upgrades.
+- Multi-hop route plotting needed clearer Final Destination vs Current Jump wording.
+- Travel-in-progress state was too subtle.
+- Disabled Launch Skiffs button needed a reason.
+- Open Command needed clearer post-tutorial campaign directives.
 
 FIXES MADE
-- Aligned title, visible label, VERSION, SAVE_KEY, manifest, README files, and in-game notes to v0.26.06.19.2148.
-- Hardened save/load/reset and save-status UI flows.
-- Restored the previous fading loop as active if a new music loop fails during crossfade.
-- De-duplicated stinger play-block warnings.
-- Added small null guards for toast, modal, log, version-label, and title load-button updates.
+- Hid the debug music line by default.
+- Added right-panel scroll reset after rerenders.
+- Clarified Clockwork Navigator route cards and toasts.
+- Added an in-panel travel status cue while riding a Current.
+- Added Launch Skiffs disabled reason: requires Hangar.
+- Reworked Next Campaign Goals into Open Command Directives: Chart, Secure, Prepare, Investigate.
+
+ROADMAP/BIBLE ALIGNMENT
+- Implements the safest slice of the Post-Tutorial Campaign Goal Pass.
+- Keeps Open Command as guidance, not a new balance-affecting mechanic.
+- Reinforces the transition from Captain's Orders to broader strategic command.
 
 PRESERVED
-- Gate-locked Current Gate / Jet Stream travel.
 - No early freeform direct travel.
+- Gate-locked Current Gate / Jet Stream travel.
 - Clockwork Navigator / Celestial Navigation Automaton.
 - Plot Capacity: 1 Jump.
-- Captain's Orders onboarding.
-- Brasswake status, rooms, upgrades, factions, tech, route, travel, and combat systems.
-- Existing combat balance.
+- Current combat balance.
+- Singleton music behavior.
 - External MP3 assets under assets/audio/music/.
-- Singleton music behavior with one active loop and one optional fading loop.
-- Non-looping stingers.
-- No embedded playable preview.
+- Single-file HTML game using Three.js CDN.
 
 VALIDATION
 - JavaScript extracted from index.html and checked with node --check.
 - Inline onclick handlers checked for missing global functions.
 - Duplicate function declarations checked.
-- Version strings checked for v0.26.06.19.2148.
+- Version strings checked for v0.26.06.19.2223.
+- Three.js CDN reference checked.
 - Relative external music paths checked.
-- Three.js CDN single-file HTML approach preserved.
-- MP3 files remain external and are not base64 embedded.
+- No audio base64 embedding found.
 
-OUT OF SCOPE
-- Route balance, combat balance, major UI redesign, and new feature work were intentionally left unchanged.
+DEFERRED
+- Storm Keel, Saint Elmo Core, Astrolabe Engine, Plot Capacity 2+, faction permit systems, full fortress module visuals, and combat presentation expansion.

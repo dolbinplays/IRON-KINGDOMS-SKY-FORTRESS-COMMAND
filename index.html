@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.19.2148</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.19.2223</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <style>
     :root {
@@ -1294,6 +1294,28 @@
       color: #ffe9b8;
       opacity: 0.88;
     }
+    .musicDebugLine {
+      display: none;
+    }
+    .travelStatusChip {
+      display: block;
+      border: 1px solid rgba(128,185,255,0.48);
+      background: rgba(34,84,128,0.28);
+      color: #cbe6ff;
+      border-radius: 8px;
+      padding: 6px 8px;
+      margin-top: 7px;
+      font-size: 11px;
+      line-height: 1.25;
+      text-align: center;
+    }
+    .disabledReason {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center;
+      margin-top: -3px;
+    }
 
     .hidden { display: none !important; }
 
@@ -1333,7 +1355,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.19.2148</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.19.2223</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1378,7 +1400,7 @@
         <button class="btn ghost" id="musicToggleBtn" onclick="toggleMusicMuted()">Music On</button>
         <input id="musicVolumeSlider" type="range" min="0" max="100" value="42" oninput="onMusicVolumeInput(this.value)" aria-label="Music volume" />
         <div class="nowPlaying" id="nowPlayingLabel">Music queued until first click.</div>
-        <div class="nowPlaying" id="musicDebugLabel">Debug: state=title · file=none · loops=0 · fade=no</div>
+        <div class="nowPlaying musicDebugLine" id="musicDebugLabel">Debug: state=title · file=none · loops=0 · fade=no</div>
       </div>
     </div>
     <div class="logPanel">
@@ -1413,7 +1435,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.19.2148 · Single-file HTML code · External MP3 music assets · Three.js CDN build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.19.2223 · Single-file HTML code · External MP3 music assets · Three.js CDN build</p>
     </div>
   </div>
 </div>
@@ -1424,8 +1446,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.19.2148';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_19_2148';
+const VERSION = 'v0.26.06.19.2223';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_19_2223';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -1532,7 +1554,7 @@ let currentHudAlert = null;
 let deferredToastText = null;
 
 // =============================================================
-// MUSIC MANAGER - v0.26.06.19.2148 / singleton double-play prevention
+// MUSIC MANAGER - v0.26.06.19.2223 / singleton double-play prevention
 // =============================================================
 const MUSIC_SETTINGS_KEY = SAVE_KEY + '_MUSIC_SETTINGS';
 const MUSIC_TRACKS = {
@@ -3197,8 +3219,9 @@ function routePlannerHTML(loc, cur, path) {
   const nextHopId = path.nodeIds[1];
   const nextHop = getLocation(nextHopId);
   return `<div class="routePlannerBox"><strong>Route Available Through Gates</strong><br/>
-    Clockwork Navigator can plot this destination as a one-jump-at-a-time route.<br/>
-    ${path.routeIds.length} current${path.routeIds.length > 1 ? 's' : ''} · Next Hop: <strong>${nextHop?.name || 'Unknown'}</strong>
+    Clockwork Navigator can plot the destination while locking only the next Current jump.<br/>
+    Final Destination: <strong>${loc.name}</strong><br/>
+    Current Jump / Next Hop: <strong>${nextHop?.name || 'Unknown'}</strong>
     <div class="routeSummaryGrid">
       <div>Total Path Fuel: ${summary.totalFuel}</div>
       <div>Time: ${summary.totalDays} day${summary.totalDays !== 1 ? 's' : ''}</div>
@@ -3206,7 +3229,7 @@ function routePlannerHTML(loc, cur, path) {
       <div>Highest Risk: ${routeRiskLabel(summary.highestRisk)}</div>
     </div>
     <div class="routePathLine">${routePathNames(path)}</div>
-    <div class="smallNote">Gate-locked travel requires moving one current at a time. Use the primary action above to lock the next hop.</div>
+    <div class="smallNote">Plot Capacity: 1 Jump. Gate-locked travel moves one Current at a time while preserving the final destination context.</div>
   </div>`;
 }
 
@@ -3224,7 +3247,7 @@ function plotRouteTo(targetId) {
   buildWorldMeshes();
   renderUI();
   resetSelectedPanelScrollSoon();
-  showToast(`Clockwork Navigator plotted ${target?.name || 'destination'}. Plot Capacity: 1 jump locked to ${nextHop?.name || 'next hop'}.`);
+  showToast(`Clockwork Navigator plotted final destination ${target?.name || 'destination'}. Current Jump locked to ${nextHop?.name || 'next hop'}.`);
 }
 
 function clearPlottedRouteIfArrived() {
@@ -3292,7 +3315,7 @@ function continuePlottedRoute() {
   renderUI();
   resetSelectedPanelScrollSoon();
   const next = getLocation(game.plottedRoute.nextHopId);
-  showToast(`Continue plotted route. Use Ride Locked Jump to ${next?.name || 'the next hop'}.`);
+  showToast(`Continue plotted route. Current Jump is ${next?.name || 'the next hop'}; final destination remains ${getLocation(game.plottedRoute.targetId)?.name || 'the plotted target'}.`);
 }
 
 function routeGatePolicy(route) {
@@ -3399,14 +3422,12 @@ function roadmapDoctrineHTML(compact = false) {
 
 function nextCampaignGoalsHTML(compact = false) {
   const cls = compact ? 'nextGoalsCard compact' : 'nextGoalsCard';
-  return `<div class="${cls}"><strong>Next Campaign Goals</strong>
+  return `<div class="${cls}"><strong>Open Command Directives</strong>
     <ul>
-      <li>Continue charting Current Gates and safe return routes.</li>
-      <li>Repair or refuel at settlements when hull or fuel run low.</li>
-      <li>Take faction contracts to improve gate access and standing.</li>
-      <li>Explore ruins for future navigation components.</li>
-      <li>Prepare for storm routes and stronger fleets before pushing outward.</li>
-      <li>Upgrade the Clockwork Navigator when future tech unlocks.</li>
+      <li><strong>Chart:</strong> reveal connected Current Gates and keep a safe return route.</li>
+      <li><strong>Secure:</strong> take faction contracts to improve gate access and standing.</li>
+      <li><strong>Prepare:</strong> refuel, repair, and upgrade before storm routes or stronger fleets.</li>
+      <li><strong>Investigate:</strong> explore ruins for future navigation components.</li>
     </ul>
   </div>`;
 }
@@ -3703,7 +3724,7 @@ function createLocationMarker(loc) {
 }
 
 function createFortressModel() {
-  // Procedural Brasswake marker v0.26.06.19.2148
+  // Procedural Brasswake marker v0.26.06.19.2223
   // Lightweight in-game representation of the starting fortress: a modular hex-built sky city.
   // Future fortress-builder work can map actual rooms/upgrades to these visible hex modules.
   const group = new THREE.Group();
@@ -4326,9 +4347,11 @@ function locationActionButtons(loc, cur, cost, d) {
     const canTravel = game.resources.fuel >= cost && d <= computeStats().travelRange && !isTraveling;
     const label = isLockedNextHop ? `Ride Locked Jump to ${shortName(loc.name)} (${cost} Fuel)` : `Ride Current to ${shortName(loc.name)} (${cost} Fuel)`;
     const note = isLockedNextHop ? 'Clockwork Navigator route active. This is the stored one-jump path toward your final destination.' : 'Current Gate travel is charted and available from your present location.';
+    const travelCue = isTraveling ? '<span class="travelStatusChip">In Current: Brasswake is riding the selected sky-road. Controls return after arrival.</span>' : '';
     return `<div class="primaryActionBlock firstSessionPrimary buttonStack">
       <button class="btn primary" ${canTravel ? '' : 'disabled'} onclick="travelToSelected()">${label}</button>
       ${!canTravel ? `<div class="smallNote">${travelBlockReason(cost, d)}</div>` : `<div class="smallNote">${note}</div>`}
+      ${travelCue}
       <button class="btn ghost" onclick="centerCameraOnSelected()">Center Camera</button>
     </div>`;
   }
@@ -4388,7 +4411,21 @@ function setRightPanelContent(html) {
   const panel = document.getElementById('rightPanel');
   if (!panel) return;
   panel.innerHTML = `<div class="scrollContent rightScrollContent">${html}</div>`;
-  panel.scrollTop = 0;
+  resetRightPanelScrollSoon();
+}
+
+function resetRightPanelScrollSoon() {
+  const panel = document.getElementById('rightPanel');
+  if (!panel) return;
+  const forceTop = () => {
+    panel.scrollTop = 0;
+    if (typeof panel.scrollTo === 'function') panel.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    const inner = panel.querySelector('.rightScrollContent');
+    if (inner) inner.scrollTop = 0;
+  };
+  forceTop();
+  requestAnimationFrame(forceTop);
+  setTimeout(forceTop, 40);
 }
 
 function renderUpgradePanel() {
@@ -5425,6 +5462,7 @@ function openCombatModal() {
       <button class="btn green" onclick="combatAction('brace')">Brace Armor</button>
       <button class="btn" ${canAfford({ steel: 8 }) ? '' : 'disabled'} onclick="combatAction('repair')">Emergency Repairs</button>
       <button class="btn ghost" onclick="combatAction('retreat')">Attempt Retreat</button>
+      ${hangar ? '' : '<div class="disabledReason">Launch Skiffs requires a Hangar room aboard Brasswake.</div>'}
     </div>
     <div style="margin-top:12px; max-height:150px; overflow:auto;">
       ${c.log.slice(-8).reverse().map(x => `<div class="logItem">${x}</div>`).join('')}
@@ -5997,9 +6035,9 @@ function showHelp() {
 
 function showBuildNotes() {
   showModal(`<h1>Build Notes - ${VERSION}</h1>
-    <p><strong>QA stabilization:</strong> this build keeps the single-file HTML game code, Three.js CDN loading, and external MP3 music assets under <code>assets/audio/music/</code>. Version labels, save key, title, package notes, and manifest version were aligned to ${VERSION}.</p>
-    <p><strong>Issues found:</strong> stale suffixed version strings were split across the HTML, manifest, and README notes; save/load/reset paths could throw if browser storage or title-screen DOM nodes were unavailable; and a missing music loop during crossfade could leave the manager without a clean active-loop fallback.</p>
-    <p><strong>Fixes made:</strong> storage reads/writes now fail gracefully with player-facing toasts, save-status UI updates guard missing nodes, repeated stinger play-block warnings are de-duplicated, and failed loop loads promote the previous fading loop back to active music before cleanup.</p>
+    <p><strong>Video QA patch:</strong> this build keeps the single-file HTML game code, Three.js CDN loading, and external MP3 music assets under <code>assets/audio/music/</code>. It addresses first-session recording findings without changing route rules or combat balance.</p>
+    <p><strong>Fixes made:</strong> the music debug line is hidden by default to prevent bottom-panel clipping; right-panel content reliably returns to its top context after rerenders; plotted routes now distinguish Final Destination from Current Jump / Next Hop; travel-in-progress has a visible status cue; disabled skiff launch now explains that a Hangar is required.</p>
+    <p><strong>Roadmap start:</strong> Open Command now presents concrete post-tutorial directives - Chart, Secure, Prepare, and Investigate - matching the roadmap/bible direction for post-Captain's Orders campaign guidance.</p>
     <p><strong>Preserved:</strong> gate-locked Current Gate / Jet Stream travel, Clockwork Navigator route plotting, Plot Capacity: 1 Jump, Captain's Orders onboarding, modular Brasswake rooms/upgrades/status, route tolls/events, combat balance, and the singleton music model with one active loop plus one optional fading loop.</p>
     <p><strong>Validation:</strong> JavaScript syntax, inline button handlers, version strings, external music paths, and package contents were checked for this build. No embedded playable preview is included.</p>
     ${roadmapDoctrineHTML()}
