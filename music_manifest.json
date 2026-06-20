@@ -1,0 +1,613 @@
+{
+  "version": "v0.26.06.19.music",
+  "copied_count": 96,
+  "missing": [],
+  "tracks": {
+    "title": {
+      "name": "Iron Kingdoms Above the Clouds",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_01_iron_kingdoms_above_clouds_title_loop.mp3",
+          "title": "Iron Kingdoms Above the Clouds"
+        }
+      ]
+    },
+    "newCampaign": {
+      "name": "New Captain of Brasswake",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_02_new_captain_brasswake_loop.mp3",
+          "title": "New Captain of Brasswake"
+        },
+        {
+          "src": "assets/audio/music/loops/music_02_new_captain_brasswake_alt_loop.mp3",
+          "title": "New Captain of Brasswake (Alt)"
+        }
+      ]
+    },
+    "captainsOrders": {
+      "name": "Captain's Orders",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_03_captains_orders_loop.mp3",
+          "title": "Captain's Orders"
+        },
+        {
+          "src": "assets/audio/music/loops/music_03_captains_orders_alt_loop.mp3",
+          "title": "Captain's Orders (Alt)"
+        }
+      ]
+    },
+    "skyMap": {
+      "name": "The Sky Atlas Opens",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_04_sky_atlas_opens_loop.mp3",
+          "title": "The Sky Atlas Opens"
+        },
+        {
+          "src": "assets/audio/music/loops/music_04_sky_atlas_opens_alt_loop.mp3",
+          "title": "The Sky Atlas Opens (Alt)"
+        }
+      ]
+    },
+    "brasswake": {
+      "name": "Brasswake at Anchor",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_05_brasswake_at_anchor_loop.mp3",
+          "title": "Brasswake at Anchor"
+        },
+        {
+          "src": "assets/audio/music/loops/music_05_brasswake_at_anchor_alt_loop.mp3",
+          "title": "Brasswake at Anchor (Alt)"
+        }
+      ]
+    },
+    "workshop": {
+      "name": "Workshop of the Flying City",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_06_workshop_flying_city_loop.mp3",
+          "title": "Workshop of the Flying City"
+        },
+        {
+          "src": "assets/audio/music/loops/music_06_workshop_flying_city_alt_loop.mp3",
+          "title": "Workshop of the Flying City (Alt)"
+        }
+      ]
+    },
+    "navigator": {
+      "name": "The Clockwork Navigator",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_07_clockwork_navigator_loop.mp3",
+          "title": "The Clockwork Navigator"
+        },
+        {
+          "src": "assets/audio/music/loops/music_07_clockwork_navigator_alt_loop.mp3",
+          "title": "The Clockwork Navigator (Alt)"
+        }
+      ]
+    },
+    "routeSafe": {
+      "name": "Blue-White Current",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_09_blue_white_current_loop.mp3",
+          "title": "Blue-White Current"
+        },
+        {
+          "src": "assets/audio/music/loops/music_09_blue_white_current_alt_loop.mp3",
+          "title": "Blue-White Current (Alt)"
+        }
+      ]
+    },
+    "routeTrade": {
+      "name": "Gold-Lit Trade Current",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_10_gold_lit_trade_current_loop.mp3",
+          "title": "Gold-Lit Trade Current"
+        },
+        {
+          "src": "assets/audio/music/loops/music_10_gold_lit_trade_current_alt_loop.mp3",
+          "title": "Gold-Lit Trade Current (Alt)"
+        }
+      ]
+    },
+    "routeStorm": {
+      "name": "Violet Pressure Stream",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_11_violet_pressure_stream_loop.mp3",
+          "title": "Violet Pressure Stream"
+        },
+        {
+          "src": "assets/audio/music/loops/music_11_violet_pressure_stream_alt_loop.mp3",
+          "title": "Violet Pressure Stream (Alt)"
+        },
+        {
+          "src": "assets/audio/music/loops/music_11_violet_pressure_stream_electrical_storm_loop.mp3",
+          "title": "Violet Pressure Stream Electrical Storm"
+        },
+        {
+          "src": "assets/audio/music/loops/music_11_violet_pressure_stream_epic_lightning_loop.mp3",
+          "title": "Violet Pressure Stream Epic Lightning"
+        }
+      ]
+    },
+    "routePirate": {
+      "name": "Teal Slipstream",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_12_teal_slipstream_loop.mp3",
+          "title": "Teal Slipstream"
+        },
+        {
+          "src": "assets/audio/music/loops/music_12_teal_slipstream_alt_loop.mp3",
+          "title": "Teal Slipstream (Alt)"
+        }
+      ]
+    },
+    "routeBlocked": {
+      "name": "No Charted Current",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_13_no_charted_current_short_loop.mp3",
+          "title": "No Charted Current"
+        },
+        {
+          "src": "assets/audio/music/loops/music_13_no_charted_current_alt_short_loop.mp3",
+          "title": "No Charted Current (Alt)"
+        }
+      ]
+    },
+    "routeRisk": {
+      "name": "Fuel, Hull, and Distance",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_14_fuel_hull_distance_loop.mp3",
+          "title": "Fuel, Hull, and Distance"
+        },
+        {
+          "src": "assets/audio/music/loops/music_14_fuel_hull_distance_alt_loop.mp3",
+          "title": "Fuel, Hull, and Distance (Alt)"
+        }
+      ]
+    },
+    "skyport": {
+      "name": "Skyport Lanterns",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_15_skyport_lanterns_loop.mp3",
+          "title": "Skyport Lanterns"
+        },
+        {
+          "src": "assets/audio/music/loops/music_15_skyport_lanterns_alt_loop.mp3",
+          "title": "Skyport Lanterns (Alt)"
+        }
+      ]
+    },
+    "settlement": {
+      "name": "Settlement Hearths in the Clouds",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_16_settlement_hearths_clouds_loop.mp3",
+          "title": "Settlement Hearths in the Clouds"
+        },
+        {
+          "src": "assets/audio/music/loops/music_16_settlement_hearths_clouds_alt_loop.mp3",
+          "title": "Settlement Hearths in the Clouds (Alt)"
+        }
+      ]
+    },
+    "salvage": {
+      "name": "Wreckfield Salvage",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_17_wreckfield_salvage_loop.mp3",
+          "title": "Wreckfield Salvage"
+        },
+        {
+          "src": "assets/audio/music/loops/music_17_wreckfield_salvage_alt_loop.mp3",
+          "title": "Wreckfield Salvage (Alt)"
+        },
+        {
+          "src": "assets/audio/music/loops/music_17_ominous_wreckfield_salvage_loop.mp3",
+          "title": "Ominous Wreckfield Salvage"
+        }
+      ]
+    },
+    "resource": {
+      "name": "Harvest the Living Currents",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_18_harvest_living_currents_loop.mp3",
+          "title": "Harvest the Living Currents"
+        },
+        {
+          "src": "assets/audio/music/loops/music_18_harvest_living_currents_alt_loop.mp3",
+          "title": "Harvest the Living Currents (Alt)"
+        }
+      ]
+    },
+    "ruins": {
+      "name": "Ruins of the First Engines",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_19_ruins_first_engines_loop.mp3",
+          "title": "Ruins of the First Engines"
+        },
+        {
+          "src": "assets/audio/music/loops/music_19_ruins_first_engines_alt_loop.mp3",
+          "title": "Ruins of the First Engines (Alt)"
+        }
+      ]
+    },
+    "saintElmo": {
+      "name": "Saint Elmo Static",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_20_saint_elmo_static_loop.mp3",
+          "title": "Saint Elmo Static"
+        },
+        {
+          "src": "assets/audio/music/loops/music_20_saint_elmo_static_alt_loop.mp3",
+          "title": "Saint Elmo Static (Alt)"
+        }
+      ]
+    },
+    "storm": {
+      "name": "Stormwall Horizon",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_21_stormwall_horizon_loop.mp3",
+          "title": "Stormwall Horizon"
+        },
+        {
+          "src": "assets/audio/music/loops/music_21_stormwall_horizon_alt_loop.mp3",
+          "title": "Stormwall Horizon (Alt)"
+        }
+      ]
+    },
+    "preCombat": {
+      "name": "Enemy on the Horizon",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_22_enemy_on_horizon_short_loop.mp3",
+          "title": "Enemy on the Horizon"
+        },
+        {
+          "src": "assets/audio/music/loops/music_22_enemy_on_horizon_alt_short_loop.mp3",
+          "title": "Enemy on the Horizon (Alt)"
+        }
+      ]
+    },
+    "combatStandard": {
+      "name": "Broadside at Current Gate",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_23_broadside_current_gate_loop.mp3",
+          "title": "Broadside at Current Gate"
+        },
+        {
+          "src": "assets/audio/music/loops/music_23_broadside_current_gate_alt_loop.mp3",
+          "title": "Broadside at Current Gate (Alt)"
+        }
+      ]
+    },
+    "combatPirate": {
+      "name": "Raider Ambush in the Slipstream",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_24_raider_ambush_slipstream_loop.mp3",
+          "title": "Raider Ambush in the Slipstream"
+        },
+        {
+          "src": "assets/audio/music/loops/music_24_raider_ambush_slipstream_alt_loop.mp3",
+          "title": "Raider Ambush in the Slipstream (Alt)"
+        }
+      ]
+    },
+    "combatStorm": {
+      "name": "Lightning in the Rigging",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_25_lightning_in_rigging_loop.mp3",
+          "title": "Lightning in the Rigging"
+        },
+        {
+          "src": "assets/audio/music/loops/music_25_lightning_in_rigging_alt_loop.mp3",
+          "title": "Lightning in the Rigging (Alt)"
+        },
+        {
+          "src": "assets/audio/music/loops/music_25_lightning_in_rigging_thunder_loop.mp3",
+          "title": "Lightning in the Rigging Thunder"
+        },
+        {
+          "src": "assets/audio/music/loops/music_25_lightning_in_rigging_violin_loop.mp3",
+          "title": "Lightning in the Rigging Violin"
+        }
+      ]
+    },
+    "combatFaction": {
+      "name": "Patrol at the Gate",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_26_patrol_at_gate_loop.mp3",
+          "title": "Patrol at the Gate"
+        },
+        {
+          "src": "assets/audio/music/loops/music_26_patrol_at_gate_alt_loop.mp3",
+          "title": "Patrol at the Gate (Alt)"
+        }
+      ]
+    },
+    "combatAncient": {
+      "name": "Ancient Machine Awakens",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_27_ancient_machine_awakens_loop.mp3",
+          "title": "Ancient Machine Awakens"
+        },
+        {
+          "src": "assets/audio/music/loops/music_27_ancient_machine_awakens_alt_loop.mp3",
+          "title": "Ancient Machine Awakens (Alt)"
+        }
+      ]
+    },
+    "combatLowHull": {
+      "name": "Last Hull, Hold Fast",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_28_last_hull_hold_fast_loop.mp3",
+          "title": "Last Hull, Hold Fast"
+        },
+        {
+          "src": "assets/audio/music/loops/music_28_last_hull_hold_fast_alt_loop.mp3",
+          "title": "Last Hull, Hold Fast (Alt)"
+        }
+      ]
+    },
+    "combatBoss": {
+      "name": "Capital Fleet Duel",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_29_capital_fleet_duel_loop.mp3",
+          "title": "Capital Fleet Duel"
+        },
+        {
+          "src": "assets/audio/music/loops/music_29_capital_fleet_duel_alt_loop.mp3",
+          "title": "Capital Fleet Duel (Alt)"
+        }
+      ]
+    },
+    "factionSteamMarshal": {
+      "name": "Steam Marshal March",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_33_steam_marshal_march_loop.mp3",
+          "title": "Steam Marshal March"
+        },
+        {
+          "src": "assets/audio/music/loops/music_33_steam_marshal_march_take2_loop.mp3",
+          "title": "Steam Marshal March Take 2"
+        },
+        {
+          "src": "assets/audio/music/loops/music_33_steam_marshal_march_steampunk_loop.mp3",
+          "title": "Steam Marshal March Steampunk"
+        }
+      ]
+    },
+    "factionArchmage": {
+      "name": "Archmage Concordance",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_34_archmage_concordance_loop.mp3",
+          "title": "Archmage Concordance"
+        },
+        {
+          "src": "assets/audio/music/loops/music_34_archmage_concordance_take2_loop.mp3",
+          "title": "Archmage Concordance Take 2"
+        },
+        {
+          "src": "assets/audio/music/loops/music_34_darker_archmage_concordance_loop.mp3",
+          "title": "Darker Archmage Concordance"
+        }
+      ]
+    },
+    "factionSkyAdmiral": {
+      "name": "Sky Admiral's Blue Wake",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_35_sky_admirals_blue_wake_loop.mp3",
+          "title": "Sky Admiral's Blue Wake"
+        },
+        {
+          "src": "assets/audio/music/loops/music_35_sky_admirals_blue_wake_take2_loop.mp3",
+          "title": "Sky Admiral's Blue Wake Take 2"
+        }
+      ]
+    },
+    "factionIronPriest": {
+      "name": "Iron Priest Hymn of Gears",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_36_iron_priest_hymn_gears_loop.mp3",
+          "title": "Iron Priest Hymn of Gears"
+        },
+        {
+          "src": "assets/audio/music/loops/music_36_iron_priest_hymn_gears_take2_loop.mp3",
+          "title": "Iron Priest Hymn of Gears Take 2"
+        }
+      ]
+    },
+    "factionThornRegent": {
+      "name": "Thorn Regent's Living Engine",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_37_thorn_regents_living_engine_loop.mp3",
+          "title": "Thorn Regent's Living Engine"
+        },
+        {
+          "src": "assets/audio/music/loops/music_37_thorn_regents_living_engine_take2_loop.mp3",
+          "title": "Thorn Regent's Living Engine Take 2"
+        }
+      ]
+    },
+    "factionCinderKhan": {
+      "name": "Cinder Khan Furnace Charge",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_38_cinder_khan_furnace_charge_loop.mp3",
+          "title": "Cinder Khan Furnace Charge"
+        },
+        {
+          "src": "assets/audio/music/loops/music_38_cinder_khan_furnace_charge_take3_loop.mp3",
+          "title": "Cinder Khan Furnace Charge Take 3"
+        },
+        {
+          "src": "assets/audio/music/loops/music_38_cinder_khan_furnace_charge_aggressive_drums_loop.mp3",
+          "title": "Cinder Khan Furnace Charge Aggressive Drums"
+        }
+      ]
+    },
+    "factionDuskCorsair": {
+      "name": "Dusk Corsair Moonwake",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_39_dusk_corsair_moonwake_loop.mp3",
+          "title": "Dusk Corsair Moonwake"
+        },
+        {
+          "src": "assets/audio/music/loops/music_39_dusk_corsair_moonwake_take2_loop.mp3",
+          "title": "Dusk Corsair Moonwake Take 2"
+        }
+      ]
+    },
+    "factionFrostMatriarch": {
+      "name": "Frost Matriarch's Cold Current",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_40_frost_matriarch_cold_current_loop.mp3",
+          "title": "Frost Matriarch's Cold Current"
+        },
+        {
+          "src": "assets/audio/music/loops/music_40_frost_matriarch_cold_current_take2_loop.mp3",
+          "title": "Frost Matriarch's Cold Current Take 2"
+        },
+        {
+          "src": "assets/audio/music/loops/music_40_frost_matriarch_cold_current_powerful_take1_loop.mp3",
+          "title": "Frost Matriarch's Cold Current Powerful Take 1"
+        },
+        {
+          "src": "assets/audio/music/loops/music_40_frost_matriarch_cold_current_powerful_take2_loop.mp3",
+          "title": "Frost Matriarch's Cold Current Powerful Take 2"
+        }
+      ]
+    },
+    "factionFreebooter": {
+      "name": "Freebooter Clans Take 2",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_41_freebooter_clans_take2_loop.mp3",
+          "title": "Freebooter Clans Take 2"
+        }
+      ]
+    },
+    "endgameMap": {
+      "name": "War Above the Iron Kingdoms",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_42_war_above_iron_kingdoms_loop.mp3",
+          "title": "War Above the Iron Kingdoms"
+        },
+        {
+          "src": "assets/audio/music/loops/music_42_war_above_iron_kingdoms_take2_loop.mp3",
+          "title": "War Above the Iron Kingdoms Take 2"
+        }
+      ]
+    },
+    "stormKeel": {
+      "name": "Storm Keel Ascendant",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_43_storm_keel_ascendant_loop.mp3",
+          "title": "Storm Keel Ascendant"
+        },
+        {
+          "src": "assets/audio/music/loops/music_43_storm_keel_ascendant_take2_loop.mp3",
+          "title": "Storm Keel Ascendant Take 2"
+        }
+      ]
+    },
+    "credits": {
+      "name": "Brasswake Remembers",
+      "files": [
+        {
+          "src": "assets/audio/music/loops/music_44_brasswake_remembers_credits.mp3",
+          "title": "Brasswake Remembers"
+        },
+        {
+          "src": "assets/audio/music/loops/music_44_brasswake_remembers_take2_credits.mp3",
+          "title": "Brasswake Remembers Take 2"
+        }
+      ]
+    }
+  },
+  "stingers": {
+    "routeLocked": {
+      "name": "Plot Capacity One",
+      "files": [
+        {
+          "src": "assets/audio/music/stingers/stinger_08_plot_capacity_one_route_locked.mp3",
+          "title": "Plot Capacity One"
+        },
+        {
+          "src": "assets/audio/music/stingers/stinger_08_plot_capacity_one_route_locked_alt.mp3",
+          "title": "Plot Capacity One (Alt)"
+        }
+      ]
+    },
+    "victory": {
+      "name": "Victory: Route Secured",
+      "files": [
+        {
+          "src": "assets/audio/music/stingers/stinger_30_victory_route_secured.mp3",
+          "title": "Victory: Route Secured"
+        },
+        {
+          "src": "assets/audio/music/stingers/stinger_30_victory_route_secured_alt.mp3",
+          "title": "Victory: Route Secured (Alt)"
+        }
+      ]
+    },
+    "defeat": {
+      "name": "Defeat: Brasswake Falls",
+      "files": [
+        {
+          "src": "assets/audio/music/stingers/stinger_31_defeat_brasswake_falls.mp3",
+          "title": "Defeat: Brasswake Falls"
+        },
+        {
+          "src": "assets/audio/music/stingers/stinger_31_defeat_brasswake_falls_take2.mp3",
+          "title": "Defeat: Brasswake Falls Take 2"
+        }
+      ]
+    },
+    "retreat": {
+      "name": "Retreat Under Smoke",
+      "files": [
+        {
+          "src": "assets/audio/music/stingers/stinger_32_retreat_under_smoke.mp3",
+          "title": "Retreat Under Smoke"
+        },
+        {
+          "src": "assets/audio/music/stingers/stinger_32_retreat_under_smoke_take2.mp3",
+          "title": "Retreat Under Smoke Take 2"
+        }
+      ]
+    }
+  }
+}
