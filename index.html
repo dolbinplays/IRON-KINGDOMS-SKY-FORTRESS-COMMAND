@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.20.1245</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.20.1322</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <style>
     :root {
@@ -202,7 +202,7 @@
       position: absolute;
       top: 96px;
       left: 12px;
-      bottom: 56px;
+      bottom: 180px;
       width: 340px;
       z-index: 10;
       display: flex;
@@ -239,7 +239,7 @@
     .panel h2 { font-size: 18px; }
     .panel h3 { font-size: 14px; text-transform: uppercase; }
 
-    /* Side-panel HUD shell fix: side panels are true flex columns. Headers/tabs stay
+    /* v1400 preserves the side-panel HUD shell fix: side panels are true flex columns. Headers/tabs stay
        outside the scroll body, and only the content body scrolls to a safe bottom. */
     .panelShell {
       display: flex;
@@ -437,18 +437,18 @@
 
     .bottomLog {
       position: absolute;
-      left: 364px;
+      left: 12px;
       right: 12px;
       bottom: 12px;
       height: 156px;
       z-index: 10;
       display: grid;
-      grid-template-columns: minmax(280px, 1fr);
+      grid-template-columns: 300px minmax(280px, 1fr) 430px;
       gap: 10px;
       pointer-events: none;
     }
 
-    .logPanel, .controlsPanel, .helpPanel, .commandMenuPanel {
+    .logPanel, .controlsPanel, .helpPanel {
       pointer-events: auto;
       border: 1px solid rgba(217,164,65,0.55);
       background: linear-gradient(180deg, rgba(39,30,27,0.94), rgba(16,12,15,0.94));
@@ -469,72 +469,7 @@
     .logItem { margin-bottom: 5px; padding: 6px; font-size: 12px; color: #e9dfcf; }
     .logItem strong { color: var(--brass2); }
 
-    .commandDock {
-      position: absolute;
-      left: 12px;
-      bottom: 12px;
-      width: 340px;
-      z-index: 38;
-      pointer-events: none;
-    }
-
-    .commandMenu {
-      position: relative;
-      pointer-events: auto;
-    }
-
-    .commandMenu summary {
-      list-style: none;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .commandMenu summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .commandMenuButton {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      min-height: 36px;
-      border: 1px solid rgba(217,164,65,0.68);
-      background: linear-gradient(180deg, rgba(62,42,24,0.96), rgba(20,15,16,0.96));
-      color: var(--brass2);
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      box-shadow: 0 10px 24px var(--shadow), inset 0 0 0 1px rgba(255,255,255,0.06);
-    }
-
-    .commandMenuButton span:last-child {
-      color: var(--muted);
-      font-size: 10px;
-      letter-spacing: 0.3px;
-    }
-
-    .commandMenu[open] .commandMenuButton span:last-child {
-      color: #ffe9b8;
-    }
-
-    .commandMenuPanel {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 44px;
-      max-height: min(360px, calc(100vh - 140px));
-      overflow-y: auto;
-    }
-
-    .commandMenuPanel .buttonGrid {
-      margin-bottom: 8px;
-    }
-
-    .commandMenuPanel .buttonGrid { grid-template-columns: repeat(5, 1fr); }
+    .controlsPanel .buttonGrid { grid-template-columns: repeat(5, 1fr); }
     .helpPanel { color: var(--muted); font-size: 12px; line-height: 1.3; }
 
     .modalOverlay {
@@ -696,10 +631,6 @@
       display: flex;
       flex-direction: column;
       min-height: 0;
-    }
-
-    .leftOrdersPanel {
-      max-height: 190px;
     }
 
     .ordersList {
@@ -961,7 +892,7 @@
     }
 
 
-    /* Clockwork Navigator clarity and HUD polish */
+    /* v1400 Clockwork Navigator clarity and HUD polish */
     .navigatorCard, .routeContextCard, .techChainCard {
       border: 1px solid rgba(128,185,255,0.55);
       background: linear-gradient(180deg, rgba(30,57,78,0.24), rgba(0,0,0,0.18));
@@ -1092,8 +1023,7 @@
     }
     #gameRoot.mapFocus .leftColumn,
     #gameRoot.mapFocus .rightColumn,
-    #gameRoot.mapFocus .bottomLog,
-    #gameRoot.mapFocus .commandDock { display: none !important; }
+    #gameRoot.mapFocus .bottomLog { display: none !important; }
     #gameRoot.mapFocus .mapFocusToggle { display: block; }
 
 
@@ -1310,7 +1240,7 @@
 
 
 
-    /* First-session flow polish */
+    /* v1400 first-session flow polish */
     #selectedPanel, .selectedPanelInner { overflow-anchor: none; scroll-behavior: auto; }
     .primaryActionBlock.firstSessionPrimary { border-color: rgba(244,207,120,0.72); box-shadow: inset 0 0 0 1px rgba(244,207,120,0.10); }
     .compactNavigatorCard .navigatorGrid, .compactRouteContext .navigatorGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1328,66 +1258,9 @@
     .roadmapDoctrineCard strong, .nextGoalsCard strong, .balanceRoadmapCard strong { color: #f4cf78; }
     .roadmapDoctrineCard ul, .nextGoalsCard ul, .balanceRoadmapCard ul { margin: 6px 0 0 0; padding-left: 17px; }
     .nextGoalsCard.compact { font-size: 10.5px; line-height: 1.18; padding: 6px; margin: 4px 0 0; }
-    .nextGoalsCard.compact ul { list-style: none; padding-left: 0; }
-    .nextGoalsCard.compact li { margin-bottom: 2px; }
     .nextGoalsCard.compact ul { margin-top: 4px; padding-left: 14px; }
     .captainWingsPanel .wingBadge { display: none !important; }
     .captainWingsMessage { align-items: flex-start; }
-
-
-
-    .audioControls {
-      margin-top: 7px;
-      border: 1px solid rgba(255,255,255,0.09);
-      background: rgba(0,0,0,0.16);
-      border-radius: 9px;
-      padding: 6px;
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 5px 8px;
-      align-items: center;
-      font-size: 11px;
-      color: var(--muted);
-    }
-    .audioControls button {
-      padding: 5px 7px;
-      font-size: 11px;
-      min-width: 58px;
-    }
-    .audioControls input[type="range"] {
-      width: 100%;
-      accent-color: var(--brass2);
-    }
-    .nowPlaying {
-      grid-column: 1 / -1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      color: #ffe9b8;
-      opacity: 0.88;
-    }
-    .musicDebugLine {
-      display: none;
-    }
-    .travelStatusChip {
-      display: block;
-      border: 1px solid rgba(128,185,255,0.48);
-      background: rgba(34,84,128,0.28);
-      color: #cbe6ff;
-      border-radius: 8px;
-      padding: 6px 8px;
-      margin-top: 7px;
-      font-size: 11px;
-      line-height: 1.25;
-      text-align: center;
-    }
-    .disabledReason {
-      grid-column: 1 / -1;
-      color: var(--muted);
-      font-size: 11px;
-      text-align: center;
-      margin-top: -3px;
-    }
 
     .hidden { display: none !important; }
 
@@ -1395,17 +1268,15 @@
       .topbar { grid-template-columns: 1fr; right: 12px; }
       .resourcesBar { grid-template-columns: repeat(5, 1fr); }
       .dayBox { display: none; }
-      .leftColumn { top: 178px; width: 310px; bottom: 56px; }
+      .leftColumn { top: 178px; width: 310px; bottom: 168px; }
       .rightColumn { top: 178px; width: 340px; bottom: 168px; }
-      .bottomLog { left: 334px; grid-template-columns: 1fr; height: 136px; }
-      .commandDock { width: 310px; }
-      .helpPanel { display: none; }
+      .bottomLog { grid-template-columns: 1fr; height: 136px; }
+      .helpPanel, .controlsPanel { display: none; }
     }
 
     @media (max-width: 760px) {
       .leftColumn, .rightColumn { position: absolute; top: auto; bottom: 12px; width: calc(50vw - 18px); height: 240px; }
       .bottomLog { display: none; }
-      .commandDock { display: none; }
       .resourcesBar { grid-template-columns: repeat(3, 1fr); }
       .topbar { max-height: 170px; overflow: hidden; }
       .miniLegend { grid-template-columns: 1fr 1fr; }
@@ -1429,7 +1300,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.20.1245</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.20.1322</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1439,10 +1310,6 @@
     <div class="panel" style="flex:0 0 auto;">
       <h2>Fortress Status</h2>
       <div id="fortressStats" class="statGrid"></div>
-    </div>
-    <div class="panel panelShell ordersPanel leftOrdersPanel" style="flex:0 0 auto;">
-      <div class="panelHeader"><h2>Captain's Orders</h2></div>
-      <div id="ordersList" class="ordersList"></div>
     </div>
     <div class="panel panelShell selectedPanelShell" style="flex:1 1 auto; min-height:0;">
       <div class="panelHeader"><h2>Selected Location</h2></div>
@@ -1464,33 +1331,27 @@
     </div>
   </div>
 
-  <div class="commandDock hidden" id="hudCommand">
-    <details class="commandMenu">
-      <summary><span class="commandMenuButton"><span>Command Menu</span><span>Save / Audio / Help</span></span></summary>
-      <div class="commandMenuPanel">
-        <div class="buttonGrid">
-          <button class="btn primary" onclick="saveGame()">Save</button>
-          <button class="btn blue" onclick="loadGame()">Load</button>
-          <button class="btn ghost" onclick="showHelp()">Help</button>
-          <button class="btn ghost" id="mapFocusBtn" onclick="toggleMapFocus()">Map</button>
-          <button class="btn red" onclick="confirmReset()">Reset</button>
-        </div>
-        <div class="audioControls">
-          <button class="btn ghost" id="musicToggleBtn" onclick="toggleMusicMuted()">Music On</button>
-          <input id="musicVolumeSlider" type="range" min="0" max="100" value="42" oninput="onMusicVolumeInput(this.value)" aria-label="Music volume" />
-          <div class="nowPlaying" id="nowPlayingLabel">Music queued until first click.</div>
-          <div class="nowPlaying musicDebugLine" id="musicDebugLabel">Debug: state=title / file=none / loops=0 / fade=no</div>
-        </div>
-      </div>
-    </details>
-  </div>
-
   <div class="bottomLog hidden" id="hudBottom">
+    <div class="controlsPanel">
+      <h3>Command</h3>
+      <div class="buttonGrid">
+        <button class="btn primary" onclick="saveGame()">Save</button>
+        <button class="btn blue" onclick="loadGame()">Load</button>
+        <button class="btn ghost" onclick="showHelp()">Help</button>
+        <button class="btn ghost" id="mapFocusBtn" onclick="toggleMapFocus()">Map</button>
+        <button class="btn red" onclick="confirmReset()">Reset</button>
+      </div>
+    </div>
     <div class="logPanel">
       <h3>Fleet Log</h3>
       <div id="eventLog"></div>
     </div>
+    <div class="helpPanel ordersPanel">
+      <h3>Captain's Orders</h3>
+      <div id="ordersList" class="ordersList"></div>
+    </div>
   </div>
+
   <div class="modalOverlay" id="modalOverlay">
     <div class="modal" id="modalContent"></div>
   </div>
@@ -1513,7 +1374,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.20.1245 - Single-file HTML code - External MP3 music assets - Three.js CDN build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.20.1322 · Single-file HTML · Three.js CDN build</p>
     </div>
   </div>
 </div>
@@ -1524,13 +1385,12 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.20.1245';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_20_1245';
+const VERSION = 'v0.26.06.20.1322';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_20_1322';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
 const HEX_MAP_RADIUS = 5;
-const DEFAULT_FORTRESS_FACING = 0;
 
 const FACTIONS = {
   steam: { name: 'Steam Marshal', color: 0xb72d2d, accent: '#d64a37', flavor: 'Red imperial brass military power.' },
@@ -1576,6 +1436,8 @@ const UPGRADE_DATA = {
 };
 
 const STORM_KEEL_RESEARCH_COST = { steel: 120, gold: 140 };
+const DOCKYARD_SCRAP_PURCHASE_COST = { gold: 20 };
+const DOCKYARD_SCRAP_PURCHASE_STEEL = 10;
 
 const LOCATION_COLORS = {
   skyport: 0xd9a441,
@@ -1631,1134 +1493,6 @@ let selectedMesh = null;
 let toastTimer = null;
 let currentHudAlert = null;
 let deferredToastText = null;
-let combatResultMusicToken = 0;
-
-// =============================================================
-// MUSIC MANAGER - v0.26.06.20.1245 / singleton double-play prevention
-// =============================================================
-const MUSIC_SETTINGS_KEY = SAVE_KEY + '_MUSIC_SETTINGS';
-const MUSIC_TRACKS = {
-  "title": {
-    "name": "Iron Kingdoms Above the Clouds",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_01_iron_kingdoms_above_clouds_title_loop.mp3",
-        "title": "Iron Kingdoms Above the Clouds"
-      }
-    ]
-  },
-  "newCampaign": {
-    "name": "New Captain of Brasswake",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_02_new_captain_brasswake_loop.mp3",
-        "title": "New Captain of Brasswake"
-      },
-      {
-        "src": "assets/audio/music/loops/music_02_new_captain_brasswake_alt_loop.mp3",
-        "title": "New Captain of Brasswake (Alt)"
-      }
-    ]
-  },
-  "captainsOrders": {
-    "name": "Captain's Orders",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_03_captains_orders_loop.mp3",
-        "title": "Captain's Orders"
-      },
-      {
-        "src": "assets/audio/music/loops/music_03_captains_orders_alt_loop.mp3",
-        "title": "Captain's Orders (Alt)"
-      }
-    ]
-  },
-  "skyMap": {
-    "name": "The Sky Atlas Opens",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_04_sky_atlas_opens_loop.mp3",
-        "title": "The Sky Atlas Opens"
-      },
-      {
-        "src": "assets/audio/music/loops/music_04_sky_atlas_opens_alt_loop.mp3",
-        "title": "The Sky Atlas Opens (Alt)"
-      }
-    ]
-  },
-  "brasswake": {
-    "name": "Brasswake at Anchor",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_05_brasswake_at_anchor_loop.mp3",
-        "title": "Brasswake at Anchor"
-      },
-      {
-        "src": "assets/audio/music/loops/music_05_brasswake_at_anchor_alt_loop.mp3",
-        "title": "Brasswake at Anchor (Alt)"
-      }
-    ]
-  },
-  "workshop": {
-    "name": "Workshop of the Flying City",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_06_workshop_flying_city_loop.mp3",
-        "title": "Workshop of the Flying City"
-      },
-      {
-        "src": "assets/audio/music/loops/music_06_workshop_flying_city_alt_loop.mp3",
-        "title": "Workshop of the Flying City (Alt)"
-      }
-    ]
-  },
-  "navigator": {
-    "name": "The Clockwork Navigator",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_07_clockwork_navigator_loop.mp3",
-        "title": "The Clockwork Navigator"
-      },
-      {
-        "src": "assets/audio/music/loops/music_07_clockwork_navigator_alt_loop.mp3",
-        "title": "The Clockwork Navigator (Alt)"
-      }
-    ]
-  },
-  "routeSafe": {
-    "name": "Blue-White Current",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_09_blue_white_current_loop.mp3",
-        "title": "Blue-White Current"
-      },
-      {
-        "src": "assets/audio/music/loops/music_09_blue_white_current_alt_loop.mp3",
-        "title": "Blue-White Current (Alt)"
-      }
-    ]
-  },
-  "routeTrade": {
-    "name": "Gold-Lit Trade Current",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_10_gold_lit_trade_current_loop.mp3",
-        "title": "Gold-Lit Trade Current"
-      },
-      {
-        "src": "assets/audio/music/loops/music_10_gold_lit_trade_current_alt_loop.mp3",
-        "title": "Gold-Lit Trade Current (Alt)"
-      }
-    ]
-  },
-  "routeStorm": {
-    "name": "Violet Pressure Stream",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_11_violet_pressure_stream_loop.mp3",
-        "title": "Violet Pressure Stream"
-      },
-      {
-        "src": "assets/audio/music/loops/music_11_violet_pressure_stream_alt_loop.mp3",
-        "title": "Violet Pressure Stream (Alt)"
-      },
-      {
-        "src": "assets/audio/music/loops/music_11_violet_pressure_stream_electrical_storm_loop.mp3",
-        "title": "Violet Pressure Stream Electrical Storm"
-      },
-      {
-        "src": "assets/audio/music/loops/music_11_violet_pressure_stream_epic_lightning_loop.mp3",
-        "title": "Violet Pressure Stream Epic Lightning"
-      }
-    ]
-  },
-  "routePirate": {
-    "name": "Teal Slipstream",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_12_teal_slipstream_loop.mp3",
-        "title": "Teal Slipstream"
-      },
-      {
-        "src": "assets/audio/music/loops/music_12_teal_slipstream_alt_loop.mp3",
-        "title": "Teal Slipstream (Alt)"
-      }
-    ]
-  },
-  "routeBlocked": {
-    "name": "No Charted Current",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_13_no_charted_current_short_loop.mp3",
-        "title": "No Charted Current"
-      },
-      {
-        "src": "assets/audio/music/loops/music_13_no_charted_current_alt_short_loop.mp3",
-        "title": "No Charted Current (Alt)"
-      }
-    ]
-  },
-  "routeRisk": {
-    "name": "Fuel, Hull, and Distance",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_14_fuel_hull_distance_loop.mp3",
-        "title": "Fuel, Hull, and Distance"
-      },
-      {
-        "src": "assets/audio/music/loops/music_14_fuel_hull_distance_alt_loop.mp3",
-        "title": "Fuel, Hull, and Distance (Alt)"
-      }
-    ]
-  },
-  "skyport": {
-    "name": "Skyport Lanterns",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_15_skyport_lanterns_loop.mp3",
-        "title": "Skyport Lanterns"
-      },
-      {
-        "src": "assets/audio/music/loops/music_15_skyport_lanterns_alt_loop.mp3",
-        "title": "Skyport Lanterns (Alt)"
-      }
-    ]
-  },
-  "settlement": {
-    "name": "Settlement Hearths in the Clouds",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_16_settlement_hearths_clouds_loop.mp3",
-        "title": "Settlement Hearths in the Clouds"
-      },
-      {
-        "src": "assets/audio/music/loops/music_16_settlement_hearths_clouds_alt_loop.mp3",
-        "title": "Settlement Hearths in the Clouds (Alt)"
-      }
-    ]
-  },
-  "salvage": {
-    "name": "Wreckfield Salvage",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_17_wreckfield_salvage_loop.mp3",
-        "title": "Wreckfield Salvage"
-      },
-      {
-        "src": "assets/audio/music/loops/music_17_wreckfield_salvage_alt_loop.mp3",
-        "title": "Wreckfield Salvage (Alt)"
-      },
-      {
-        "src": "assets/audio/music/loops/music_17_ominous_wreckfield_salvage_loop.mp3",
-        "title": "Ominous Wreckfield Salvage"
-      }
-    ]
-  },
-  "resource": {
-    "name": "Harvest the Living Currents",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_18_harvest_living_currents_loop.mp3",
-        "title": "Harvest the Living Currents"
-      },
-      {
-        "src": "assets/audio/music/loops/music_18_harvest_living_currents_alt_loop.mp3",
-        "title": "Harvest the Living Currents (Alt)"
-      }
-    ]
-  },
-  "ruins": {
-    "name": "Ruins of the First Engines",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_19_ruins_first_engines_loop.mp3",
-        "title": "Ruins of the First Engines"
-      },
-      {
-        "src": "assets/audio/music/loops/music_19_ruins_first_engines_alt_loop.mp3",
-        "title": "Ruins of the First Engines (Alt)"
-      }
-    ]
-  },
-  "saintElmo": {
-    "name": "Saint Elmo Static",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_20_saint_elmo_static_loop.mp3",
-        "title": "Saint Elmo Static"
-      },
-      {
-        "src": "assets/audio/music/loops/music_20_saint_elmo_static_alt_loop.mp3",
-        "title": "Saint Elmo Static (Alt)"
-      }
-    ]
-  },
-  "storm": {
-    "name": "Stormwall Horizon",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_21_stormwall_horizon_loop.mp3",
-        "title": "Stormwall Horizon"
-      },
-      {
-        "src": "assets/audio/music/loops/music_21_stormwall_horizon_alt_loop.mp3",
-        "title": "Stormwall Horizon (Alt)"
-      }
-    ]
-  },
-  "preCombat": {
-    "name": "Enemy on the Horizon",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_22_enemy_on_horizon_short_loop.mp3",
-        "title": "Enemy on the Horizon"
-      },
-      {
-        "src": "assets/audio/music/loops/music_22_enemy_on_horizon_alt_short_loop.mp3",
-        "title": "Enemy on the Horizon (Alt)"
-      }
-    ]
-  },
-  "combatStandard": {
-    "name": "Broadside at Current Gate",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_23_broadside_current_gate_loop.mp3",
-        "title": "Broadside at Current Gate"
-      },
-      {
-        "src": "assets/audio/music/loops/music_23_broadside_current_gate_alt_loop.mp3",
-        "title": "Broadside at Current Gate (Alt)"
-      }
-    ]
-  },
-  "combatPirate": {
-    "name": "Raider Ambush in the Slipstream",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_24_raider_ambush_slipstream_loop.mp3",
-        "title": "Raider Ambush in the Slipstream"
-      },
-      {
-        "src": "assets/audio/music/loops/music_24_raider_ambush_slipstream_alt_loop.mp3",
-        "title": "Raider Ambush in the Slipstream (Alt)"
-      }
-    ]
-  },
-  "combatStorm": {
-    "name": "Lightning in the Rigging",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_25_lightning_in_rigging_loop.mp3",
-        "title": "Lightning in the Rigging"
-      },
-      {
-        "src": "assets/audio/music/loops/music_25_lightning_in_rigging_alt_loop.mp3",
-        "title": "Lightning in the Rigging (Alt)"
-      },
-      {
-        "src": "assets/audio/music/loops/music_25_lightning_in_rigging_thunder_loop.mp3",
-        "title": "Lightning in the Rigging Thunder"
-      },
-      {
-        "src": "assets/audio/music/loops/music_25_lightning_in_rigging_violin_loop.mp3",
-        "title": "Lightning in the Rigging Violin"
-      }
-    ]
-  },
-  "combatFaction": {
-    "name": "Patrol at the Gate",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_26_patrol_at_gate_loop.mp3",
-        "title": "Patrol at the Gate"
-      },
-      {
-        "src": "assets/audio/music/loops/music_26_patrol_at_gate_alt_loop.mp3",
-        "title": "Patrol at the Gate (Alt)"
-      }
-    ]
-  },
-  "combatAncient": {
-    "name": "Ancient Machine Awakens",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_27_ancient_machine_awakens_loop.mp3",
-        "title": "Ancient Machine Awakens"
-      },
-      {
-        "src": "assets/audio/music/loops/music_27_ancient_machine_awakens_alt_loop.mp3",
-        "title": "Ancient Machine Awakens (Alt)"
-      }
-    ]
-  },
-  "combatLowHull": {
-    "name": "Last Hull, Hold Fast",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_28_last_hull_hold_fast_loop.mp3",
-        "title": "Last Hull, Hold Fast"
-      },
-      {
-        "src": "assets/audio/music/loops/music_28_last_hull_hold_fast_alt_loop.mp3",
-        "title": "Last Hull, Hold Fast (Alt)"
-      }
-    ]
-  },
-  "combatBoss": {
-    "name": "Capital Fleet Duel",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_29_capital_fleet_duel_loop.mp3",
-        "title": "Capital Fleet Duel"
-      },
-      {
-        "src": "assets/audio/music/loops/music_29_capital_fleet_duel_alt_loop.mp3",
-        "title": "Capital Fleet Duel (Alt)"
-      }
-    ]
-  },
-  "factionSteamMarshal": {
-    "name": "Steam Marshal March",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_33_steam_marshal_march_loop.mp3",
-        "title": "Steam Marshal March"
-      },
-      {
-        "src": "assets/audio/music/loops/music_33_steam_marshal_march_take2_loop.mp3",
-        "title": "Steam Marshal March Take 2"
-      },
-      {
-        "src": "assets/audio/music/loops/music_33_steam_marshal_march_steampunk_loop.mp3",
-        "title": "Steam Marshal March Steampunk"
-      }
-    ]
-  },
-  "factionArchmage": {
-    "name": "Archmage Concordance",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_34_archmage_concordance_loop.mp3",
-        "title": "Archmage Concordance"
-      },
-      {
-        "src": "assets/audio/music/loops/music_34_archmage_concordance_take2_loop.mp3",
-        "title": "Archmage Concordance Take 2"
-      },
-      {
-        "src": "assets/audio/music/loops/music_34_darker_archmage_concordance_loop.mp3",
-        "title": "Darker Archmage Concordance"
-      }
-    ]
-  },
-  "factionSkyAdmiral": {
-    "name": "Sky Admiral's Blue Wake",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_35_sky_admirals_blue_wake_loop.mp3",
-        "title": "Sky Admiral's Blue Wake"
-      },
-      {
-        "src": "assets/audio/music/loops/music_35_sky_admirals_blue_wake_take2_loop.mp3",
-        "title": "Sky Admiral's Blue Wake Take 2"
-      }
-    ]
-  },
-  "factionIronPriest": {
-    "name": "Iron Priest Hymn of Gears",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_36_iron_priest_hymn_gears_loop.mp3",
-        "title": "Iron Priest Hymn of Gears"
-      },
-      {
-        "src": "assets/audio/music/loops/music_36_iron_priest_hymn_gears_take2_loop.mp3",
-        "title": "Iron Priest Hymn of Gears Take 2"
-      }
-    ]
-  },
-  "factionThornRegent": {
-    "name": "Thorn Regent's Living Engine",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_37_thorn_regents_living_engine_loop.mp3",
-        "title": "Thorn Regent's Living Engine"
-      },
-      {
-        "src": "assets/audio/music/loops/music_37_thorn_regents_living_engine_take2_loop.mp3",
-        "title": "Thorn Regent's Living Engine Take 2"
-      }
-    ]
-  },
-  "factionCinderKhan": {
-    "name": "Cinder Khan Furnace Charge",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_38_cinder_khan_furnace_charge_loop.mp3",
-        "title": "Cinder Khan Furnace Charge"
-      },
-      {
-        "src": "assets/audio/music/loops/music_38_cinder_khan_furnace_charge_take3_loop.mp3",
-        "title": "Cinder Khan Furnace Charge Take 3"
-      },
-      {
-        "src": "assets/audio/music/loops/music_38_cinder_khan_furnace_charge_aggressive_drums_loop.mp3",
-        "title": "Cinder Khan Furnace Charge Aggressive Drums"
-      }
-    ]
-  },
-  "factionDuskCorsair": {
-    "name": "Dusk Corsair Moonwake",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_39_dusk_corsair_moonwake_loop.mp3",
-        "title": "Dusk Corsair Moonwake"
-      },
-      {
-        "src": "assets/audio/music/loops/music_39_dusk_corsair_moonwake_take2_loop.mp3",
-        "title": "Dusk Corsair Moonwake Take 2"
-      }
-    ]
-  },
-  "factionFrostMatriarch": {
-    "name": "Frost Matriarch's Cold Current",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_40_frost_matriarch_cold_current_loop.mp3",
-        "title": "Frost Matriarch's Cold Current"
-      },
-      {
-        "src": "assets/audio/music/loops/music_40_frost_matriarch_cold_current_take2_loop.mp3",
-        "title": "Frost Matriarch's Cold Current Take 2"
-      },
-      {
-        "src": "assets/audio/music/loops/music_40_frost_matriarch_cold_current_powerful_take1_loop.mp3",
-        "title": "Frost Matriarch's Cold Current Powerful Take 1"
-      },
-      {
-        "src": "assets/audio/music/loops/music_40_frost_matriarch_cold_current_powerful_take2_loop.mp3",
-        "title": "Frost Matriarch's Cold Current Powerful Take 2"
-      }
-    ]
-  },
-  "factionFreebooter": {
-    "name": "Freebooter Clans Take 2",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_41_freebooter_clans_take2_loop.mp3",
-        "title": "Freebooter Clans Take 2"
-      }
-    ]
-  },
-  "endgameMap": {
-    "name": "War Above the Iron Kingdoms",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_42_war_above_iron_kingdoms_loop.mp3",
-        "title": "War Above the Iron Kingdoms"
-      },
-      {
-        "src": "assets/audio/music/loops/music_42_war_above_iron_kingdoms_take2_loop.mp3",
-        "title": "War Above the Iron Kingdoms Take 2"
-      }
-    ]
-  },
-  "stormKeel": {
-    "name": "Storm Keel Ascendant",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_43_storm_keel_ascendant_loop.mp3",
-        "title": "Storm Keel Ascendant"
-      },
-      {
-        "src": "assets/audio/music/loops/music_43_storm_keel_ascendant_take2_loop.mp3",
-        "title": "Storm Keel Ascendant Take 2"
-      }
-    ]
-  },
-  "credits": {
-    "name": "Brasswake Remembers",
-    "files": [
-      {
-        "src": "assets/audio/music/loops/music_44_brasswake_remembers_credits.mp3",
-        "title": "Brasswake Remembers"
-      },
-      {
-        "src": "assets/audio/music/loops/music_44_brasswake_remembers_take2_credits.mp3",
-        "title": "Brasswake Remembers Take 2"
-      }
-    ]
-  }
-};
-const MUSIC_STINGERS = {
-  "routeLocked": {
-    "name": "Plot Capacity One",
-    "files": [
-      {
-        "src": "assets/audio/music/stingers/stinger_08_plot_capacity_one_route_locked.mp3",
-        "title": "Plot Capacity One"
-      },
-      {
-        "src": "assets/audio/music/stingers/stinger_08_plot_capacity_one_route_locked_alt.mp3",
-        "title": "Plot Capacity One (Alt)"
-      }
-    ]
-  },
-  "victory": {
-    "name": "Victory: Route Secured",
-    "files": [
-      {
-        "src": "assets/audio/music/stingers/stinger_30_victory_route_secured.mp3",
-        "title": "Victory: Route Secured"
-      },
-      {
-        "src": "assets/audio/music/stingers/stinger_30_victory_route_secured_alt.mp3",
-        "title": "Victory: Route Secured (Alt)"
-      }
-    ]
-  },
-  "defeat": {
-    "name": "Defeat: Brasswake Falls",
-    "files": [
-      {
-        "src": "assets/audio/music/stingers/stinger_31_defeat_brasswake_falls.mp3",
-        "title": "Defeat: Brasswake Falls"
-      },
-      {
-        "src": "assets/audio/music/stingers/stinger_31_defeat_brasswake_falls_take2.mp3",
-        "title": "Defeat: Brasswake Falls Take 2"
-      }
-    ]
-  },
-  "retreat": {
-    "name": "Retreat Under Smoke",
-    "files": [
-      {
-        "src": "assets/audio/music/stingers/stinger_32_retreat_under_smoke.mp3",
-        "title": "Retreat Under Smoke"
-      },
-      {
-        "src": "assets/audio/music/stingers/stinger_32_retreat_under_smoke_take2.mp3",
-        "title": "Retreat Under Smoke Take 2"
-      }
-    ]
-  }
-};
-
-const MusicManager = (() => {
-  let unlocked = false;
-  let activeLoop = null;
-  let fadingLoop = null;
-  let currentState = null;
-  let currentTrackPath = '';
-  let currentTitle = '';
-  let pendingState = 'title';
-  let musicVolume = 0.42;
-  let musicMuted = false;
-  let fadeTimer = null;
-  let fadeToken = 0;
-  let unlockAttempted = false;
-  let crossfadeActive = false;
-  const managerLoops = new Set();
-  const activeStingers = new Set();
-  const warnedMissing = new Set();
-  const unlockEvents = ['pointerdown', 'click', 'keydown', 'touchstart'];
-
-  function init() {
-    loadSettings();
-    updateMusicUI();
-    unlockEvents.forEach(evt => {
-      window.addEventListener(evt, unlockFromUserGesture, { once: true, passive: true });
-    });
-    enforceSingleLoopAudio('init');
-  }
-
-  function loadSettings() {
-    try {
-      const raw = localStorage.getItem(MUSIC_SETTINGS_KEY);
-      if (!raw) return;
-      const saved = JSON.parse(raw);
-      if (typeof saved.volume === 'number') musicVolume = clamp(saved.volume, 0, 1);
-      if (typeof saved.muted === 'boolean') musicMuted = saved.muted;
-    } catch (err) {
-      console.warn('Music settings could not be loaded.', err);
-    }
-  }
-
-  function saveSettings() {
-    try {
-      localStorage.setItem(MUSIC_SETTINGS_KEY, JSON.stringify({ volume: musicVolume, muted: musicMuted }));
-    } catch (err) {
-      console.warn('Music settings could not be saved.', err);
-    }
-  }
-
-  function unlockFromUserGesture() {
-    if (unlocked || unlockAttempted) return;
-    unlockAttempted = true;
-    unlocked = true;
-    unlockEvents.forEach(evt => window.removeEventListener(evt, unlockFromUserGesture));
-    enforceSingleLoopAudio('audio-unlock-before-play');
-    if (pendingState) playMusicState(pendingState, { force: true, fadeMs: 650, primary: true });
-    enforceSingleLoopAudio('audio-unlock-after-play');
-    updateMusicUI();
-  }
-
-  function effectiveVolume(scale = 1) {
-    return musicMuted ? 0 : clamp(musicVolume * scale, 0, 1);
-  }
-
-  function chooseFile(def, options = {}) {
-    if (!def || !Array.isArray(def.files) || !def.files.length) return null;
-    if (options.preferTitle) {
-      const preferred = def.files.find(f => String(f.title || '').toLowerCase().includes(String(options.preferTitle).toLowerCase()));
-      if (preferred) return preferred;
-    }
-    if (options.primary) return def.files[0];
-    return def.files[Math.floor(Math.random() * def.files.length)] || def.files[0];
-  }
-
-  function isLoopPlayable(audio) {
-    return !!audio && !audio.paused && !audio.ended;
-  }
-
-  function safePause(audio) {
-    if (!audio) return;
-    try { audio.pause(); } catch (err) { /* no-op */ }
-  }
-
-  function safeReset(audio, clearSrc = false) {
-    if (!audio) return;
-    try { audio.loop = false; } catch (err) { /* no-op */ }
-    safePause(audio);
-    try { audio.currentTime = 0; } catch (err) { /* no-op */ }
-    if (clearSrc) {
-      try {
-        audio.removeAttribute('src');
-        audio.load();
-      } catch (err) { /* no-op */ }
-    }
-  }
-
-  function cleanupLoopAudio(audio, reason = 'cleanup') {
-    if (!audio) return;
-    safeReset(audio, true);
-    managerLoops.delete(audio);
-    if (fadingLoop === audio) fadingLoop = null;
-    if (activeLoop === audio) activeLoop = null;
-  }
-
-  function cancelCrossfade(reason = 'cancel-crossfade') {
-    fadeToken += 1;
-    if (fadeTimer) {
-      clearInterval(fadeTimer);
-      fadeTimer = null;
-    }
-    crossfadeActive = false;
-    if (fadingLoop && fadingLoop !== activeLoop) cleanupLoopAudio(fadingLoop, reason);
-    fadingLoop = null;
-  }
-
-  function completeCrossfadeNow(reason = 'complete-crossfade') {
-    fadeToken += 1;
-    if (fadeTimer) {
-      clearInterval(fadeTimer);
-      fadeTimer = null;
-    }
-    crossfadeActive = false;
-    if (fadingLoop && fadingLoop !== activeLoop) cleanupLoopAudio(fadingLoop, reason);
-    fadingLoop = null;
-    if (activeLoop) activeLoop.volume = effectiveVolume();
-    enforceSingleLoopAudio(reason);
-  }
-
-  function createLoopAudio(pick, stateName) {
-    const audio = new Audio(pick.src);
-    audio.loop = true;
-    audio.preload = 'auto';
-    audio.volume = 0;
-    audio.dataset.musicState = stateName;
-    audio.dataset.musicSrc = pick.src;
-    audio.addEventListener('error', () => {
-      if (!warnedMissing.has(pick.src)) {
-        warnedMissing.add(pick.src);
-        console.warn('Music file missing or could not be decoded:', pick.src);
-      }
-      if (activeLoop === audio && fadingLoop && fadingLoop !== audio) {
-        cancelFadeTimerOnly();
-        activeLoop = fadingLoop;
-        fadingLoop = null;
-        crossfadeActive = false;
-        activeLoop.volume = effectiveVolume();
-      } else if (activeLoop && activeLoop !== audio) {
-        activeLoop.volume = effectiveVolume();
-      }
-      cleanupLoopAudio(audio, 'loop-error');
-      updateMusicUI('Music unavailable: ' + (pick.title || stateName));
-      enforceSingleLoopAudio('loop-error');
-    });
-    managerLoops.add(audio);
-    return audio;
-  }
-
-  function playMusicState(stateName, options = {}) {
-    const def = MUSIC_TRACKS[stateName];
-    if (!def || !def.files || !def.files.length) {
-      if (stateName && !warnedMissing.has('state:' + stateName)) {
-        warnedMissing.add('state:' + stateName);
-        console.warn('Music state has no registered files:', stateName);
-      }
-      return;
-    }
-
-    pendingState = stateName;
-    if (!unlocked) {
-      currentTitle = def.name || stateName;
-      updateMusicUI('Queued: ' + currentTitle);
-      enforceSingleLoopAudio('queued-before-unlock');
-      return;
-    }
-
-    // Debounce repeated state requests from render/update cycles. Do not re-roll alt tracks while already in the same state.
-    if (!options.force && stateName === currentState && isLoopPlayable(activeLoop)) {
-      updateMusicUI();
-      enforceSingleLoopAudio('same-state-request');
-      return;
-    }
-
-    const pick = chooseFile(def, options);
-    if (!pick || !pick.src) return;
-    const selectedTrackPath = pick.src;
-
-    if (!options.force && stateName === currentState && currentTrackPath === selectedTrackPath && isLoopPlayable(activeLoop)) {
-      updateMusicUI();
-      enforceSingleLoopAudio('same-track-request');
-      return;
-    }
-
-    // Important: clear any older interrupted fade before creating the next loop. This prevents orphaned half-faded tracks.
-    cancelCrossfade('new-state-request');
-    enforceSingleLoopAudio('before-new-loop');
-
-    const nextAudio = createLoopAudio(pick, stateName);
-    currentState = stateName;
-    currentTrackPath = selectedTrackPath;
-    currentTitle = pick.title || def.name || stateName;
-
-    beginCrossfadeTo(nextAudio, options.fadeMs ?? 1800);
-    updateMusicUI();
-    enforceSingleLoopAudio('after-playMusicState');
-  }
-
-  function beginCrossfadeTo(nextAudio, fadeMs) {
-    const oldAudio = activeLoop && activeLoop !== nextAudio ? activeLoop : null;
-    const duration = Math.max(120, fadeMs || 0);
-    const token = ++fadeToken;
-    cancelFadeTimerOnly();
-
-    if (fadingLoop && fadingLoop !== oldAudio && fadingLoop !== nextAudio) cleanupLoopAudio(fadingLoop, 'replace-fading-loop');
-    fadingLoop = oldAudio;
-    activeLoop = nextAudio;
-    crossfadeActive = !!oldAudio;
-
-    nextAudio.loop = true;
-    nextAudio.volume = oldAudio ? 0 : effectiveVolume();
-
-    const playPromise = nextAudio.play();
-    if (playPromise && typeof playPromise.catch === 'function') {
-      playPromise.catch(err => {
-        if (!warnedMissing.has('play:' + (nextAudio.dataset.musicSrc || 'unknown'))) {
-          warnedMissing.add('play:' + (nextAudio.dataset.musicSrc || 'unknown'));
-          console.warn('Music play deferred or blocked:', err && err.message ? err.message : err);
-        }
-      });
-    }
-
-    if (!oldAudio || duration <= 130) {
-      if (oldAudio) cleanupLoopAudio(oldAudio, 'instant-replace');
-      activeLoop = nextAudio;
-      fadingLoop = null;
-      crossfadeActive = false;
-      nextAudio.volume = effectiveVolume();
-      enforceSingleLoopAudio('instant-fade-complete');
-      return;
-    }
-
-    const started = performance.now();
-    const oldStartVolume = oldAudio.volume || effectiveVolume();
-    fadeTimer = setInterval(() => {
-      if (token !== fadeToken) {
-        clearInterval(fadeTimer);
-        fadeTimer = null;
-        return;
-      }
-      const t = clamp((performance.now() - started) / duration, 0, 1);
-      const target = effectiveVolume();
-      if (nextAudio) nextAudio.volume = target * t;
-      if (oldAudio) oldAudio.volume = oldStartVolume * (1 - t);
-      if (t >= 1) {
-        clearInterval(fadeTimer);
-        fadeTimer = null;
-        if (oldAudio) cleanupLoopAudio(oldAudio, 'fade-complete');
-        if (nextAudio) nextAudio.volume = target;
-        fadingLoop = null;
-        crossfadeActive = false;
-        enforceSingleLoopAudio('crossfade-complete');
-        updateMusicUI();
-      }
-    }, 50);
-  }
-
-  function cancelFadeTimerOnly() {
-    if (fadeTimer) {
-      clearInterval(fadeTimer);
-      fadeTimer = null;
-    }
-  }
-
-  function playStinger(stingerName, options = {}) {
-    const def = MUSIC_STINGERS[stingerName];
-    if (!def || !def.files || !def.files.length || !unlocked) return;
-    const pick = chooseFile(def, options);
-    if (!pick || !pick.src) return;
-    try {
-      const stinger = new Audio(pick.src);
-      stinger.loop = false;
-      stinger.preload = 'auto';
-      stinger.volume = effectiveVolume(options.volumeScale || 1.05);
-      stinger.dataset.stingerName = stingerName;
-      activeStingers.add(stinger);
-      stinger._cleanupTimer = setTimeout(() => cleanupStinger(stinger, 'timeout'), Math.max(800, options.maxDurationMs || 7000));
-      if (activeLoop && options.duck !== false) activeLoop.volume = effectiveVolume(0.42);
-      stinger.addEventListener('ended', () => cleanupStinger(stinger, 'ended'));
-      stinger.addEventListener('error', () => {
-        if (!warnedMissing.has(pick.src)) {
-          warnedMissing.add(pick.src);
-          console.warn('Stinger file missing or could not be decoded:', pick.src);
-        }
-        cleanupStinger(stinger, 'error');
-      });
-      const p = stinger.play();
-      if (p && typeof p.catch === 'function') {
-        p.catch(err => {
-          const warnKey = 'stinger-play:' + (stinger.dataset.stingerName || pick.src || 'unknown');
-          if (!warnedMissing.has(warnKey)) {
-            warnedMissing.add(warnKey);
-            console.warn('Stinger play deferred or blocked:', err && err.message ? err.message : err);
-          }
-          cleanupStinger(stinger, 'play-blocked');
-        });
-      }
-      enforceSingleLoopAudio('after-stinger-start');
-    } catch (err) {
-      console.warn('Unable to play stinger:', stingerName, err);
-      enforceSingleLoopAudio('stinger-exception');
-    }
-  }
-
-  function cleanupStinger(stinger, reason = 'stinger-cleanup') {
-    if (!stinger) return;
-    if (stinger._cleanupTimer) {
-      clearTimeout(stinger._cleanupTimer);
-      stinger._cleanupTimer = null;
-    }
-    safeReset(stinger, true);
-    activeStingers.delete(stinger);
-    if (activeLoop) activeLoop.volume = activeStingers.size ? effectiveVolume(0.42) : effectiveVolume();
-    enforceSingleLoopAudio('stinger-complete:' + reason);
-    updateMusicUI();
-  }
-
-  function enforceSingleLoopAudio(reason = 'unspecified') {
-    // Hard safety pass: manager-owned loops may only be activeLoop plus one fadingLoop during an active crossfade.
-    const allowed = new Set();
-    if (activeLoop) allowed.add(activeLoop);
-    if (crossfadeActive && fadingLoop) allowed.add(fadingLoop);
-
-    for (const audio of Array.from(managerLoops)) {
-      if (!allowed.has(audio)) cleanupLoopAudio(audio, 'enforce:' + reason);
-    }
-
-    if (!crossfadeActive && fadingLoop) cleanupLoopAudio(fadingLoop, 'enforce-no-crossfade:' + reason);
-
-    if (activeLoop) {
-      activeLoop.loop = true;
-      if (!crossfadeActive) activeLoop.volume = effectiveVolume();
-    }
-    if (fadingLoop) fadingLoop.loop = true;
-
-    const loops = Array.from(managerLoops);
-    if (loops.length > (crossfadeActive ? 2 : 1)) {
-      loops.forEach(audio => {
-        if (audio !== activeLoop && audio !== fadingLoop) cleanupLoopAudio(audio, 'enforce-over-limit:' + reason);
-      });
-    }
-    updateMusicUI();
-  }
-
-  function setVolume(value) {
-    const n = typeof value === 'number' ? value : parseFloat(value);
-    musicVolume = clamp(Number.isFinite(n) ? n : 0.42, 0, 1);
-    if (activeLoop) activeLoop.volume = effectiveVolume();
-    if (fadingLoop) fadingLoop.volume = Math.min(fadingLoop.volume, effectiveVolume());
-    activeStingers.forEach(stinger => { stinger.volume = effectiveVolume(1.05); });
-    saveSettings();
-    enforceSingleLoopAudio('set-volume');
-    updateMusicUI();
-  }
-
-  function setMuted(value) {
-    musicMuted = !!value;
-    if (activeLoop) activeLoop.volume = effectiveVolume();
-    if (fadingLoop) fadingLoop.volume = Math.min(fadingLoop.volume, effectiveVolume());
-    activeStingers.forEach(stinger => { stinger.volume = effectiveVolume(1.05); });
-    saveSettings();
-    enforceSingleLoopAudio('set-muted');
-    updateMusicUI();
-  }
-
-  function updateMusicUI(overrideLabel) {
-    const toggle = document.getElementById('musicToggleBtn');
-    const slider = document.getElementById('musicVolumeSlider');
-    const label = document.getElementById('nowPlayingLabel');
-    const debug = document.getElementById('musicDebugLabel');
-    if (toggle) toggle.textContent = musicMuted ? 'Music Off' : 'Music On';
-    if (slider && document.activeElement !== slider) slider.value = String(Math.round(musicVolume * 100));
-    if (label) {
-      const base = overrideLabel || (currentTitle ? (unlocked ? 'Now Playing: ' : 'Queued: ') + currentTitle : 'Music ready.');
-      label.textContent = base;
-    }
-    if (debug) {
-      const file = currentTrackPath ? currentTrackPath.split('/').pop() : 'none';
-      debug.dataset.activeStingers = String(activeStingers.size);
-      debug.textContent = `Debug: state=${currentState || pendingState || 'none'} - file=${file} - loops=${managerLoops.size} - fade=${crossfadeActive ? 'yes' : 'no'} - stingers=${activeStingers.size}`;
-    }
-  }
-
-  function getCurrentState() { return currentState; }
-  function getCurrentTrackPath() { return currentTrackPath; }
-  function getLoopCount() { return managerLoops.size; }
-  function getVolume() { return musicVolume; }
-  function isMuted() { return musicMuted; }
-
-  return {
-    init,
-    playMusicState,
-    playStinger,
-    completeCrossfadeNow,
-    setVolume,
-    setMuted,
-    isMuted,
-    getVolume,
-    getCurrentState,
-    getCurrentTrackPath,
-    getLoopCount,
-    enforceSingleLoopAudio,
-    updateMusicUI
-  };
-})();
-
-
-
-function enforceMusicSingleton(reason = 'manual') {
-  MusicManager.enforceSingleLoopAudio(reason);
-}
-
-function toggleMusicMuted() {
-  MusicManager.setMuted(!MusicManager.isMuted());
-}
-
-function onMusicVolumeInput(value) {
-  MusicManager.setVolume((parseFloat(value) || 0) / 100);
-}
-
-function routeTypeToMusicState(routeType) {
-  if (routeType === 'trade') return 'routeTrade';
-  if (routeType === 'storm') return 'routeStorm';
-  if (routeType === 'pirate') return 'routePirate';
-  return 'routeSafe';
-}
-
-function locationTypeToMusicState(loc) {
-  if (!loc) return 'skyMap';
-  if (loc.type === 'skyport') return 'skyport';
-  if (loc.type === 'settlement' || loc.type === 'contract') return 'settlement';
-  if (loc.type === 'salvage') return loc.depleted ? 'skyMap' : 'salvage';
-  if (loc.type === 'resource') return loc.depleted ? 'skyMap' : 'resource';
-  if (loc.type === 'ruins') return loc.depleted ? 'skyMap' : 'ruins';
-  if (loc.type === 'storm') return loc.depleted ? 'skyMap' : 'storm';
-  if (loc.type === 'enemy') return loc.depleted ? 'skyMap' : 'preCombat';
-  return 'skyMap';
-}
-
-function factionToMusicState(factionKey) {
-  const map = {
-    steam: 'factionSteamMarshal', archmage: 'factionArchmage', sky: 'factionSkyAdmiral', priest: 'factionIronPriest',
-    thorn: 'factionThornRegent', cinder: 'factionCinderKhan', dusk: 'factionDuskCorsair', frost: 'factionFrostMatriarch', pirates: 'factionFreebooter'
-  };
-  return map[factionKey] || 'skyMap';
-}
-
-function combatToMusicState(combat = game?.combat) {
-  if (!combat) return 'combatStandard';
-  const stats = computeStats();
-  if (game && stats.maxHull && game.hull / stats.maxHull <= 0.30) return 'combatLowHull';
-  if ((combat.danger || 1) >= 4) return 'combatBoss';
-  if (combat.ancient) return 'combatAncient';
-  if (combat.storm) return 'combatStorm';
-  if (combat.ambush || combat.faction === 'pirates') return 'combatPirate';
-  if (combat.faction && combat.faction !== 'pirates') return 'combatFaction';
-  return 'combatStandard';
-}
-
-function updateMusicForContext(reason = 'auto') {
-  if (!game) {
-    MusicManager.playMusicState('title');
-    return;
-  }
-  if (game.inCombat && game.combat) {
-    MusicManager.playMusicState(combatToMusicState(game.combat));
-    return;
-  }
-  if (isTraveling) return;
-  const title = document.getElementById('titleScreen');
-  if (title && !title.classList.contains('hidden')) {
-    MusicManager.playMusicState('title');
-    return;
-  }
-  if (!game.flags?.traveledOnce && game.currentLocationId === 'loc_home') {
-    MusicManager.playMusicState('captainsOrders');
-    return;
-  }
-  const loc = getLocation(game.currentLocationId);
-  MusicManager.playMusicState(locationTypeToMusicState(loc));
-}
-
-function updateMusicForRightTab(tab) {
-  if (!game) return;
-  if (tab === 'tech') return MusicManager.playMusicState('navigator');
-  if (tab === 'rooms') return MusicManager.playMusicState('brasswake');
-  if (tab === 'upgrades') return MusicManager.playMusicState('workshop');
-  if (tab === 'factions') {
-    const loc = getLocation(game.selectedLocationId) || getLocation(game.currentLocationId);
-    return MusicManager.playMusicState(factionToMusicState(loc?.faction || 'steam'));
-  }
-}
-
-function playCombatResultMusic(result) {
-  const restoreToken = ++combatResultMusicToken;
-  const resultLoopState = MusicManager.getCurrentState();
-  if (result === 'victory') MusicManager.playStinger('victory', { duck: true });
-  else if (result === 'retreat') MusicManager.playStinger('retreat', { duck: true });
-  else MusicManager.playStinger('defeat', { duck: true });
-  setTimeout(() => {
-    if (restoreToken !== combatResultMusicToken) return;
-    if (MusicManager.getCurrentState() !== resultLoopState) return;
-    updateMusicForContext('combat-result');
-  }, 1700);
-}
-
 
 // Three.js objects
 let scene, camera, renderer, raycaster, mouse, clock;
@@ -2791,19 +1525,8 @@ function distance2D(a, b) { return Math.hypot(a.x - b.x, a.z - b.z); }
 // INITIALIZATION
 // =============================================================
 window.addEventListener('load', () => {
-  MusicManager.init();
-  MusicManager.playMusicState('title');
-  const versionLabel = document.getElementById('versionLabel');
-  if (versionLabel) versionLabel.textContent = VERSION;
-  const loadTitleBtn = document.getElementById('loadTitleBtn');
-  if (loadTitleBtn) {
-    try {
-      loadTitleBtn.disabled = !localStorage.getItem(SAVE_KEY);
-    } catch (err) {
-      loadTitleBtn.disabled = true;
-      console.warn('Save availability could not be checked.', err);
-    }
-  }
+  document.getElementById('versionLabel').textContent = VERSION;
+  document.getElementById('loadTitleBtn').disabled = !localStorage.getItem(SAVE_KEY);
   if (!window.THREE) {
     document.getElementById('threeError').style.display = 'flex';
     return;
@@ -2924,7 +1647,6 @@ function createNewState() {
     aiFleets: [],
     currentLocationId: 'loc_home',
     selectedLocationId: 'loc_home',
-    fortressFacing: DEFAULT_FORTRESS_FACING,
     plottedRoute: null,
     discovered: { loc_home: true },
     relations: {},
@@ -2946,6 +1668,7 @@ function createNewState() {
       firstFieldEventComplete: false,
       stormRouteExplored: false,
       gateContractComplete: false,
+      lastScrapPurchaseDay: 0,
       stormKeelCore: false,
       stormKeelPrototype: false
     }
@@ -2961,7 +1684,7 @@ function createNewState() {
   state.currentRoutes = generateCurrentRoutes(rng, state.locations);
   state.aiFleets = generateAIFleets(rng, state.locations);
   state.log.push({ day: 1, text: 'The fortress-crown <strong>Brasswake</strong> takes command at Brassgate Anchorage.' });
-  state.log.push({ day: 1, text: 'Captain\'s Orders: complete a safe contract or salvage run, then upgrade or repair before taking bigger fights.' });
+  state.log.push({ day: 1, text: 'Captain’s Orders: complete a safe contract or salvage run, then upgrade or repair before taking bigger fights.' });
   revealNearby(state);
   return state;
 }
@@ -3032,38 +1755,6 @@ function hexToWorld(q, r) {
     x: HEX_SIZE * Math.sqrt(3) * (q + r / 2),
     z: HEX_SIZE * 1.5 * r
   };
-}
-
-function normalizeAngleRadians(angle) {
-  if (!Number.isFinite(angle)) return DEFAULT_FORTRESS_FACING;
-  let normalized = angle % (Math.PI * 2);
-  if (normalized <= -Math.PI) normalized += Math.PI * 2;
-  if (normalized > Math.PI) normalized -= Math.PI * 2;
-  return normalized;
-}
-
-function shortestAngleDelta(from, to) {
-  return normalizeAngleRadians(to - from);
-}
-
-function getFortressFacing() {
-  return normalizeAngleRadians(game?.fortressFacing);
-}
-
-function setFortressFacing(angle) {
-  const facing = normalizeAngleRadians(angle);
-  if (game) game.fortressFacing = facing;
-  if (fortressGroup) fortressGroup.rotation.y = facing;
-  return facing;
-}
-
-function fortressFacingToward(fromLoc, toLoc) {
-  if (!fromLoc || !toLoc) return getFortressFacing();
-  const dx = toLoc.x - fromLoc.x;
-  const dz = toLoc.z - fromLoc.z;
-  if (Math.hypot(dx, dz) < 0.001) return getFortressFacing();
-  // Brasswake's procedural bow points left at neutral rotation, which is local/world -X.
-  return normalizeAngleRadians(Math.atan2(dz, -dx));
 }
 
 function hexDistance(q1, r1, q2, r2) {
@@ -3271,7 +1962,7 @@ function summarizeRoutePath(path) {
 
 function routePathNames(path) {
   if (!path) return '';
-  return path.nodeIds.map(id => getLocation(id)?.name || id).join(' -> ');
+  return path.nodeIds.map(id => getLocation(id)?.name || id).join(' → ');
 }
 
 function selectedRoutePath() {
@@ -3358,9 +2049,8 @@ function routePlannerHTML(loc, cur, path) {
   const nextHopId = path.nodeIds[1];
   const nextHop = getLocation(nextHopId);
   return `<div class="routePlannerBox"><strong>Route Available Through Gates</strong><br/>
-    Clockwork Navigator can plot the destination while locking only the next Current jump.<br/>
-    Final Destination: <strong>${loc.name}</strong><br/>
-    Current Jump / Next Hop: <strong>${nextHop?.name || 'Unknown'}</strong>
+    Clockwork Navigator can plot this destination as a one-jump-at-a-time route.<br/>
+    ${path.routeIds.length} current${path.routeIds.length > 1 ? 's' : ''} · Next Hop: <strong>${nextHop?.name || 'Unknown'}</strong>
     <div class="routeSummaryGrid">
       <div>Total Path Fuel: ${summary.totalFuel}</div>
       <div>Time: ${summary.totalDays} day${summary.totalDays !== 1 ? 's' : ''}</div>
@@ -3368,7 +2058,7 @@ function routePlannerHTML(loc, cur, path) {
       <div>Highest Risk: ${routeRiskLabel(summary.highestRisk)}</div>
     </div>
     <div class="routePathLine">${routePathNames(path)}</div>
-    <div class="smallNote">Plot Capacity: 1 Jump. Gate-locked travel moves one Current at a time while preserving the final destination context.</div>
+    <div class="smallNote">Gate-locked travel requires moving one current at a time. Use the primary action above to lock the next hop.</div>
   </div>`;
 }
 
@@ -3378,16 +2068,12 @@ function plotRouteTo(targetId) {
   if (!path || path.nodeIds.length < 2) return showToast('No known Current route reaches that destination yet.');
   game.plottedRoute = { targetId, routeIds: path.routeIds, nodeIds: path.nodeIds, nextHopId: path.nodeIds[1] };
   game.selectedLocationId = path.nodeIds[1];
-  MusicManager.playMusicState('navigator', { fadeMs: 120, primary: true });
-  MusicManager.completeCrossfadeNow('navigator-route-plot');
-  MusicManager.playStinger('routeLocked', { duck: true, primary: true, volumeScale: 0.72, maxDurationMs: 2600 });
-  MusicManager.enforceSingleLoopAudio('route-locked');
   const target = getLocation(targetId);
   const nextHop = getLocation(path.nodeIds[1]);
   buildWorldMeshes();
   renderUI();
   resetSelectedPanelScrollSoon();
-  showToast(`Clockwork Navigator plotted final destination ${target?.name || 'destination'}. Current Jump locked to ${nextHop?.name || 'next hop'}.`);
+  showToast(`Clockwork Navigator plotted ${target?.name || 'destination'}. Plot Capacity: 1 jump locked to ${nextHop?.name || 'next hop'}.`);
 }
 
 function clearPlottedRouteIfArrived() {
@@ -3455,7 +2141,7 @@ function continuePlottedRoute() {
   renderUI();
   resetSelectedPanelScrollSoon();
   const next = getLocation(game.plottedRoute.nextHopId);
-  showToast(`Continue plotted route. Current Jump is ${next?.name || 'the next hop'}; final destination remains ${getLocation(game.plottedRoute.targetId)?.name || 'the plotted target'}.`);
+  showToast(`Continue plotted route. Use Ride Locked Jump to ${next?.name || 'the next hop'}.`);
 }
 
 function routeGatePolicy(route) {
@@ -3481,9 +2167,9 @@ function routePolicySummary(route) {
   const policy = routeGatePolicy(route);
   const owner = FACTIONS[route.owner]?.name || 'Unclaimed';
   const tollText = policy.toll > 0 ? `${policy.toll} gold` : (policy.friendlyDiscount ? 'waived by friendly standing' : 'none');
-  const warning = policy.blockadeRisk ? ' - Blockade Risk' : '';
-  const permit = policy.permitRequired ? ' - Permit/inspection risk' : '';
-  return `Owner: ${owner} - Standing: ${policy.standing} ${policy.relation} - Toll: ${tollText} - Event Risk: ${policy.eventRisk}${warning}${permit}`;
+  const warning = policy.blockadeRisk ? ' · Blockade Risk' : '';
+  const permit = policy.permitRequired ? ' · Permit/inspection risk' : '';
+  return `Owner: ${owner} · Standing: ${policy.standing} ${policy.relation} · Toll: ${tollText} · Event Risk: ${policy.eventRisk}${warning}${permit}`;
 }
 
 function routeLegendMiniHTML() {
@@ -3508,7 +2194,8 @@ function routeTravelCost(a, b, route) {
 }
 
 function directTravelCost(a, b) {
-  // Legacy estimate retained for route math only. New campaigns cannot bypass the Current Gate network.
+  // Current Gates should feel like the preferred sky-road. Direct engine travel remains as a safe prototype fallback,
+  // but it costs more and can strain the hull on longer uncharted routes.
   return Math.max(3, Math.ceil(travelFuelCost(a, b) * 1.30));
 }
 
@@ -3534,7 +2221,7 @@ function routePreviewHTML(loc, cur) {
   const owner = FACTIONS[route.owner]?.name || 'Unclaimed';
   return `<div class="routePreview"><strong>${route.name}</strong><br/>
     <span class="gateBadge">${meta.label}</span><br/>
-    Owner: ${owner} - Risk: ${route.risk} - Travel Time: ${route.travelDays} day${route.travelDays > 1 ? 's' : ''}<br/>
+    Owner: ${owner} · Risk: ${route.risk} · Travel Time: ${route.travelDays} day${route.travelDays > 1 ? 's' : ''}<br/>
     <div class="gatePolicyLine">${routePolicySummary(route)}</div>
     ${meta.desc}</div>`;
 }
@@ -3554,6 +2241,7 @@ function roadmapDoctrineHTML(compact = false) {
       <li><strong>Saint Elmo Navigation Core</strong> is a future advanced component; <strong>Astrolabe Engine</strong> is a future built-in alternate navigation system.</li>
       <li><strong>Storm Keel Engine</strong> remains locked mid/late-game technology for temporary currents and conduits.</li>
       <li><strong>Brasswake</strong> should keep evolving into a modular flying fortress/city with room and module visual links.</li>
+      <li><strong>Emergency Steel Recovery Valve:</strong> skyports and settlements can offer limited dockyard scrap purchases so repairs/upgrades do not soft-lock when steel runs low.</li>
       <li>Future faction-gate gameplay should include permits, inspections, tolls, blockades, favored routes, and smuggler alternatives.</li>
     </ul>
   </div>`;
@@ -3561,15 +2249,15 @@ function roadmapDoctrineHTML(compact = false) {
 
 function nextCampaignGoalsHTML(compact = false) {
   const cls = compact ? 'nextGoalsCard compact' : 'nextGoalsCard';
-  if (compact) {
-    return `<div class="${cls}"><strong>Open Command:</strong> Chart currents - Secure contracts - Prepare repairs/upgrades - Investigate ruins.</div>`;
-  }
-  return `<div class="${cls}"><strong>Open Command Directives</strong>
+  return `<div class="${cls}"><strong>Next Campaign Goals</strong>
     <ul>
-      <li><strong>Chart:</strong> reveal connected Current Gates and keep a safe return route.</li>
-      <li><strong>Secure:</strong> take faction contracts to improve gate access and standing.</li>
-      <li><strong>Prepare:</strong> refuel, repair, and upgrade before storm routes or stronger fleets.</li>
-      <li><strong>Investigate:</strong> explore ruins for future navigation components.</li>
+      <li>Continue charting Current Gates and safe return routes.</li>
+      <li>Repair or refuel at settlements when hull or fuel run low.</li>
+      <li>Use Dockyard Scrap Purchase only as an emergency steel backup; salvage and resource sites remain the best steel sources.</li>
+      <li>Take faction contracts to improve gate access and standing.</li>
+      <li>Explore ruins for future navigation components.</li>
+      <li>Prepare for storm routes and stronger fleets before pushing outward.</li>
+      <li>Upgrade the Clockwork Navigator when future tech unlocks.</li>
     </ul>
   </div>`;
 }
@@ -3580,6 +2268,7 @@ function balanceRoadmapHTML() {
       <li>Starting resource generosity and early upgrade pacing.</li>
       <li>Danger 1 combat difficulty after multiple early upgrades.</li>
       <li>Repair pressure and fuel pressure over longer route chains.</li>
+      <li>Dockyard Scrap Purchase rates, daily limits, faction pricing, and Foundry/industrial skyport bonuses.</li>
     </ul>
   </div>`;
 }
@@ -3866,7 +2555,7 @@ function createLocationMarker(loc) {
 }
 
 function createFortressModel() {
-  // Procedural Brasswake marker v0.26.06.20.1245
+  // Procedural Brasswake marker v0.26.06.20.1322
   // Lightweight in-game representation of the starting fortress: a modular hex-built sky city.
   // Future fortress-builder work can map actual rooms/upgrades to these visible hex modules.
   const group = new THREE.Group();
@@ -4347,13 +3036,10 @@ function startNewGame() {
   renderUI();
   autoSave('Autosaved Day 1');
   showToast('Campaign started. Brasswake awaits orders.');
-  MusicManager.playMusicState('captainsOrders', { fadeMs: 900 });
-  MusicManager.enforceSingleLoopAudio('campaign-start');
 }
 
-
 function showHUD(show) {
-  ['hudTop','hudLeft','hudRight','hudBottom','hudCommand'].forEach(id => document.getElementById(id).classList.toggle('hidden', !show));
+  ['hudTop','hudLeft','hudRight','hudBottom'].forEach(id => document.getElementById(id).classList.toggle('hidden', !show));
 }
 
 function renderUI() {
@@ -4399,7 +3085,7 @@ function renderFortressStats() {
   const hullPct = Math.round(game.hull) + '/' + stats.maxHull;
   const entries = [
     ['Hull', hullPct], ['Armor', stats.armor], ['Weapons', stats.weaponPower], ['Crew Power', stats.crewPower],
-    ['Fuel Cost', stats.fuelCostMod.toFixed(2) + 'x'], ['Range', Math.round(stats.travelRange)], ['Sensors', Math.round(stats.sensorRadius)], ['Repair', stats.repairPower]
+    ['Fuel Cost', stats.fuelCostMod.toFixed(2) + '×'], ['Range', Math.round(stats.travelRange)], ['Sensors', Math.round(stats.sensorRadius)], ['Repair', stats.repairPower]
   ];
   document.getElementById('fortressStats').innerHTML = entries.map(([k,v]) => `<div class="statCard"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
 }
@@ -4489,11 +3175,9 @@ function locationActionButtons(loc, cur, cost, d) {
     const canTravel = game.resources.fuel >= cost && d <= computeStats().travelRange && !isTraveling;
     const label = isLockedNextHop ? `Ride Locked Jump to ${shortName(loc.name)} (${cost} Fuel)` : `Ride Current to ${shortName(loc.name)} (${cost} Fuel)`;
     const note = isLockedNextHop ? 'Clockwork Navigator route active. This is the stored one-jump path toward your final destination.' : 'Current Gate travel is charted and available from your present location.';
-    const travelCue = isTraveling ? '<span class="travelStatusChip">In Current: Brasswake is riding the selected sky-road. Controls return after arrival.</span>' : '';
     return `<div class="primaryActionBlock firstSessionPrimary buttonStack">
       <button class="btn primary" ${canTravel ? '' : 'disabled'} onclick="travelToSelected()">${label}</button>
       ${!canTravel ? `<div class="smallNote">${travelBlockReason(cost, d)}</div>` : `<div class="smallNote">${note}</div>`}
-      ${travelCue}
       <button class="btn ghost" onclick="centerCameraOnSelected()">Center Camera</button>
     </div>`;
   }
@@ -4506,7 +3190,10 @@ function locationActionButtons(loc, cur, cost, d) {
     const repairQuote = getRepairQuote();
     const repairPulse = repairQuote.needed && canAfford({ steel: repairQuote.steelCost, gold: repairQuote.goldCost });
     buttons.push(`<button class="btn green" onclick="tradeFuel()">Buy Fuel: 25 for 30 Gold</button>`);
-    buttons.push(`<button class="btn blue ${repairPulse ? 'pulse' : ''}" onclick="repairAtPort()">Repair Hull${repairQuote.needed ? ` (${repairQuote.steelCost} Steel - ${repairQuote.goldCost} Gold)` : ''}</button>`);
+    buttons.push(`<button class="btn blue ${repairPulse ? 'pulse' : ''}" onclick="repairAtPort()">Repair Hull${repairQuote.needed ? ` (${repairQuote.steelCost} Steel · ${repairQuote.goldCost} Gold)` : ''}</button>`);
+    const scrapUsedToday = game.flags?.lastScrapPurchaseDay === game.day;
+    buttons.push(`<button class="btn ghost" ${scrapUsedToday ? 'disabled' : ''} onclick="buyDockyardScrap()">${scrapUsedToday ? 'Dockyard Scrap Purchased Today' : `Dockyard Scrap Purchase: ${DOCKYARD_SCRAP_PURCHASE_COST.gold} Gold → ${DOCKYARD_SCRAP_PURCHASE_STEEL} Steel`}</button>`);
+    buttons.push(`<div class="smallNote">Emergency economy valve: expensive dockyard scrap prevents steel soft-locks, but salvage and resource sites remain the best steel sources.</div>`);
     if (loc.id === 'loc_home' && !game.flags?.traveledOnce) {
       buttons.push(`<button class="btn" disabled>Local Contracts Locked</button>`);
       buttons.push(`<div class="smallNote">First, select a nearby node and travel. Local contracts unlock after your first route.</div>`);
@@ -4546,28 +3233,13 @@ function renderRightPanel() {
 function setRightTab(tab) {
   activeRightTab = tab;
   renderRightPanel();
-  updateMusicForRightTab(tab);
 }
 
 function setRightPanelContent(html) {
   const panel = document.getElementById('rightPanel');
   if (!panel) return;
   panel.innerHTML = `<div class="scrollContent rightScrollContent">${html}</div>`;
-  resetRightPanelScrollSoon();
-}
-
-function resetRightPanelScrollSoon() {
-  const panel = document.getElementById('rightPanel');
-  if (!panel) return;
-  const forceTop = () => {
-    panel.scrollTop = 0;
-    if (typeof panel.scrollTo === 'function') panel.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    const inner = panel.querySelector('.rightScrollContent');
-    if (inner) inner.scrollTop = 0;
-  };
-  forceTop();
-  requestAnimationFrame(forceTop);
-  setTimeout(forceTop, 40);
+  panel.scrollTop = 0;
 }
 
 function renderUpgradePanel() {
@@ -4620,7 +3292,7 @@ function canResearchStormKeel() {
 function stormKeelCardHTML() {
   const installed = !!game.flags?.stormKeelPrototype;
   const reqs = stormKeelRequirements();
-  const reqHtml = reqs.map(r => `<li class="${r.met ? 'met' : 'missing'}">${r.met ? 'OK' : '-'} ${r.label}</li>`).join('');
+  const reqHtml = reqs.map(r => `<li class="${r.met ? 'met' : 'missing'}">${r.met ? '✓' : '•'} ${r.label}</li>`).join('');
   const status = installed ? '<span class="tag good">Prototype Installed</span>' : (canResearchStormKeel() ? '<span class="tag good">Research Ready</span>' : '<span class="tag warn">Mid/Late Unlock</span>');
   return `<div class="stormKeelCard ${installed ? '' : 'locked'}">
     <div class="cardTitle"><span>Storm Keel Engine ${status}</span><span class="cost">${installed ? 'INSTALLED' : formatCost(STORM_KEEL_RESEARCH_COST)}</span></div>
@@ -4635,7 +3307,6 @@ function researchStormKeel() {
   if (!canResearchStormKeel()) return showToast('Storm Keel requirements are not met.');
   spendResources(STORM_KEEL_RESEARCH_COST);
   game.flags.stormKeelPrototype = true;
-  MusicManager.playMusicState('stormKeel', { fadeMs: 700 });
   addLog('Storm Keel prototype installed. Future refits will allow temporary current creation; strategic travel still uses known gates for now.');
   showToast('Storm Keel prototype installed. Temporary current creation comes later.');
   autoSave('Autosaved after Storm Keel research');
@@ -4702,26 +3373,16 @@ function renderFactionsPanel() {
 
 
 function renderLog() {
-  const eventLog = document.getElementById('eventLog');
-  if (!eventLog || !game) return;
   const log = game.log.slice(-9).reverse();
-  eventLog.innerHTML = log.map(item => `<div class="logItem"><strong>Day ${item.day}:</strong> ${item.text}</div>`).join('');
+  document.getElementById('eventLog').innerHTML = log.map(item => `<div class="logItem"><strong>Day ${item.day}:</strong> ${item.text}</div>`).join('');
 }
 
 function updateSaveStatus() {
-  const saveStatus = document.getElementById('saveStatus');
-  if (!saveStatus) return;
-  let hasSave = false;
-  try {
-    hasSave = !!localStorage.getItem(SAVE_KEY);
-  } catch (err) {
-    console.warn('Save status could not be checked.', err);
-  }
   if (!game) {
-    saveStatus.textContent = hasSave ? 'Save Available' : 'No Campaign';
+    document.getElementById('saveStatus').textContent = localStorage.getItem(SAVE_KEY) ? 'Save Available' : 'No Campaign';
     return;
   }
-  saveStatus.textContent = game.saveStatus || (hasSave ? `Saved Day ${game.day}` : 'Unsaved Campaign');
+  document.getElementById('saveStatus').textContent = game.saveStatus || (localStorage.getItem(SAVE_KEY) ? `Saved Day ${game.day}` : 'Unsaved Campaign');
 }
 
 function tutorialSteps() {
@@ -4780,10 +3441,10 @@ function captainWingsHTML(alert, compact) {
   const alertHTML = alert ? `<div class="hudAlertCard ${alert.tone || ''}"><div class="hudAlertLabel">${escapeHTML(alert.label || 'Command Alert')}</div><div class="hudAlertText">${escapeHTML(alert.text)}</div></div>` : '';
   return `<div class="captainWingsPanel ${alert ? 'hasAlert' : ''}">
     <div class="captainWingsHeader"><span>Captain's Wings Earned</span><span>Open Command</span></div>
-    <div class="captainWingsTitle">Command cycle complete.</div>
-    <div class="captainWingsSub">Open Command is unlocked.</div>
+    <div class="captainWingsTitle">First command cycle complete.</div>
+    <div class="captainWingsSub">Brasswake recognizes your command. Tutorial orders are complete.</div>
     <div class="captainWingsMessage">
-      ${alert ? alertHTML : `<div><div class="captainWingsSuggestion">${suggestion}</div>${nextCampaignGoalsHTML(true)}</div>`}
+      ${alert ? alertHTML : `<div><div class="captainWingsSuggestion">Open Command: ${suggestion}</div>${nextCampaignGoalsHTML(true)}</div>`}
     </div>
     ${routeContext ? routeContext : ''}
   </div>`;
@@ -4798,7 +3459,7 @@ function renderOrdersPanel() {
   const allDone = completed >= steps.length;
   const idx = allDone ? steps.length - 1 : Math.max(0, steps.findIndex(s => !flags[s.key]));
   const active = steps[idx];
-  const compact = steps.map((s, i) => `<span title="${s.label}" class="orderDot ${flags[s.key] ? 'done' : i === idx && !allDone ? 'active' : ''}">${flags[s.key] ? 'OK' : i + 1}</span>`).join('');
+  const compact = steps.map((s, i) => `<span title="${s.label}" class="orderDot ${flags[s.key] ? 'done' : i === idx && !allDone ? 'active' : ''}">${flags[s.key] ? '✓' : i + 1}</span>`).join('');
   if (allDone) {
     const alert = getActiveHudAlert() || getPostTutorialUrgentAlert();
     panel.innerHTML = captainWingsHTML(alert, compact);
@@ -4844,6 +3505,7 @@ function setOrderFlag(key) {
     firstFieldEventComplete: false,
     stormRouteExplored: false,
     gateContractComplete: false,
+    lastScrapPurchaseDay: 0,
     stormKeelCore: false,
     stormKeelPrototype: false
   }, game.flags || {});
@@ -4879,8 +3541,7 @@ function autoSave(label = 'Autosaved') {
   game.saveStatus = `${label} Day ${game.day}`;
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(game));
-    const loadTitleBtn = document.getElementById('loadTitleBtn');
-    if (loadTitleBtn) loadTitleBtn.disabled = false;
+    document.getElementById('loadTitleBtn').disabled = false;
     updateSaveStatus();
   } catch (err) {
     console.warn('Autosave failed', err);
@@ -4941,7 +3602,6 @@ function travelToSelected(forceDirect = false, forceRoute = false) {
 }
 
 function showNoChartedCurrentModal(loc, cur) {
-  MusicManager.playMusicState('routeBlocked');
   const path = findCurrentRoutePath(cur.id, loc.id);
   if (path) {
     const summary = summarizeRoutePath(path);
@@ -4949,7 +3609,7 @@ function showNoChartedCurrentModal(loc, cur) {
     return showModal(`<h1>Route Available Through Gates</h1>
       <p>No direct Current reaches <strong>${loc.name}</strong>, but a multi-hop route is charted.</p>
       <div class="routePlannerBox"><strong>Next Hop:</strong> ${nextHop?.name || 'Unknown'}<br/>
-        ${path.routeIds.length} currents - ${summary.totalFuel} fuel - ${summary.totalDays} day${summary.totalDays !== 1 ? 's' : ''} - ${summary.totalToll} gold tolls<br/>
+        ${path.routeIds.length} currents · ${summary.totalFuel} fuel · ${summary.totalDays} day${summary.totalDays !== 1 ? 's' : ''} · ${summary.totalToll} gold tolls<br/>
         <div class="routePathLine">${routePathNames(path)}</div></div>
       <div class="buttonGrid"><button class="btn blue" onclick="closeModal(); plotRouteTo('${loc.id}')">Plot with Clockwork Navigator</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
   }
@@ -4961,15 +3621,30 @@ function showNoChartedCurrentModal(loc, cur) {
 }
 
 function shouldConfirmDirectTravel(cur, loc, cost) {
-  return false;
+  const strain = directTravelStrainPreview(cur, loc);
+  const hullPct = game.hull / computeStats().maxHull;
+  const d = distance2D(cur, loc);
+  return !!strain.chance || cost >= 18 || hullPct < 0.65 || d >= 24;
 }
 
 function confirmDirectTravel(cur, loc, cost) {
-  return showNoChartedCurrentModal(loc, cur);
+  const strain = directTravelStrainPreview(cur, loc);
+  const hullPct = game.hull / computeStats().maxHull;
+  const hullWarn = hullPct < 0.35 ? '<div class="warningBox danger"><strong>Critical Hull:</strong> Brasswake is badly damaged. Long direct travel may leave the fortress vulnerable before the next battle.</div>' : hullPct < 0.65 ? '<div class="warningBox danger"><strong>Damaged Hull:</strong> direct travel may strain already weakened plates.</div>' : '';
+  showModal(`<h1>Confirm Direct Engine Travel</h1>
+    <p>No charted Current reaches <strong>${loc.name}</strong> from <strong>${cur.name}</strong>.</p>
+    <div class="statGrid" style="margin:10px 0;">
+      <div class="statCard"><div class="k">Fuel Cost</div><div class="v">${cost}</div></div>
+      <div class="statCard"><div class="k">Strain Chance</div><div class="v">${Math.round((strain.chance || 0) * 100)}%</div></div>
+      <div class="statCard"><div class="k">Possible Damage</div><div class="v">${strain.max ? `${strain.min}–${strain.max}` : 'None'}</div></div>
+      <div class="statCard"><div class="k">Recommendation</div><div class="v" style="font-size:13px;">Use Current Gates when possible</div></div>
+    </div>
+    ${hullWarn}
+    <p class="smallNote">Direct engine travel remains available as a prototype fallback, but it costs more fuel and may strain the hull on longer uncharted routes.</p>
+    <div class="buttonGrid"><button class="btn red" onclick="closeModal(); travelToSelected(true)">Proceed Direct</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
 }
 
 function confirmCurrentGateTravel(route, loc, policy, cost) {
-  MusicManager.playMusicState('routeRisk');
   showModal(`<h1>Gate Warning: ${route.name}</h1>
     <p>${routePolicySummary(route)}</p>
     <div class="warningBox danger">This gate has blockade or hostile inspection risk. Travel may trigger a faction route event.</div>
@@ -4977,7 +3652,6 @@ function confirmCurrentGateTravel(route, loc, policy, cost) {
 }
 
 function showRouteTollFallback(route, loc, policy, cost) {
-  MusicManager.playMusicState('routeRisk');
   showModal(`<h1>Gate Toll Required</h1>
     <p>${route.name} requires a ${policy.toll} gold toll, but Brasswake cannot afford it.</p>
     <p class="smallNote">Earn gold, improve relations for a discount, or plot another connected Current route. Direct inter-section bypass is locked until future Storm Keel technology.</p>
@@ -4994,14 +3668,13 @@ function currentTravelText(route, from, to) {
 }
 
 function beginCurrentTravel(route, loc, cost) {
-  MusicManager.playMusicState(routeTypeToMusicState(route?.type), { fadeMs: 900 });
   const meta = CURRENT_ROUTE_TYPES[route.type] || CURRENT_ROUTE_TYPES.safe;
   const cur = getLocation(game.currentLocationId);
   hideToastNow();
   deferredToastText = null;
   const content = document.getElementById('modalContent');
   content.innerHTML = `<h1>Entering Jet Stream Current</h1>
-    <p><strong>${route.name}</strong> - ${meta.label} - Risk: ${route.risk} - ${cost} Fuel</p>
+    <p><strong>${route.name}</strong> · ${meta.label} · Risk: ${route.risk} · ${cost} Fuel</p>
     <p>${currentTravelText(route, cur, loc)}</p>
     <div class="travelProgress"><div class="travelProgressFill"></div></div>
     <p class="smallNote">Travel is not instant. The fortress spends fuel, time, and momentum while crossing the living sky-road.</p>`;
@@ -5095,8 +3768,6 @@ function finishTravel(loc, days, mode) {
   autoSave(mode === 'current' ? 'Autosaved after current travel' : 'Autosaved after travel');
   renderUI();
   resetSelectedPanelScrollSoon();
-  updateMusicForContext('arrival');
-  MusicManager.enforceSingleLoopAudio('travel-complete');
 }
 
 function autoLocationPulse(loc) {
@@ -5147,7 +3818,6 @@ function showPostRewardNudge() {
 }
 
 function salvageLocation() {
-  MusicManager.playMusicState('salvage');
   const loc = getLocation(game.currentLocationId);
   if (!loc || loc.type !== 'salvage' || loc.depleted) return;
   const firstField = !game.flags?.firstFieldEventComplete && !game.flags?.resolvedEvent;
@@ -5236,7 +3906,6 @@ function resolveSalvageAmbush(choice) {
 }
 
 function harvestLocation() {
-  MusicManager.playMusicState('resource');
   const loc = getLocation(game.currentLocationId);
   if (!loc || loc.type !== 'resource' || loc.depleted) return;
   const kind = loc.resourceKind || 'steel';
@@ -5257,7 +3926,6 @@ function harvestLocation() {
 }
 
 function braveStorm() {
-  MusicManager.playMusicState('storm');
   const loc = getLocation(game.currentLocationId);
   if (!loc || loc.type !== 'storm' || loc.depleted) return;
   const stats = computeStats();
@@ -5281,7 +3949,6 @@ function braveStorm() {
 }
 
 function startCombatAtLocation(force = false) {
-  MusicManager.playMusicState('preCombat');
   const loc = getLocation(game.currentLocationId);
   if (!loc || loc.type !== 'enemy' || loc.depleted) return;
   const preview = combatReadiness(loc);
@@ -5330,7 +3997,7 @@ function combatReadinessHTML(loc) {
     : '';
   return `<div class="readinessBox warningBox ${r.cls === 'danger' ? 'danger' : r.cls === 'good' ? 'good' : ''}">
     <strong>Combat Readiness: ${r.status}</strong><br/>
-    Enemy Danger ${loc.danger || 1} - Est. Hull ${r.enemyHull} - Est. Weapons ${r.enemyWeapons}<br/>
+    Enemy Danger ${loc.danger || 1} · Est. Hull ${r.enemyHull} · Est. Weapons ${r.enemyWeapons}<br/>
     Brasswake Rating ${r.playerScore} vs Enemy Rating ${r.enemyScore}<br/>
     ${hullText}
   </div>${tutorialWarn}`;
@@ -5348,7 +4015,6 @@ function getLocationNudgeHTML(loc) {
 }
 
 function exploreRuins() {
-  MusicManager.playMusicState('ruins');
   const loc = getLocation(game.currentLocationId);
   if (!loc || loc.type !== 'ruins' || loc.depleted) return;
   const hazard = Math.random() < 0.32 + loc.danger * 0.08;
@@ -5374,7 +4040,6 @@ function exploreRuins() {
 }
 
 function completeContract() {
-  MusicManager.playMusicState('settlement');
   const loc = getLocation(game.currentLocationId);
   if (!loc || loc.type !== 'contract' || loc.depleted) return;
   const faction = loc.faction;
@@ -5445,19 +4110,47 @@ function repairAtPort() {
   renderUI();
 }
 
+function buyDockyardScrap() {
+  if (!game) return;
+  const loc = getLocation(game.currentLocationId);
+  if (!loc || !['skyport','settlement'].includes(loc.type)) {
+    return showToast('Dockyard scrap purchases are only available at skyports and settlements.');
+  }
+  game.flags = game.flags || {};
+  if (game.flags.lastScrapPurchaseDay === game.day) {
+    return showToast('Dockyard scrap stock already purchased today. Check again after the campaign day advances.');
+  }
+  const caps = computeCaps();
+  if ((game.resources.steel || 0) >= caps.steel) {
+    return showToast('Steel storage is full. Upgrade storage before buying more scrap.');
+  }
+  if (!canAfford(DOCKYARD_SCRAP_PURCHASE_COST)) {
+    return showToast(`Dockyard scrap purchase requires ${DOCKYARD_SCRAP_PURCHASE_COST.gold} gold.`);
+  }
+  const beforeSteel = game.resources.steel || 0;
+  spendResources(DOCKYARD_SCRAP_PURCHASE_COST);
+  addResource('steel', DOCKYARD_SCRAP_PURCHASE_STEEL);
+  const gainedSteel = Math.max(0, Math.floor((game.resources.steel || 0) - beforeSteel));
+  game.flags.lastScrapPurchaseDay = game.day;
+  setOrderFlag('returnedForService');
+  addLog(`Dockyard scrap purchase at ${loc.name}: -${DOCKYARD_SCRAP_PURCHASE_COST.gold} gold, +${gainedSteel} steel. Emergency reserve used for Day ${game.day}.`);
+  showToast(`Dockyard scrap purchased: +${gainedSteel} steel for ${DOCKYARD_SCRAP_PURCHASE_COST.gold} gold. Salvage remains the better long-term source.`);
+  autoSave('Autosaved after dockyard scrap purchase');
+  renderUI();
+}
+
 function settlementContractPreview(loc = getLocation(game.currentLocationId)) {
   const safeIntro = loc?.id === 'loc_home' && game.day <= 3;
   return {
     title: safeIntro ? 'Training Escort Contract' : 'Local Patrol Contract',
-    reward: safeIntro ? '24-36 gold' : '20-52 gold',
+    reward: safeIntro ? '24–36 gold' : '20–52 gold',
     extra: 'Relations improve with the local faction.',
-    damage: safeIntro ? '0-4 hull damage' : '0-14 hull damage',
+    damage: safeIntro ? '0–4 hull damage' : '0–14 hull damage',
     risk: safeIntro ? 'Safe' : 'Risky'
   };
 }
 
 function reviewSettlementContract() {
-  MusicManager.playMusicState('settlement');
   const loc = getLocation(game.currentLocationId);
   if (!loc || !['skyport','settlement'].includes(loc.type)) return;
   if (loc.id === 'loc_home' && !game.flags?.traveledOnce) {
@@ -5541,18 +4234,13 @@ function startCombat(enemySpec) {
     enemyCrew: 18 + danger * 8,
     braced: false,
     round: 1,
-    log: [`${enemySpec.ambush ? 'Ambush!' : 'Contact!'} ${enemySpec.name} closes to firing range.`],
-    ambush: !!enemySpec.ambush,
-    storm: !!enemySpec.storm,
-    ancient: !!enemySpec.ancient
+    log: [`${enemySpec.ambush ? 'Ambush!' : 'Contact!'} ${enemySpec.name} closes to firing range.`]
   };
-  MusicManager.playMusicState(combatToMusicState(game.combat), { fadeMs: 650 });
   openCombatModal();
 }
 
 function openCombatModal() {
   const c = game.combat;
-  if (c) MusicManager.playMusicState(combatToMusicState(c), { fadeMs: 500 });
   const stats = computeStats();
   const hangar = game.rooms.hangar ? true : false;
   const modal = document.getElementById('modalOverlay');
@@ -5588,7 +4276,6 @@ function openCombatModal() {
       <button class="btn green" onclick="combatAction('brace')">Brace Armor</button>
       <button class="btn" ${canAfford({ steel: 8 }) ? '' : 'disabled'} onclick="combatAction('repair')">Emergency Repairs</button>
       <button class="btn ghost" onclick="combatAction('retreat')">Attempt Retreat</button>
-      ${hangar ? '' : '<div class="disabledReason">Launch Skiffs requires a Hangar room aboard Brasswake.</div>'}
     </div>
     <div style="margin-top:12px; max-height:150px; overflow:auto;">
       ${c.log.slice(-8).reverse().map(x => `<div class="logItem">${x}</div>`).join('')}
@@ -5691,7 +4378,7 @@ function combatSummaryHTML(c, titleText) {
     const delta = Math.round((after.resources[k] || 0) - (before.resources[k] || 0));
     if (!delta) return '';
     return `${delta > 0 ? '+' : ''}${delta} ${k}`;
-  }).filter(Boolean).join(' - ') || 'No net resource change';
+  }).filter(Boolean).join(' · ') || 'No net resource change';
   const relDelta = c.faction && before.relations ? Math.round((game.relations[c.faction] || 0) - (before.relations[c.faction] || 0)) : 0;
   const stats = computeStats();
   const hullPct = game.hull / stats.maxHull;
@@ -5732,12 +4419,10 @@ function endCombat(victory, retreated, destroyed = false) {
     if ((c.danger || 1) <= 1) setOrderFlag('foughtLowDanger');
     addLog(`Victory over ${c.enemyName}: +${steel} steel, +${gold} gold, +${fuel} fuel.`);
     showResultModal('Victory in the Clouds', combatSummaryHTML(c, `The enemy fleet breaks apart under Brasswake's guns. Salvage crews recover ${steel} steel, ${gold} gold, and ${fuel} fuel.`), 'Continue', closeModal);
-    playCombatResultMusic('victory');
   } else if (retreated) {
     if ((c.danger || 1) <= 1) { setOrderFlag('foughtLowDanger'); setOrderFlag('survivedHostileContact'); }
     addLog(`Brasswake retreated from ${c.enemyName}. Hostile contact survived; repairs recommended.`, 'warn');
     showResultModal('Retreat Successful', combatSummaryHTML(c, 'The fortress escaped into cloud cover. Some gold and momentum were lost, but the campaign continues.'), 'Continue', closeModal);
-    playCombatResultMusic('retreat');
   } else if (destroyed) {
     game.hull = 1;
     const lossGold = Math.min(game.resources.gold, 40);
@@ -5747,11 +4432,9 @@ function endCombat(victory, retreated, destroyed = false) {
     addResource('population', -Math.min(game.resources.population - 1, 5), true);
     addLog(`Near catastrophe against ${c.enemyName}. Brasswake emergency-crashed but survived at 1 hull.`, 'bad');
     showResultModal('Catastrophic Defeat', combatSummaryHTML(c, 'The fortress was nearly destroyed. Emergency ballast kept Brasswake aloft at 1 hull, but resources and crew were lost.'), 'Continue', closeModal);
-    playCombatResultMusic('defeat');
   } else {
     addLog(`Defeat against ${c.enemyName}. The fortress limps away heavily damaged.`, 'bad');
     showResultModal('Defeat', combatSummaryHTML(c, 'The fortress disengages under smoke and broken armor.'), 'Continue', closeModal);
-    playCombatResultMusic('defeat');
   }
   game.inCombat = false;
   game.combat = null;
@@ -5763,7 +4446,7 @@ function endCombat(victory, retreated, destroyed = false) {
   resetSelectedPanelScrollSoon();
 }
 
-function showResultModal(title, bodyHtml, button) {
+function showResultModal(title, bodyHtml, button, callback) {
   const content = document.getElementById('modalContent');
   content.innerHTML = `<h1>${title}</h1><div>${bodyHtml}</div><button class="btn primary" onclick="closeModal()">${button}</button>`;
   document.getElementById('modalOverlay').classList.add('active');
@@ -5773,8 +4456,6 @@ function closeModal() {
   document.getElementById('modalOverlay').classList.remove('active');
   renderUI();
   resetSelectedPanelScrollSoon();
-  updateMusicForContext('modal-close');
-  MusicManager.enforceSingleLoopAudio('modal-close');
 }
 
 // =============================================================
@@ -5824,7 +4505,6 @@ function upgradeCost(key) {
 }
 
 function grantCheapestResearchBoost() {
-  MusicManager.playMusicState('saintElmo');
   const possible = Object.keys(UPGRADE_DATA).filter(k => game.upgrades[k] < UPGRADE_DATA[k].max);
   if (!possible.length) return;
   possible.sort((a,b) => Object.values(upgradeCost(a)).reduce((x,y)=>x+y,0) - Object.values(upgradeCost(b)).reduce((x,y)=>x+y,0));
@@ -5879,25 +4559,19 @@ function saveGame() {
   if (!game) return showToast('No campaign to save.');
   game.version = VERSION;
   const payload = JSON.stringify(game);
-  try {
-    localStorage.setItem(SAVE_KEY, payload);
-  } catch (err) {
-    console.warn('Save could not be written.', err);
-    return showToast('Save could not be written. Browser storage may be unavailable.');
-  }
+  localStorage.setItem(SAVE_KEY, payload);
   game.saveStatus = `Saved Day ${game.day}`;
   addLog('Campaign saved to local storage.');
   showToast('Campaign saved.');
   updateSaveStatus();
-  const loadTitleBtn = document.getElementById('loadTitleBtn');
-  if (loadTitleBtn) loadTitleBtn.disabled = false;
+  document.getElementById('loadTitleBtn').disabled = false;
   renderLog();
 }
 
 function loadGame(fromTitle = false) {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) return showToast('No save found.');
   try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return showToast('No save found.');
     const loaded = JSON.parse(raw);
     if (!loaded || !loaded.version) throw new Error('Missing save metadata.');
     if (loaded.version !== VERSION) {
@@ -5915,7 +4589,7 @@ function loadGame(fromTitle = false) {
     addLog('Campaign loaded from local storage.');
     showToast('Campaign loaded.');
   } catch (err) {
-    console.warn('Save load failed.', err);
+    console.error(err);
     showToast('Save could not be loaded. It may be incompatible or corrupted.');
   }
 }
@@ -5936,6 +4610,7 @@ function normalizeLoadedGame() {
     firstFieldEventComplete: false,
     stormRouteExplored: false,
     gateContractComplete: false,
+    lastScrapPurchaseDay: 0,
     stormKeelCore: false,
     stormKeelPrototype: false
   }, game.flags || {});
@@ -5947,7 +4622,6 @@ function normalizeLoadedGame() {
   game.upgrades = Object.assign({ engines: 0, armor: 0, weapons: 0, storage: 0, sensors: 0, repairs: 0, hangarCap: 0 }, game.upgrades || {});
   game.discovered = game.discovered || { [game.currentLocationId || 'loc_home']: true };
   game.plottedRoute = game.plottedRoute || null;
-  game.fortressFacing = normalizeAngleRadians(game.fortressFacing);
   game.locations.forEach(l => { l.discovered = !!game.discovered[l.id]; });
   game.hull = Math.max(1, game.hull || 80);
   game.hexTiles = game.hexTiles || generateHexTilesFromLocations(game.locations);
@@ -5960,17 +4634,10 @@ function confirmReset() {
 }
 
 function resetSave() {
-  try {
-    localStorage.removeItem(SAVE_KEY);
-  } catch (err) {
-    console.warn('Save could not be reset.', err);
-    showToast('Save could not be reset. Browser storage may be unavailable.');
-    return;
-  }
+  localStorage.removeItem(SAVE_KEY);
   closeModal();
   showToast('Save reset.');
-  const loadTitleBtn = document.getElementById('loadTitleBtn');
-  if (loadTitleBtn) loadTitleBtn.disabled = true;
+  document.getElementById('loadTitleBtn').disabled = true;
   updateSaveStatus();
 }
 
@@ -6036,7 +4703,7 @@ function canAfford(cost) {
 
 function formatCost(cost) {
   if (!cost) return '';
-  return Object.entries(cost).map(([k,v]) => `${v} ${k}`).join(' - ');
+  return Object.entries(cost).map(([k,v]) => `${v} ${k}`).join(' · ');
 }
 
 function improveRelation(faction, amount, silent = false) {
@@ -6065,7 +4732,7 @@ function prettyType(type) {
 }
 
 function shortName(name) {
-  return name.length > 22 ? name.slice(0, 20) + '...' : name;
+  return name.length > 22 ? name.slice(0, 20) + '…' : name;
 }
 
 
@@ -6101,7 +4768,6 @@ function resetSelectedPanelScrollSoon() {
 // =============================================================
 function showToast(text) {
   const t = document.getElementById('toast');
-  if (!t) return;
   const modalActive = document.getElementById('modalOverlay')?.classList.contains('active');
   if (modalActive && isTraveling) {
     deferredToastText = cleanToastText(text);
@@ -6127,11 +4793,8 @@ function showToast(text) {
 }
 
 function showModal(html) {
-  const content = document.getElementById('modalContent');
-  const overlay = document.getElementById('modalOverlay');
-  if (!content || !overlay) return;
-  content.innerHTML = html;
-  overlay.classList.add('active');
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('active');
 }
 
 function showHelp() {
@@ -6144,8 +4807,8 @@ function showHelp() {
       <li>Use steel and gold to build rooms or buy upgrades.</li>
       <li>Return to settlements to refuel and repair.</li>
     </ol>
+    <p class="smallNote"><strong>Emergency Steel:</strong> skyports and settlements offer one Dockyard Scrap Purchase per campaign day: ${DOCKYARD_SCRAP_PURCHASE_COST.gold} gold for ${DOCKYARD_SCRAP_PURCHASE_STEEL} steel. This is an expensive backup for repair/upgrade soft-lock prevention; salvage, steel resource nodes, ruins, and combat victory remain the main steel economy.</p>
     <p>Mouse drag pans the camera. Mouse wheel zooms. Click glowing nodes to inspect them.</p>
-    <p class="smallNote"><strong>Music:</strong> browser audio starts after your first click/tap/key press. Use the Music On/Off toggle and volume slider in the Command Menu.</p>
     <h2>Route Legend</h2>
     <div class="routeLegend">
       <div><span class="legendSwatch" style="background:#80b9ff"></span>Safe Current</div>
@@ -6161,12 +4824,13 @@ function showHelp() {
 }
 
 function showBuildNotes() {
-  showModal(`<h1>Build Notes - ${VERSION}</h1>
-    <p><strong>Directional travel patch:</strong> Brasswake now turns in place to face the next Current Gate / Jet Stream hop before moving, then remains pointed in the direction it traveled after arrival.</p>
-    <p><strong>Fixes made:</strong> the procedural fortress marker now stores a persistent facing angle in campaign state, older saves receive a safe default facing, map rebuilds restore the stored rotation, and the travel tween runs as turn-then-move instead of sliding sideways between hexes.</p>
-    <p><strong>Model rule:</strong> the current left-pointing fortress segment is treated as Brasswake's bow. Rotation math converts the current hex-to-destination hex vector against that local -X bow direction.</p>
-    <p><strong>Preserved:</strong> gate-locked Current Gate / Jet Stream travel, Clockwork Navigator route plotting, Plot Capacity: 1 Jump, Captain's Orders onboarding, modular Brasswake rooms/upgrades/status, route tolls/events, combat balance, and the singleton music model with one active loop plus one optional fading loop.</p>
-    <p><strong>Validation:</strong> JavaScript syntax, inline button handlers, version strings, external music paths, and single-file HTML / Three.js CDN structure were checked. No embedded playable preview is included.</p>
+  showModal(`<h1>Build Notes — ${VERSION}</h1>
+    <p><strong>Emergency Steel Recovery / Economy Safety Patch:</strong> adds <strong>Dockyard Scrap Purchase</strong> at skyports and settlements: ${DOCKYARD_SCRAP_PURCHASE_COST.gold} gold → ${DOCKYARD_SCRAP_PURCHASE_STEEL} steel.</p>
+    <p><strong>Economy safety valve:</strong> the purchase is limited to once per campaign day, does not advance time, does not damage hull, autosaves after use, and counts as returning for service. It is intentionally less efficient than normal steel play.</p>
+    <p><strong>Steel economy preserved:</strong> salvage wreck fields, steel resource nodes, ruins, combat victory, Emergency Drift/Scavenge chances, and Foundry steel bonuses remain the primary steel sources. Repairs, room costs, upgrade costs, combat emergency repairs, and Storm Keel research costs were not broadly rebalanced.</p>
+    <p><strong>Roadmap/Bible update:</strong> the Emergency Steel Recovery Valve is now documented as a soft-lock prevention feature. Future tuning can add faction prices, local stock, Foundry conversion bonuses, industrial skyport discounts, hostile blockade markups, or black-market bulk scrap.</p>
+    <p><strong>Preserved:</strong> single-file HTML structure, Three.js CDN map, gate-locked Current Gate / Jet Stream travel, Clockwork Navigator / Celestial Navigation Automaton, Plot Capacity: 1 Jump, Captain's Orders onboarding, modular Brasswake rooms/upgrades/status, route plotting/events, combat balance, and save/load behavior.</p>
+    <p><strong>Validation:</strong> JavaScript syntax, inline button handlers, version strings, save key, new purchase button placement, older-save flag safety, repair/fuel/contract paths, and package structure were checked. No embedded playable preview is included.</p>
     ${roadmapDoctrineHTML()}
     ${nextCampaignGoalsHTML()}
     ${balanceRoadmapHTML()}
@@ -6195,7 +4859,7 @@ function animate() {
     });
     if (fortressGroup.visible) {
       fortressGroup.position.y = 4.8 + Math.sin(elapsed * 1.6) * 0.18;
-      fortressGroup.rotation.y = getFortressFacing();
+      fortressGroup.rotation.y = -0.18 + Math.sin(elapsed * 0.6) * 0.08;
       // Subtle in-map life for Brasswake's arc-lift engines; no external assets required.
       fortressGroup.traverse(child => {
         if (child.userData?.arcLiftRing) {
@@ -6267,9 +4931,9 @@ function showHoverTooltip(e, loc) {
   const route = getRouteBetween(cur.id, loc.id);
   const path = !route && loc.id !== cur.id ? findCurrentRoutePath(cur.id, loc.id) : null;
   const cost = loc.id === cur.id ? 0 : (route ? routeTravelCost(cur, loc, route) : 0);
-  const danger = loc.danger ? ` - Danger ${loc.danger}` : '';
-  const depleted = loc.depleted ? ' - Depleted' : '';
-  const routeText = loc.id === cur.id ? 'Current position' : route ? `Direct Current - Fuel cost: ${cost}` : path ? `Reachable via ${path.routeIds.length} currents - Next hop: ${getLocation(path.nodeIds[1])?.name || 'unknown'}` : 'No known Current route';
+  const danger = loc.danger ? ` · Danger ${loc.danger}` : '';
+  const depleted = loc.depleted ? ' · Depleted' : '';
+  const routeText = loc.id === cur.id ? 'Current position' : route ? `Direct Current · Fuel cost: ${cost}` : path ? `Reachable via ${path.routeIds.length} currents · Next hop: ${getLocation(path.nodeIds[1])?.name || 'unknown'}` : 'No known Current route';
   tip.innerHTML = `<strong>${loc.name}</strong><span class="mini">${prettyType(loc.type)}${danger}${depleted}<br/>${routeText}</span>`;
   tip.style.left = Math.min(window.innerWidth - 300, e.clientX + 16) + 'px';
   tip.style.top = Math.min(window.innerHeight - 120, e.clientY + 16) + 'px';
@@ -6331,68 +4995,24 @@ function updateFortressPosition(animateMove = false) {
   if (!game || !fortressGroup) return;
   const loc = getLocation(game.currentLocationId);
   fortressGroup.position.set(loc.x, 4.8, loc.z);
-  fortressGroup.rotation.y = getFortressFacing();
   fortressGroup.visible = true;
 }
 
 function animateFortressTo(loc, done) {
-  if (!fortressGroup || !loc) {
-    done && done();
-    return;
-  }
   const start = fortressGroup.position.clone();
   const end = new THREE.Vector3(loc.x, 4.8, loc.z);
-  const fromLoc = getLocation(game?.currentLocationId);
-  const startFacing = getFortressFacing();
-  const targetFacing = fortressFacingToward(fromLoc, loc);
-  const facingDelta = shortestAngleDelta(startFacing, targetFacing);
-  const turnDuration = clamp(220 + Math.abs(facingDelta) * 170, 220, 560);
-  const moveDuration = 900;
-
-  function easeInOut(t) {
+  const startTime = performance.now();
+  const duration = 900;
+  function step() {
+    const t = clamp((performance.now() - startTime) / duration, 0, 1);
     const eased = t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2)/2;
-    return eased;
+    fortressGroup.position.lerpVectors(start, end, eased);
+    cameraState.targetX = fortressGroup.position.x;
+    cameraState.targetZ = fortressGroup.position.z;
+    if (t < 1) requestAnimationFrame(step);
+    else done && done();
   }
-
-  function move() {
-    const moveStartTime = performance.now();
-    setFortressFacing(targetFacing);
-    function stepMove() {
-      const t = clamp((performance.now() - moveStartTime) / moveDuration, 0, 1);
-      const eased = easeInOut(t);
-      fortressGroup.position.lerpVectors(start, end, eased);
-      fortressGroup.rotation.y = targetFacing;
-      cameraState.targetX = fortressGroup.position.x;
-      cameraState.targetZ = fortressGroup.position.z;
-      if (t < 1) requestAnimationFrame(stepMove);
-      else {
-        fortressGroup.position.copy(end);
-        setFortressFacing(targetFacing);
-        done && done();
-      }
-    }
-    stepMove();
-  }
-
-  function turn() {
-    const turnStartTime = performance.now();
-    function stepTurn() {
-      const t = clamp((performance.now() - turnStartTime) / turnDuration, 0, 1);
-      const eased = easeInOut(t);
-      setFortressFacing(startFacing + facingDelta * eased);
-      cameraState.targetX = fortressGroup.position.x;
-      cameraState.targetZ = fortressGroup.position.z;
-      if (t < 1) requestAnimationFrame(stepTurn);
-      else move();
-    }
-    stepTurn();
-  }
-
-  if (Math.abs(facingDelta) < 0.015) {
-    move();
-  } else {
-    turn();
-  }
+  step();
 }
 
 function refreshSelectionVisuals() {

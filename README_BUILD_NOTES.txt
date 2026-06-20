@@ -1,47 +1,69 @@
 IRON KINGDOMS: SKY FORTRESS COMMAND
-Version: v0.26.06.20.1245
+Emergency Steel Recovery / Economy Safety Patch
+Version: v0.26.06.20.1322
 
-Focused directional fortress travel patch.
+SOURCE OF TRUTH CHECK
+- Uploaded source title version: v0.26.06.18.1400
+- Uploaded source visible versionLabel: v0.26.06.18.1400
+- Uploaded source VERSION constant: v0.26.06.18.1400
+- Uploaded source SAVE_KEY: IK_SKY_FORTRESS_COMMAND_v0_26_06_18_1400
+- Target patch version used: v0.26.06.20.1322
+- Note: the uploaded file mounted for this patch did not contain the newer external MP3 music manager/audio integration. No audio assets were embedded or modified.
 
-PATCH INTENT
-- Make Brasswake visually face the direction of each Current Gate / Jet Stream jump.
-- Treat the left-pointing segment of the current procedural fortress model as the bow/front.
-- Preserve gate-locked travel, Clockwork Navigator rules, Plot Capacity: 1 Jump, Captain's Orders, singleton music, combat balance, and the single-file HTML build.
+PATCH SUMMARY
+Added a limited, reliable emergency steel recovery option at skyports and settlements:
+- Dockyard Scrap Purchase: 20 Gold -> 10 Steel
+- Available only while Brasswake is at a skyport or settlement
+- Limited to once per campaign day through game.flags.lastScrapPurchaseDay
+- Does not advance day
+- Does not damage hull
+- Sets returnedForService
+- Adds a log entry
+- Shows clear toast feedback
+- Autosaves and re-renders the UI
 
-ISSUES ADDRESSED
-- Brasswake could slide from one hex to another without first facing the destination.
-- The render loop applied a decorative yaw sway every frame, which would prevent persistent travel heading.
-- Older saves had no stored fortress-facing field.
+STEEL ECONOMY PRESERVED
+The patch did not broadly rebalance existing steel sources or costs. Existing steel sources remain primary:
+- Salvage wreck fields
+- Steel resource nodes
+- Ruins
+- Combat victory
+- Emergency Drift/Scavenge chance
+- Foundry steel bonuses
 
-FIXES MADE
-- Added persistent game.fortressFacing state with a safe default for new and loaded campaigns.
-- Added angle normalization and shortest-turn helpers for stable Three.js Y rotation.
-- Added destination-facing math that treats the model's local/world -X direction as the bow.
-- Updated travel animation to rotate in place first, then move along the current jump.
-- Updated map rebuild/position refresh to restore the saved fortress facing.
-- Removed the old idle yaw override so Brasswake remains pointed in its last travel direction after arrival.
+Existing steel spending remains intact:
+- Port repairs
+- Room construction
+- Upgrade purchases
+- Combat emergency repairs
+- Storm Keel research costs
+
+ROADMAP / BIBLE UPDATE
+The in-game Help, Build Notes, Navigation Doctrine, Next Campaign Goals, and Future Balance Review now document the Emergency Steel Recovery Valve. Future tuning hooks are noted for faction pricing, stock limits, Foundry conversion bonuses, industrial skyport discounts, hostile blockade markups, and black-market bulk scrap.
 
 PRESERVED
-- No early freeform direct travel.
-- Gate-locked Current Gate / Jet Stream travel.
-- Clockwork Navigator / Celestial Navigation Automaton.
-- Plot Capacity: 1 Jump.
-- Captain's Orders and Open Command.
-- Current combat balance.
-- Singleton music behavior.
-- External MP3 assets under assets/audio/music/.
-- Single-file HTML game using Three.js CDN.
+- Single-file HTML structure
+- Existing Three.js CDN approach
+- Gate-locked Current Gate / Jet Stream travel
+- No early freeform direct travel
+- Clockwork Navigator / Celestial Navigation Automaton
+- Plot Capacity: 1 Jump
+- Captain's Orders onboarding
+- Modular Brasswake rooms/upgrades/status
+- Route plotting and route events
+- Existing combat balance
+- Save/load/autosave behavior, with older-save-safe flag defaults
 
-VALIDATION
-- JavaScript extracted from index.html and syntax checked.
-- Inline onclick handlers checked for missing global functions.
-- Version strings checked for v0.26.06.20.1245.
-- Three.js CDN reference checked.
-- Relative external music paths checked.
-- Referenced music files checked.
-- No embedded audio data URLs found.
-- No embedded playable preview created.
+VALIDATION PERFORMED
+- Extracted JavaScript and ran node --check successfully
+- Checked inline onclick handlers; no missing function references found
+- Confirmed all version strings use v0.26.06.20.1322
+- Confirmed SAVE_KEY uses IK_SKY_FORTRESS_COMMAND_v0_26_06_20_1322
+- Confirmed Dockyard Scrap Purchase is rendered only inside the skyport/settlement service block
+- Confirmed the purchase function validates location, daily limit, steel cap, and gold cost
+- Confirmed repair, fuel purchase, and settlement contract functions were preserved
+- Confirmed no route/travel/combat systems were rewritten
+- No embedded playable preview was created
 
-DEFERRED
-- No route-rule changes, combat balance changes, music-system changes, or fortress model redesigns were attempted.
-- Live browser/game-feel verification should still be done by riding a one-hop Current and then a continued plotted route.
+IMPORTANT SOURCE NOTE
+The uploaded source file for this patch reported v0.26.06.18.1400. If you intended to patch a newer local build such as v0.26.06.20.1245 with music integration and directional travel, do not overwrite that newer build with this package. Upload that newer index.html and this same patch can be applied there.
