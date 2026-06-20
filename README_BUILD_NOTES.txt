@@ -1,27 +1,51 @@
 IRON KINGDOMS: SKY FORTRESS COMMAND
-Music Integration Patch
-Version: v0.26.06.19.music
+Version: v0.26.06.19.2148
 
-Build contents:
-- index.html
-- assets/audio/music/loops/
-- assets/audio/music/stingers/
+Focused QA stabilization pass.
 
-Patch summary:
-- Updated visible title, version label, VERSION constant, SAVE_KEY, package folder, and build notes to v0.26.06.19.music.
-- Added a browser-safe JavaScript music manager with track registry, state-based loop playback, stingers, crossfading, user-interaction audio unlock, mute toggle, volume slider, localStorage music settings, and missing-file fail-safes.
-- Copied and renamed generated MP3s into web-safe lowercase snake_case filenames under assets/audio/music/.
-- Registered primary and alternate music variants for map, Brasswake management, Navigator, route types, locations, combat types, factions, late-game, Storm Keel, and credits.
-- Wired high-confidence existing game states: title, new campaign/tutorial, map/arrival contexts, right-panel tabs, Navigator plotting, Current travel by route type, location events, pre-combat/combat, victory, defeat, retreat, Saint Elmo boost, and Storm Keel unlock.
-- Preserved gate-locked Current Gate travel, route/event logic, combat balance, and the existing single-file HTML code approach.
+SOURCE OF TRUTH CHECK
+- Title before patch used the previous suffixed music build label
+- Visible versionLabel before patch used the previous suffixed music build label
+- VERSION before patch used the previous suffixed music build label
+- SAVE_KEY before patch used the previous suffixed music build label
+- Build notes before patch mixed older HUD-polish and music-integration labels
+- External music paths are referenced under assets/audio/music/
+- Build appears to be the music singleton / double-play prevention build
 
-Browser note:
-Most browsers block autoplay. Music begins only after the first player click/tap/key press.
+FINDINGS
+Critical: no syntax crash found.
+High: stale version/build-note strings; failed next-loop crossfade could lose the intended active loop.
+Medium: save/load/reset and save-status paths needed storage/DOM guards; stinger play-block warnings could repeat.
+Low: README/package notes were stale.
 
-Validation performed:
+FIXES MADE
+- Aligned title, visible label, VERSION, SAVE_KEY, manifest, README files, and in-game notes to v0.26.06.19.2148.
+- Hardened save/load/reset and save-status UI flows.
+- Restored the previous fading loop as active if a new music loop fails during crossfade.
+- De-duplicated stinger play-block warnings.
+- Added small null guards for toast, modal, log, version-label, and title load-button updates.
+
+PRESERVED
+- Gate-locked Current Gate / Jet Stream travel.
+- No early freeform direct travel.
+- Clockwork Navigator / Celestial Navigation Automaton.
+- Plot Capacity: 1 Jump.
+- Captain's Orders onboarding.
+- Brasswake status, rooms, upgrades, factions, tech, route, travel, and combat systems.
+- Existing combat balance.
+- External MP3 assets under assets/audio/music/.
+- Singleton music behavior with one active loop and one optional fading loop.
+- Non-looping stingers.
+- No embedded playable preview.
+
+VALIDATION
 - JavaScript extracted from index.html and checked with node --check.
-- Version strings checked for consistency.
-- Music files copied/renamed from the uploaded ZIP.
+- Inline onclick handlers checked for missing global functions.
+- Duplicate function declarations checked.
+- Version strings checked for v0.26.06.19.2148.
+- Relative external music paths checked.
+- Three.js CDN single-file HTML approach preserved.
+- MP3 files remain external and are not base64 embedded.
 
-Missing source files while packaging:
-- None
+OUT OF SCOPE
+- Route balance, combat balance, major UI redesign, and new feature work were intentionally left unchanged.

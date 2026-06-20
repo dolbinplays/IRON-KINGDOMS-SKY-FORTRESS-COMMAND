@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.19.music2</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.19.2148</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <style>
     :root {
@@ -1333,7 +1333,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.19.music2</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.19.2148</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1413,7 +1413,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.19.music2 · Single-file HTML code · External MP3 music assets · Three.js CDN build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.19.2148 · Single-file HTML code · External MP3 music assets · Three.js CDN build</p>
     </div>
   </div>
 </div>
@@ -1424,8 +1424,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.19.music2';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_19_music2';
+const VERSION = 'v0.26.06.19.2148';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_19_2148';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -1532,7 +1532,7 @@ let currentHudAlert = null;
 let deferredToastText = null;
 
 // =============================================================
-// MUSIC MANAGER - v0.26.06.19.music2 / singleton double-play prevention
+// MUSIC MANAGER - v0.26.06.19.2148 / singleton double-play prevention
 // =============================================================
 const MUSIC_SETTINGS_KEY = SAVE_KEY + '_MUSIC_SETTINGS';
 const MUSIC_TRACKS = {
@@ -2270,7 +2270,15 @@ const MusicManager = (() => {
         warnedMissing.add(pick.src);
         console.warn('Music file missing or could not be decoded:', pick.src);
       }
-      if (activeLoop && activeLoop !== audio) activeLoop.volume = effectiveVolume();
+      if (activeLoop === audio && fadingLoop && fadingLoop !== audio) {
+        cancelFadeTimerOnly();
+        activeLoop = fadingLoop;
+        fadingLoop = null;
+        crossfadeActive = false;
+        activeLoop.volume = effectiveVolume();
+      } else if (activeLoop && activeLoop !== audio) {
+        activeLoop.volume = effectiveVolume();
+      }
       cleanupLoopAudio(audio, 'loop-error');
       updateMusicUI('Music unavailable: ' + (pick.title || stateName));
       enforceSingleLoopAudio('loop-error');
@@ -2418,7 +2426,11 @@ const MusicManager = (() => {
       const p = stinger.play();
       if (p && typeof p.catch === 'function') {
         p.catch(err => {
-          console.warn('Stinger play deferred or blocked:', err && err.message ? err.message : err);
+          const warnKey = 'stinger-play:' + (stinger.dataset.stingerName || pick.src || 'unknown');
+          if (!warnedMissing.has(warnKey)) {
+            warnedMissing.add(warnKey);
+            console.warn('Stinger play deferred or blocked:', err && err.message ? err.message : err);
+          }
           cleanupStinger(stinger, 'play-blocked');
         });
       }
@@ -2527,7 +2539,7 @@ const MusicManager = (() => {
 
 
 
-function enforceSingleLoopAudio(reason = 'manual') {
+function enforceMusicSingleton(reason = 'manual') {
   MusicManager.enforceSingleLoopAudio(reason);
 }
 
@@ -2653,8 +2665,17 @@ function distance2D(a, b) { return Math.hypot(a.x - b.x, a.z - b.z); }
 window.addEventListener('load', () => {
   MusicManager.init();
   MusicManager.playMusicState('title');
-  document.getElementById('versionLabel').textContent = VERSION;
-  document.getElementById('loadTitleBtn').disabled = !localStorage.getItem(SAVE_KEY);
+  const versionLabel = document.getElementById('versionLabel');
+  if (versionLabel) versionLabel.textContent = VERSION;
+  const loadTitleBtn = document.getElementById('loadTitleBtn');
+  if (loadTitleBtn) {
+    try {
+      loadTitleBtn.disabled = !localStorage.getItem(SAVE_KEY);
+    } catch (err) {
+      loadTitleBtn.disabled = true;
+      console.warn('Save availability could not be checked.', err);
+    }
+  }
   if (!window.THREE) {
     document.getElementById('threeError').style.display = 'flex';
     return;
@@ -3682,7 +3703,7 @@ function createLocationMarker(loc) {
 }
 
 function createFortressModel() {
-  // Procedural Brasswake marker v0.26.06.19.music2
+  // Procedural Brasswake marker v0.26.06.19.2148
   // Lightweight in-game representation of the starting fortress: a modular hex-built sky city.
   // Future fortress-builder work can map actual rooms/upgrades to these visible hex modules.
   const group = new THREE.Group();
@@ -4502,16 +4523,26 @@ function renderFactionsPanel() {
 
 
 function renderLog() {
+  const eventLog = document.getElementById('eventLog');
+  if (!eventLog || !game) return;
   const log = game.log.slice(-9).reverse();
-  document.getElementById('eventLog').innerHTML = log.map(item => `<div class="logItem"><strong>Day ${item.day}:</strong> ${item.text}</div>`).join('');
+  eventLog.innerHTML = log.map(item => `<div class="logItem"><strong>Day ${item.day}:</strong> ${item.text}</div>`).join('');
 }
 
 function updateSaveStatus() {
+  const saveStatus = document.getElementById('saveStatus');
+  if (!saveStatus) return;
+  let hasSave = false;
+  try {
+    hasSave = !!localStorage.getItem(SAVE_KEY);
+  } catch (err) {
+    console.warn('Save status could not be checked.', err);
+  }
   if (!game) {
-    document.getElementById('saveStatus').textContent = localStorage.getItem(SAVE_KEY) ? 'Save Available' : 'No Campaign';
+    saveStatus.textContent = hasSave ? 'Save Available' : 'No Campaign';
     return;
   }
-  document.getElementById('saveStatus').textContent = game.saveStatus || (localStorage.getItem(SAVE_KEY) ? `Saved Day ${game.day}` : 'Unsaved Campaign');
+  saveStatus.textContent = game.saveStatus || (hasSave ? `Saved Day ${game.day}` : 'Unsaved Campaign');
 }
 
 function tutorialSteps() {
@@ -4669,7 +4700,8 @@ function autoSave(label = 'Autosaved') {
   game.saveStatus = `${label} Day ${game.day}`;
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(game));
-    document.getElementById('loadTitleBtn').disabled = false;
+    const loadTitleBtn = document.getElementById('loadTitleBtn');
+    if (loadTitleBtn) loadTitleBtn.disabled = false;
     updateSaveStatus();
   } catch (err) {
     console.warn('Autosave failed', err);
@@ -5683,19 +5715,25 @@ function saveGame() {
   if (!game) return showToast('No campaign to save.');
   game.version = VERSION;
   const payload = JSON.stringify(game);
-  localStorage.setItem(SAVE_KEY, payload);
+  try {
+    localStorage.setItem(SAVE_KEY, payload);
+  } catch (err) {
+    console.warn('Save could not be written.', err);
+    return showToast('Save could not be written. Browser storage may be unavailable.');
+  }
   game.saveStatus = `Saved Day ${game.day}`;
   addLog('Campaign saved to local storage.');
   showToast('Campaign saved.');
   updateSaveStatus();
-  document.getElementById('loadTitleBtn').disabled = false;
+  const loadTitleBtn = document.getElementById('loadTitleBtn');
+  if (loadTitleBtn) loadTitleBtn.disabled = false;
   renderLog();
 }
 
 function loadGame(fromTitle = false) {
-  const raw = localStorage.getItem(SAVE_KEY);
-  if (!raw) return showToast('No save found.');
   try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return showToast('No save found.');
     const loaded = JSON.parse(raw);
     if (!loaded || !loaded.version) throw new Error('Missing save metadata.');
     if (loaded.version !== VERSION) {
@@ -5713,7 +5751,7 @@ function loadGame(fromTitle = false) {
     addLog('Campaign loaded from local storage.');
     showToast('Campaign loaded.');
   } catch (err) {
-    console.error(err);
+    console.warn('Save load failed.', err);
     showToast('Save could not be loaded. It may be incompatible or corrupted.');
   }
 }
@@ -5757,10 +5795,17 @@ function confirmReset() {
 }
 
 function resetSave() {
-  localStorage.removeItem(SAVE_KEY);
+  try {
+    localStorage.removeItem(SAVE_KEY);
+  } catch (err) {
+    console.warn('Save could not be reset.', err);
+    showToast('Save could not be reset. Browser storage may be unavailable.');
+    return;
+  }
   closeModal();
   showToast('Save reset.');
-  document.getElementById('loadTitleBtn').disabled = true;
+  const loadTitleBtn = document.getElementById('loadTitleBtn');
+  if (loadTitleBtn) loadTitleBtn.disabled = true;
   updateSaveStatus();
 }
 
@@ -5891,6 +5936,7 @@ function resetSelectedPanelScrollSoon() {
 // =============================================================
 function showToast(text) {
   const t = document.getElementById('toast');
+  if (!t) return;
   const modalActive = document.getElementById('modalOverlay')?.classList.contains('active');
   if (modalActive && isTraveling) {
     deferredToastText = cleanToastText(text);
@@ -5916,8 +5962,11 @@ function showToast(text) {
 }
 
 function showModal(html) {
-  document.getElementById('modalContent').innerHTML = html;
-  document.getElementById('modalOverlay').classList.add('active');
+  const content = document.getElementById('modalContent');
+  const overlay = document.getElementById('modalOverlay');
+  if (!content || !overlay) return;
+  content.innerHTML = html;
+  overlay.classList.add('active');
 }
 
 function showHelp() {
@@ -5947,13 +5996,12 @@ function showHelp() {
 }
 
 function showBuildNotes() {
-  showModal(`<h1>Build Notes — ${VERSION}</h1>
-    <p><strong>Implemented:</strong> v0.26.06.19.music2 is a focused music singleton / double-play prevention patch. It keeps the external MP3 music assets, but refactors the browser music manager so only one looping music state can remain active at a time.</p>
-    <p><strong>Audio:</strong> music files live under <code>assets/audio/music/</code>. Browser audio unlock is required before playback begins, and the game continues running if music files are missing. The manager now tracks one active loop, one optional fading loop, short-lived non-looping stingers, stale-audio cleanup, fade generation tokens, and a debug line showing current state/file/loop count/fade status. Current Gate travel, combat balance, and route/event logic are preserved.</p>
-    <p><strong>Selected Location flow:</strong> location name, tags, description, distance/fuel, and the primary action now stay ahead of Navigator detail, route previews, legends, and readiness blocks. Enemy, resource, salvage, contract, ruin, and storm actions are easier to find when Brasswake is already at the site.</p>
-    <p><strong>Captain's Orders / Open Command:</strong> the combat-training nudge now changes from Plot Route to Continue Plotted Route when a Clockwork Navigator route is already active, and it points the player back to the left-panel Ride Locked Jump button when appropriate. The compact Captain's Wings badge is hidden in bottom-right Open Command mode to prevent clipping.</p>
-    <p><strong>Navigation preserved:</strong> Celestial Navigation Automaton / Clockwork Navigator remains installed with Plot Capacity: 1 Jump. Gate-locked early travel, multi-hop route context, tolls, blockade warnings, route events, and one-current-at-a-time travel are preserved. Storm Keel temporary current creation remains locked.</p>
-    <p><strong>Roadmap/Bible foundation:</strong> Saint Elmo Navigation Core remains a future advanced navigation component; Astrolabe Engine remains a future built-in alternate navigation system; Brasswake should continue evolving into a modular flying fortress/city with room/module links; faction gate diplomacy should grow into permits, inspections, blockades, favored routes, and smuggler alternatives.</p>
+  showModal(`<h1>Build Notes - ${VERSION}</h1>
+    <p><strong>QA stabilization:</strong> this build keeps the single-file HTML game code, Three.js CDN loading, and external MP3 music assets under <code>assets/audio/music/</code>. Version labels, save key, title, package notes, and manifest version were aligned to ${VERSION}.</p>
+    <p><strong>Issues found:</strong> stale suffixed version strings were split across the HTML, manifest, and README notes; save/load/reset paths could throw if browser storage or title-screen DOM nodes were unavailable; and a missing music loop during crossfade could leave the manager without a clean active-loop fallback.</p>
+    <p><strong>Fixes made:</strong> storage reads/writes now fail gracefully with player-facing toasts, save-status UI updates guard missing nodes, repeated stinger play-block warnings are de-duplicated, and failed loop loads promote the previous fading loop back to active music before cleanup.</p>
+    <p><strong>Preserved:</strong> gate-locked Current Gate / Jet Stream travel, Clockwork Navigator route plotting, Plot Capacity: 1 Jump, Captain's Orders onboarding, modular Brasswake rooms/upgrades/status, route tolls/events, combat balance, and the singleton music model with one active loop plus one optional fading loop.</p>
+    <p><strong>Validation:</strong> JavaScript syntax, inline button handlers, version strings, external music paths, and package contents were checked for this build. No embedded playable preview is included.</p>
     ${roadmapDoctrineHTML()}
     ${nextCampaignGoalsHTML()}
     ${balanceRoadmapHTML()}
