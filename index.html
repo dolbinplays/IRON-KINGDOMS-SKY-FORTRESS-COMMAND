@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.19.music</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.19.music2</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <style>
     :root {
@@ -1333,7 +1333,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.19.music</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.19.music2</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1378,6 +1378,7 @@
         <button class="btn ghost" id="musicToggleBtn" onclick="toggleMusicMuted()">Music On</button>
         <input id="musicVolumeSlider" type="range" min="0" max="100" value="42" oninput="onMusicVolumeInput(this.value)" aria-label="Music volume" />
         <div class="nowPlaying" id="nowPlayingLabel">Music queued until first click.</div>
+        <div class="nowPlaying" id="musicDebugLabel">Debug: state=title · file=none · loops=0 · fade=no</div>
       </div>
     </div>
     <div class="logPanel">
@@ -1412,7 +1413,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.19.music · Single-file HTML code · External MP3 music assets · Three.js CDN build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.19.music2 · Single-file HTML code · External MP3 music assets · Three.js CDN build</p>
     </div>
   </div>
 </div>
@@ -1423,8 +1424,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.19.music';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_19_music';
+const VERSION = 'v0.26.06.19.music2';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_19_music2';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -1531,7 +1532,7 @@ let currentHudAlert = null;
 let deferredToastText = null;
 
 // =============================================================
-// MUSIC MANAGER - v0.26.06.19.music
+// MUSIC MANAGER - v0.26.06.19.music2 / singleton double-play prevention
 // =============================================================
 const MUSIC_SETTINGS_KEY = SAVE_KEY + '_MUSIC_SETTINGS';
 const MUSIC_TRACKS = {
@@ -2145,24 +2146,30 @@ const MUSIC_STINGERS = {
 
 const MusicManager = (() => {
   let unlocked = false;
-  let currentAudio = null;
-  let fadingAudio = null;
+  let activeLoop = null;
+  let fadingLoop = null;
   let currentState = null;
-  let currentSource = '';
+  let currentTrackPath = '';
   let currentTitle = '';
   let pendingState = 'title';
   let musicVolume = 0.42;
   let musicMuted = false;
   let fadeTimer = null;
-  let stingerAudio = null;
+  let fadeToken = 0;
+  let unlockAttempted = false;
+  let crossfadeActive = false;
+  const managerLoops = new Set();
+  const activeStingers = new Set();
   const warnedMissing = new Set();
+  const unlockEvents = ['pointerdown', 'click', 'keydown', 'touchstart'];
 
   function init() {
     loadSettings();
     updateMusicUI();
-    ['pointerdown', 'click', 'keydown', 'touchstart'].forEach(evt => {
+    unlockEvents.forEach(evt => {
       window.addEventListener(evt, unlockFromUserGesture, { once: true, passive: true });
     });
+    enforceSingleLoopAudio('init');
   }
 
   function loadSettings() {
@@ -2186,8 +2193,13 @@ const MusicManager = (() => {
   }
 
   function unlockFromUserGesture() {
+    if (unlocked || unlockAttempted) return;
+    unlockAttempted = true;
     unlocked = true;
-    if (pendingState) playMusicState(pendingState, { force: true, fadeMs: 650 });
+    unlockEvents.forEach(evt => window.removeEventListener(evt, unlockFromUserGesture));
+    enforceSingleLoopAudio('audio-unlock-before-play');
+    if (pendingState) playMusicState(pendingState, { force: true, fadeMs: 650, primary: true });
+    enforceSingleLoopAudio('audio-unlock-after-play');
     updateMusicUI();
   }
 
@@ -2205,6 +2217,68 @@ const MusicManager = (() => {
     return def.files[Math.floor(Math.random() * def.files.length)] || def.files[0];
   }
 
+  function isLoopPlayable(audio) {
+    return !!audio && !audio.paused && !audio.ended;
+  }
+
+  function safePause(audio) {
+    if (!audio) return;
+    try { audio.pause(); } catch (err) { /* no-op */ }
+  }
+
+  function safeReset(audio, clearSrc = false) {
+    if (!audio) return;
+    try { audio.loop = false; } catch (err) { /* no-op */ }
+    safePause(audio);
+    try { audio.currentTime = 0; } catch (err) { /* no-op */ }
+    if (clearSrc) {
+      try {
+        audio.removeAttribute('src');
+        audio.load();
+      } catch (err) { /* no-op */ }
+    }
+  }
+
+  function cleanupLoopAudio(audio, reason = 'cleanup') {
+    if (!audio) return;
+    safeReset(audio, true);
+    managerLoops.delete(audio);
+    if (fadingLoop === audio) fadingLoop = null;
+    if (activeLoop === audio) activeLoop = null;
+  }
+
+  function cancelCrossfade(reason = 'cancel-crossfade') {
+    fadeToken += 1;
+    if (fadeTimer) {
+      clearInterval(fadeTimer);
+      fadeTimer = null;
+    }
+    crossfadeActive = false;
+    if (fadingLoop && fadingLoop !== activeLoop) cleanupLoopAudio(fadingLoop, reason);
+    fadingLoop = null;
+  }
+
+  function createLoopAudio(pick, stateName) {
+    const audio = new Audio(pick.src);
+    audio.loop = true;
+    audio.preload = 'auto';
+    audio.volume = 0;
+    audio.dataset.musicState = stateName;
+    audio.dataset.musicSrc = pick.src;
+    audio.addEventListener('error', () => {
+      if (!warnedMissing.has(pick.src)) {
+        warnedMissing.add(pick.src);
+        console.warn('Music file missing or could not be decoded:', pick.src);
+      }
+      if (activeLoop && activeLoop !== audio) activeLoop.volume = effectiveVolume();
+      cleanupLoopAudio(audio, 'loop-error');
+      updateMusicUI('Music unavailable: ' + (pick.title || stateName));
+      enforceSingleLoopAudio('loop-error');
+    });
+    managerLoops.add(audio);
+    return audio;
+  }
+
   function playMusicState(stateName, options = {}) {
     const def = MUSIC_TRACKS[stateName];
     if (!def || !def.files || !def.files.length) {
@@ -2214,125 +2288,201 @@ const MusicManager = (() => {
       }
       return;
     }
+
     pendingState = stateName;
     if (!unlocked) {
-      currentState = stateName;
       currentTitle = def.name || stateName;
       updateMusicUI('Queued: ' + currentTitle);
+      enforceSingleLoopAudio('queued-before-unlock');
       return;
     }
-    if (!options.force && currentState === stateName && currentAudio && !currentAudio.paused && !currentAudio.ended) {
+
+    // Debounce repeated state requests from render/update cycles. Do not re-roll alt tracks while already in the same state.
+    if (!options.force && stateName === currentState && isLoopPlayable(activeLoop)) {
       updateMusicUI();
+      enforceSingleLoopAudio('same-state-request');
       return;
     }
+
     const pick = chooseFile(def, options);
     if (!pick || !pick.src) return;
-    if (!options.force && currentSource === pick.src && currentAudio && !currentAudio.paused) {
-      currentState = stateName;
-      currentTitle = pick.title || def.name || stateName;
+    const selectedTrackPath = pick.src;
+
+    if (!options.force && stateName === currentState && currentTrackPath === selectedTrackPath && isLoopPlayable(activeLoop)) {
       updateMusicUI();
+      enforceSingleLoopAudio('same-track-request');
       return;
     }
-    const nextAudio = new Audio(pick.src);
+
+    // Important: clear any older interrupted fade before creating the next loop. This prevents orphaned half-faded tracks.
+    cancelCrossfade('new-state-request');
+    enforceSingleLoopAudio('before-new-loop');
+
+    const nextAudio = createLoopAudio(pick, stateName);
+    currentState = stateName;
+    currentTrackPath = selectedTrackPath;
+    currentTitle = pick.title || def.name || stateName;
+
+    beginCrossfadeTo(nextAudio, options.fadeMs ?? 1800);
+    updateMusicUI();
+    enforceSingleLoopAudio('after-playMusicState');
+  }
+
+  function beginCrossfadeTo(nextAudio, fadeMs) {
+    const oldAudio = activeLoop && activeLoop !== nextAudio ? activeLoop : null;
+    const duration = Math.max(120, fadeMs || 0);
+    const token = ++fadeToken;
+    cancelFadeTimerOnly();
+
+    if (fadingLoop && fadingLoop !== oldAudio && fadingLoop !== nextAudio) cleanupLoopAudio(fadingLoop, 'replace-fading-loop');
+    fadingLoop = oldAudio;
+    activeLoop = nextAudio;
+    crossfadeActive = !!oldAudio;
+
     nextAudio.loop = true;
-    nextAudio.preload = 'auto';
-    nextAudio.volume = 0;
-    nextAudio.addEventListener('error', () => {
-      if (!warnedMissing.has(pick.src)) {
-        warnedMissing.add(pick.src);
-        console.warn('Music file missing or could not be decoded:', pick.src);
-      }
-      if (currentAudio && currentAudio !== nextAudio) currentAudio.volume = effectiveVolume();
-      updateMusicUI('Music unavailable: ' + (pick.title || stateName));
-    });
+    nextAudio.volume = oldAudio ? 0 : effectiveVolume();
+
     const playPromise = nextAudio.play();
     if (playPromise && typeof playPromise.catch === 'function') {
       playPromise.catch(err => {
-        if (!warnedMissing.has('play:' + pick.src)) {
-          warnedMissing.add('play:' + pick.src);
+        if (!warnedMissing.has('play:' + (nextAudio.dataset.musicSrc || 'unknown'))) {
+          warnedMissing.add('play:' + (nextAudio.dataset.musicSrc || 'unknown'));
           console.warn('Music play deferred or blocked:', err && err.message ? err.message : err);
         }
       });
     }
-    fadeTo(nextAudio, options.fadeMs ?? 1800);
-    currentState = stateName;
-    currentSource = pick.src;
-    currentTitle = pick.title || def.name || stateName;
-    updateMusicUI();
-  }
 
-  function fadeTo(nextAudio, fadeMs) {
-    clearInterval(fadeTimer);
-    const oldAudio = currentAudio;
-    fadingAudio = oldAudio;
-    currentAudio = nextAudio;
-    const duration = Math.max(120, fadeMs || 0);
+    if (!oldAudio || duration <= 130) {
+      if (oldAudio) cleanupLoopAudio(oldAudio, 'instant-replace');
+      activeLoop = nextAudio;
+      fadingLoop = null;
+      crossfadeActive = false;
+      nextAudio.volume = effectiveVolume();
+      enforceSingleLoopAudio('instant-fade-complete');
+      return;
+    }
+
     const started = performance.now();
-    const oldStartVolume = oldAudio ? oldAudio.volume : 0;
-    nextAudio.volume = 0;
+    const oldStartVolume = oldAudio.volume || effectiveVolume();
     fadeTimer = setInterval(() => {
+      if (token !== fadeToken) {
+        clearInterval(fadeTimer);
+        fadeTimer = null;
+        return;
+      }
       const t = clamp((performance.now() - started) / duration, 0, 1);
       const target = effectiveVolume();
       if (nextAudio) nextAudio.volume = target * t;
       if (oldAudio) oldAudio.volume = oldStartVolume * (1 - t);
       if (t >= 1) {
         clearInterval(fadeTimer);
-        if (oldAudio) {
-          oldAudio.pause();
-          oldAudio.currentTime = 0;
-        }
+        fadeTimer = null;
+        if (oldAudio) cleanupLoopAudio(oldAudio, 'fade-complete');
         if (nextAudio) nextAudio.volume = target;
-        fadingAudio = null;
+        fadingLoop = null;
+        crossfadeActive = false;
+        enforceSingleLoopAudio('crossfade-complete');
+        updateMusicUI();
       }
     }, 50);
   }
 
+  function cancelFadeTimerOnly() {
+    if (fadeTimer) {
+      clearInterval(fadeTimer);
+      fadeTimer = null;
+    }
+  }
+
   function playStinger(stingerName, options = {}) {
     const def = MUSIC_STINGERS[stingerName];
-    if (!def || !def.files || !def.files.length) return;
+    if (!def || !def.files || !def.files.length || !unlocked) return;
     const pick = chooseFile(def, options);
     if (!pick || !pick.src) return;
-    if (!unlocked) return;
     try {
-      if (stingerAudio) { stingerAudio.pause(); stingerAudio.currentTime = 0; }
-      stingerAudio = new Audio(pick.src);
-      stingerAudio.loop = false;
-      stingerAudio.preload = 'auto';
-      stingerAudio.volume = effectiveVolume(options.volumeScale || 1.05);
-      if (currentAudio && options.duck !== false) currentAudio.volume = effectiveVolume(0.42);
-      stingerAudio.addEventListener('ended', () => {
-        if (currentAudio) currentAudio.volume = effectiveVolume();
-        updateMusicUI();
-      });
-      stingerAudio.addEventListener('error', () => {
+      const stinger = new Audio(pick.src);
+      stinger.loop = false;
+      stinger.preload = 'auto';
+      stinger.volume = effectiveVolume(options.volumeScale || 1.05);
+      stinger.dataset.stingerName = stingerName;
+      activeStingers.add(stinger);
+      if (activeLoop && options.duck !== false) activeLoop.volume = effectiveVolume(0.42);
+      stinger.addEventListener('ended', () => cleanupStinger(stinger, 'ended'));
+      stinger.addEventListener('error', () => {
         if (!warnedMissing.has(pick.src)) {
           warnedMissing.add(pick.src);
           console.warn('Stinger file missing or could not be decoded:', pick.src);
         }
-        if (currentAudio) currentAudio.volume = effectiveVolume();
+        cleanupStinger(stinger, 'error');
       });
-      const p = stingerAudio.play();
-      if (p && typeof p.catch === 'function') p.catch(err => console.warn('Stinger play deferred or blocked:', err && err.message ? err.message : err));
+      const p = stinger.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(err => {
+          console.warn('Stinger play deferred or blocked:', err && err.message ? err.message : err);
+          cleanupStinger(stinger, 'play-blocked');
+        });
+      }
+      enforceSingleLoopAudio('after-stinger-start');
     } catch (err) {
       console.warn('Unable to play stinger:', stingerName, err);
+      enforceSingleLoopAudio('stinger-exception');
     }
+  }
+
+  function cleanupStinger(stinger, reason = 'stinger-cleanup') {
+    if (!stinger) return;
+    safeReset(stinger, true);
+    activeStingers.delete(stinger);
+    if (activeLoop) activeLoop.volume = effectiveVolume();
+    enforceSingleLoopAudio('stinger-complete:' + reason);
+    updateMusicUI();
+  }
+
+  function enforceSingleLoopAudio(reason = 'unspecified') {
+    // Hard safety pass: manager-owned loops may only be activeLoop plus one fadingLoop during an active crossfade.
+    const allowed = new Set();
+    if (activeLoop) allowed.add(activeLoop);
+    if (crossfadeActive && fadingLoop) allowed.add(fadingLoop);
+
+    for (const audio of Array.from(managerLoops)) {
+      if (!allowed.has(audio)) cleanupLoopAudio(audio, 'enforce:' + reason);
+    }
+
+    if (!crossfadeActive && fadingLoop) cleanupLoopAudio(fadingLoop, 'enforce-no-crossfade:' + reason);
+
+    if (activeLoop) {
+      activeLoop.loop = true;
+      if (!crossfadeActive) activeLoop.volume = effectiveVolume();
+    }
+    if (fadingLoop) fadingLoop.loop = true;
+
+    const loops = Array.from(managerLoops);
+    if (loops.length > (crossfadeActive ? 2 : 1)) {
+      loops.forEach(audio => {
+        if (audio !== activeLoop && audio !== fadingLoop) cleanupLoopAudio(audio, 'enforce-over-limit:' + reason);
+      });
+    }
+    updateMusicUI();
   }
 
   function setVolume(value) {
     const n = typeof value === 'number' ? value : parseFloat(value);
     musicVolume = clamp(Number.isFinite(n) ? n : 0.42, 0, 1);
-    if (currentAudio) currentAudio.volume = effectiveVolume();
-    if (fadingAudio) fadingAudio.volume = Math.min(fadingAudio.volume, effectiveVolume());
-    if (stingerAudio) stingerAudio.volume = effectiveVolume(1.05);
+    if (activeLoop) activeLoop.volume = effectiveVolume();
+    if (fadingLoop) fadingLoop.volume = Math.min(fadingLoop.volume, effectiveVolume());
+    activeStingers.forEach(stinger => { stinger.volume = effectiveVolume(1.05); });
     saveSettings();
+    enforceSingleLoopAudio('set-volume');
     updateMusicUI();
   }
 
   function setMuted(value) {
     musicMuted = !!value;
-    if (currentAudio) currentAudio.volume = effectiveVolume();
-    if (stingerAudio) stingerAudio.volume = effectiveVolume(1.05);
+    if (activeLoop) activeLoop.volume = effectiveVolume();
+    if (fadingLoop) fadingLoop.volume = Math.min(fadingLoop.volume, effectiveVolume());
+    activeStingers.forEach(stinger => { stinger.volume = effectiveVolume(1.05); });
     saveSettings();
+    enforceSingleLoopAudio('set-muted');
     updateMusicUI();
   }
 
@@ -2340,20 +2490,46 @@ const MusicManager = (() => {
     const toggle = document.getElementById('musicToggleBtn');
     const slider = document.getElementById('musicVolumeSlider');
     const label = document.getElementById('nowPlayingLabel');
+    const debug = document.getElementById('musicDebugLabel');
     if (toggle) toggle.textContent = musicMuted ? 'Music Off' : 'Music On';
     if (slider && document.activeElement !== slider) slider.value = String(Math.round(musicVolume * 100));
     if (label) {
       const base = overrideLabel || (currentTitle ? (unlocked ? 'Now Playing: ' : 'Queued: ') + currentTitle : 'Music ready.');
       label.textContent = base;
     }
+    if (debug) {
+      const file = currentTrackPath ? currentTrackPath.split('/').pop() : 'none';
+      debug.textContent = `Debug: state=${currentState || pendingState || 'none'} · file=${file} · loops=${managerLoops.size} · fade=${crossfadeActive ? 'yes' : 'no'}`;
+    }
   }
 
   function getCurrentState() { return currentState; }
+  function getCurrentTrackPath() { return currentTrackPath; }
+  function getLoopCount() { return managerLoops.size; }
   function getVolume() { return musicVolume; }
   function isMuted() { return musicMuted; }
 
-  return { init, playMusicState, playStinger, setVolume, setMuted, isMuted, getVolume, getCurrentState, updateMusicUI };
+  return {
+    init,
+    playMusicState,
+    playStinger,
+    setVolume,
+    setMuted,
+    isMuted,
+    getVolume,
+    getCurrentState,
+    getCurrentTrackPath,
+    getLoopCount,
+    enforceSingleLoopAudio,
+    updateMusicUI
+  };
 })();
+
+
+
+function enforceSingleLoopAudio(reason = 'manual') {
+  MusicManager.enforceSingleLoopAudio(reason);
+}
 
 function toggleMusicMuted() {
   MusicManager.setMuted(!MusicManager.isMuted());
@@ -3021,6 +3197,7 @@ function plotRouteTo(targetId) {
   game.selectedLocationId = path.nodeIds[1];
   MusicManager.playMusicState('navigator');
   MusicManager.playStinger('routeLocked', { duck: true, primary: true });
+  MusicManager.enforceSingleLoopAudio('route-locked');
   const target = getLocation(targetId);
   const nextHop = getLocation(path.nodeIds[1]);
   buildWorldMeshes();
@@ -3505,7 +3682,7 @@ function createLocationMarker(loc) {
 }
 
 function createFortressModel() {
-  // Procedural Brasswake marker v0.26.06.19.music
+  // Procedural Brasswake marker v0.26.06.19.music2
   // Lightweight in-game representation of the starting fortress: a modular hex-built sky city.
   // Future fortress-builder work can map actual rooms/upgrades to these visible hex modules.
   const group = new THREE.Group();
@@ -3987,6 +4164,7 @@ function startNewGame() {
   autoSave('Autosaved Day 1');
   showToast('Campaign started. Brasswake awaits orders.');
   MusicManager.playMusicState('captainsOrders', { fadeMs: 900 });
+  MusicManager.enforceSingleLoopAudio('campaign-start');
 }
 
 
@@ -4723,6 +4901,7 @@ function finishTravel(loc, days, mode) {
   renderUI();
   resetSelectedPanelScrollSoon();
   updateMusicForContext('arrival');
+  MusicManager.enforceSingleLoopAudio('travel-complete');
 }
 
 function autoLocationPulse(loc) {
@@ -5399,6 +5578,7 @@ function closeModal() {
   renderUI();
   resetSelectedPanelScrollSoon();
   updateMusicForContext('modal-close');
+  MusicManager.enforceSingleLoopAudio('modal-close');
 }
 
 // =============================================================
@@ -5768,8 +5948,8 @@ function showHelp() {
 
 function showBuildNotes() {
   showModal(`<h1>Build Notes — ${VERSION}</h1>
-    <p><strong>Implemented:</strong> v0.26.06.19.music is a focused Music Integration patch. It adds an external MP3 music asset folder, a lightweight browser-safe music manager, crossfading loop states, stingers, music settings, and registered alt versions for variety while preserving the v1400 first-session flow.</p>
-    <p><strong>Audio:</strong> music files live under <code>assets/audio/music/</code>. Browser audio unlock is required before playback begins, and the game should continue running if music files are missing. Current Gate travel, combat balance, and route/event logic are preserved.</p>
+    <p><strong>Implemented:</strong> v0.26.06.19.music2 is a focused music singleton / double-play prevention patch. It keeps the external MP3 music assets, but refactors the browser music manager so only one looping music state can remain active at a time.</p>
+    <p><strong>Audio:</strong> music files live under <code>assets/audio/music/</code>. Browser audio unlock is required before playback begins, and the game continues running if music files are missing. The manager now tracks one active loop, one optional fading loop, short-lived non-looping stingers, stale-audio cleanup, fade generation tokens, and a debug line showing current state/file/loop count/fade status. Current Gate travel, combat balance, and route/event logic are preserved.</p>
     <p><strong>Selected Location flow:</strong> location name, tags, description, distance/fuel, and the primary action now stay ahead of Navigator detail, route previews, legends, and readiness blocks. Enemy, resource, salvage, contract, ruin, and storm actions are easier to find when Brasswake is already at the site.</p>
     <p><strong>Captain's Orders / Open Command:</strong> the combat-training nudge now changes from Plot Route to Continue Plotted Route when a Clockwork Navigator route is already active, and it points the player back to the left-panel Ride Locked Jump button when appropriate. The compact Captain's Wings badge is hidden in bottom-right Open Command mode to prevent clipping.</p>
     <p><strong>Navigation preserved:</strong> Celestial Navigation Automaton / Clockwork Navigator remains installed with Plot Capacity: 1 Jump. Gate-locked early travel, multi-hop route context, tolls, blockade warnings, route events, and one-current-at-a-time travel are preserved. Storm Keel temporary current creation remains locked.</p>
