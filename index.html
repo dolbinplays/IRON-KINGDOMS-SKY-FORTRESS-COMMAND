@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.20.1139</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.20.1245</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <style>
     :root {
@@ -1429,7 +1429,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.20.1139</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.20.1245</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1513,7 +1513,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.20.1139 - Single-file HTML code - External MP3 music assets - Three.js CDN build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.20.1245 - Single-file HTML code - External MP3 music assets - Three.js CDN build</p>
     </div>
   </div>
 </div>
@@ -1524,12 +1524,13 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.20.1139';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_20_1139';
+const VERSION = 'v0.26.06.20.1245';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_20_1245';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
 const HEX_MAP_RADIUS = 5;
+const DEFAULT_FORTRESS_FACING = 0;
 
 const FACTIONS = {
   steam: { name: 'Steam Marshal', color: 0xb72d2d, accent: '#d64a37', flavor: 'Red imperial brass military power.' },
@@ -1633,7 +1634,7 @@ let deferredToastText = null;
 let combatResultMusicToken = 0;
 
 // =============================================================
-// MUSIC MANAGER - v0.26.06.20.1139 / singleton double-play prevention
+// MUSIC MANAGER - v0.26.06.20.1245 / singleton double-play prevention
 // =============================================================
 const MUSIC_SETTINGS_KEY = SAVE_KEY + '_MUSIC_SETTINGS';
 const MUSIC_TRACKS = {
@@ -2923,6 +2924,7 @@ function createNewState() {
     aiFleets: [],
     currentLocationId: 'loc_home',
     selectedLocationId: 'loc_home',
+    fortressFacing: DEFAULT_FORTRESS_FACING,
     plottedRoute: null,
     discovered: { loc_home: true },
     relations: {},
@@ -3030,6 +3032,38 @@ function hexToWorld(q, r) {
     x: HEX_SIZE * Math.sqrt(3) * (q + r / 2),
     z: HEX_SIZE * 1.5 * r
   };
+}
+
+function normalizeAngleRadians(angle) {
+  if (!Number.isFinite(angle)) return DEFAULT_FORTRESS_FACING;
+  let normalized = angle % (Math.PI * 2);
+  if (normalized <= -Math.PI) normalized += Math.PI * 2;
+  if (normalized > Math.PI) normalized -= Math.PI * 2;
+  return normalized;
+}
+
+function shortestAngleDelta(from, to) {
+  return normalizeAngleRadians(to - from);
+}
+
+function getFortressFacing() {
+  return normalizeAngleRadians(game?.fortressFacing);
+}
+
+function setFortressFacing(angle) {
+  const facing = normalizeAngleRadians(angle);
+  if (game) game.fortressFacing = facing;
+  if (fortressGroup) fortressGroup.rotation.y = facing;
+  return facing;
+}
+
+function fortressFacingToward(fromLoc, toLoc) {
+  if (!fromLoc || !toLoc) return getFortressFacing();
+  const dx = toLoc.x - fromLoc.x;
+  const dz = toLoc.z - fromLoc.z;
+  if (Math.hypot(dx, dz) < 0.001) return getFortressFacing();
+  // Brasswake's procedural bow points left at neutral rotation, which is local/world -X.
+  return normalizeAngleRadians(Math.atan2(dz, -dx));
 }
 
 function hexDistance(q1, r1, q2, r2) {
@@ -3832,7 +3866,7 @@ function createLocationMarker(loc) {
 }
 
 function createFortressModel() {
-  // Procedural Brasswake marker v0.26.06.20.1139
+  // Procedural Brasswake marker v0.26.06.20.1245
   // Lightweight in-game representation of the starting fortress: a modular hex-built sky city.
   // Future fortress-builder work can map actual rooms/upgrades to these visible hex modules.
   const group = new THREE.Group();
@@ -5913,6 +5947,7 @@ function normalizeLoadedGame() {
   game.upgrades = Object.assign({ engines: 0, armor: 0, weapons: 0, storage: 0, sensors: 0, repairs: 0, hangarCap: 0 }, game.upgrades || {});
   game.discovered = game.discovered || { [game.currentLocationId || 'loc_home']: true };
   game.plottedRoute = game.plottedRoute || null;
+  game.fortressFacing = normalizeAngleRadians(game.fortressFacing);
   game.locations.forEach(l => { l.discovered = !!game.discovered[l.id]; });
   game.hull = Math.max(1, game.hull || 80);
   game.hexTiles = game.hexTiles || generateHexTilesFromLocations(game.locations);
@@ -6127,9 +6162,9 @@ function showHelp() {
 
 function showBuildNotes() {
   showModal(`<h1>Build Notes - ${VERSION}</h1>
-    <p><strong>Navigator audio patch:</strong> this build addresses the player-reported double-music issue after using Captain's Orders to plot toward a Danger 1 enemy with the Clockwork Navigator.</p>
-    <p><strong>Fixes made:</strong> route plotting now hard-settles the previous loop before Navigator music starts; route-lock stingers are quieter, shorter, and self-cleaning; combat-result music restore ignores stale timers; stale direct-engine travel confirmation is hard-disabled; Command now lives behind a menu button and Captain's Orders sits in the left HUD above an expanded Selected Location panel.</p>
-    <p><strong>Roadmap notes:</strong> Open Command stays as the post-Captain's Orders planner with Chart, Secure, Prepare, and Investigate directives. The Celestial Navigation Automaton remains the official system name, Clockwork Navigator remains the public nickname, and starting Plot Capacity remains 1 Current Gate jump.</p>
+    <p><strong>Directional travel patch:</strong> Brasswake now turns in place to face the next Current Gate / Jet Stream hop before moving, then remains pointed in the direction it traveled after arrival.</p>
+    <p><strong>Fixes made:</strong> the procedural fortress marker now stores a persistent facing angle in campaign state, older saves receive a safe default facing, map rebuilds restore the stored rotation, and the travel tween runs as turn-then-move instead of sliding sideways between hexes.</p>
+    <p><strong>Model rule:</strong> the current left-pointing fortress segment is treated as Brasswake's bow. Rotation math converts the current hex-to-destination hex vector against that local -X bow direction.</p>
     <p><strong>Preserved:</strong> gate-locked Current Gate / Jet Stream travel, Clockwork Navigator route plotting, Plot Capacity: 1 Jump, Captain's Orders onboarding, modular Brasswake rooms/upgrades/status, route tolls/events, combat balance, and the singleton music model with one active loop plus one optional fading loop.</p>
     <p><strong>Validation:</strong> JavaScript syntax, inline button handlers, version strings, external music paths, and single-file HTML / Three.js CDN structure were checked. No embedded playable preview is included.</p>
     ${roadmapDoctrineHTML()}
@@ -6160,7 +6195,7 @@ function animate() {
     });
     if (fortressGroup.visible) {
       fortressGroup.position.y = 4.8 + Math.sin(elapsed * 1.6) * 0.18;
-      fortressGroup.rotation.y = -0.18 + Math.sin(elapsed * 0.6) * 0.08;
+      fortressGroup.rotation.y = getFortressFacing();
       // Subtle in-map life for Brasswake's arc-lift engines; no external assets required.
       fortressGroup.traverse(child => {
         if (child.userData?.arcLiftRing) {
@@ -6296,24 +6331,68 @@ function updateFortressPosition(animateMove = false) {
   if (!game || !fortressGroup) return;
   const loc = getLocation(game.currentLocationId);
   fortressGroup.position.set(loc.x, 4.8, loc.z);
+  fortressGroup.rotation.y = getFortressFacing();
   fortressGroup.visible = true;
 }
 
 function animateFortressTo(loc, done) {
+  if (!fortressGroup || !loc) {
+    done && done();
+    return;
+  }
   const start = fortressGroup.position.clone();
   const end = new THREE.Vector3(loc.x, 4.8, loc.z);
-  const startTime = performance.now();
-  const duration = 900;
-  function step() {
-    const t = clamp((performance.now() - startTime) / duration, 0, 1);
+  const fromLoc = getLocation(game?.currentLocationId);
+  const startFacing = getFortressFacing();
+  const targetFacing = fortressFacingToward(fromLoc, loc);
+  const facingDelta = shortestAngleDelta(startFacing, targetFacing);
+  const turnDuration = clamp(220 + Math.abs(facingDelta) * 170, 220, 560);
+  const moveDuration = 900;
+
+  function easeInOut(t) {
     const eased = t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2)/2;
-    fortressGroup.position.lerpVectors(start, end, eased);
-    cameraState.targetX = fortressGroup.position.x;
-    cameraState.targetZ = fortressGroup.position.z;
-    if (t < 1) requestAnimationFrame(step);
-    else done && done();
+    return eased;
   }
-  step();
+
+  function move() {
+    const moveStartTime = performance.now();
+    setFortressFacing(targetFacing);
+    function stepMove() {
+      const t = clamp((performance.now() - moveStartTime) / moveDuration, 0, 1);
+      const eased = easeInOut(t);
+      fortressGroup.position.lerpVectors(start, end, eased);
+      fortressGroup.rotation.y = targetFacing;
+      cameraState.targetX = fortressGroup.position.x;
+      cameraState.targetZ = fortressGroup.position.z;
+      if (t < 1) requestAnimationFrame(stepMove);
+      else {
+        fortressGroup.position.copy(end);
+        setFortressFacing(targetFacing);
+        done && done();
+      }
+    }
+    stepMove();
+  }
+
+  function turn() {
+    const turnStartTime = performance.now();
+    function stepTurn() {
+      const t = clamp((performance.now() - turnStartTime) / turnDuration, 0, 1);
+      const eased = easeInOut(t);
+      setFortressFacing(startFacing + facingDelta * eased);
+      cameraState.targetX = fortressGroup.position.x;
+      cameraState.targetZ = fortressGroup.position.z;
+      if (t < 1) requestAnimationFrame(stepTurn);
+      else move();
+    }
+    stepTurn();
+  }
+
+  if (Math.abs(facingDelta) < 0.015) {
+    move();
+  } else {
+    turn();
+  }
 }
 
 function refreshSelectionVisuals() {
