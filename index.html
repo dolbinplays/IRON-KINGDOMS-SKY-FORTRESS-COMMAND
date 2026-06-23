@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.22.2352</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.23.0005</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script type="importmap">
     { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -1653,7 +1653,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.22.2352</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.23.0005</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1739,7 +1739,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.22.2352 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.23.0005 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
     </div>
   </div>
 </div>
@@ -1750,8 +1750,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.22.2352';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_22_2352';
+const VERSION = 'v0.26.06.23.0005';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_23_0005';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -3624,11 +3624,40 @@ function tuneBrasswakeObject(root) {
   });
 }
 
+function sanitizeImportedBrasswakePart(root, partId = 'unknown') {
+  const strictMeshArtifact = /\b(helper|debug|camera\s*icon|light\s*icon|icon)\b/i;
+  const nonMeshArtifact = /\b(helper|debug|camera\s*icon|light\s*icon|icon)\b/i;
+  const helperTypes = new Set(['CameraHelper', 'LightHelper', 'AxesHelper', 'GridHelper', 'ArrowHelper', 'BoxHelper', 'Box3Helper']);
+  const removals = [];
+  root.traverse(child => {
+    if (child === root || child.userData?.keepBrasswakeDecoration) return;
+    const name = `${child.name || ''} ${child.type || ''}`.trim();
+    const isHelper = child.isHelper || helperTypes.has(child.type) || /Helper$/i.test(child.type || '');
+    const shouldRemove =
+      child.isCamera ||
+      child.isLight ||
+      isHelper ||
+      (!child.isMesh && nonMeshArtifact.test(name)) ||
+      (child.isMesh && strictMeshArtifact.test(name));
+    if (shouldRemove) removals.push(child);
+  });
+  removals.forEach(child => {
+    if (!child.parent) return;
+    child.parent.remove(child);
+    const warningKey = `sanitize-${partId}-${child.name || child.type || 'unnamed'}`;
+    if (!brasswakePartWarnings.has(warningKey)) {
+      console.warn(`Removed imported Brasswake helper artifact from ${partId}: ${child.name || child.type || child.uuid}`);
+      brasswakePartWarnings.add(warningKey);
+    }
+  });
+}
+
 function normalizeBrasswakePart(partId, object) {
   const def = BRASSWAKE_MODEL_PARTS[partId] || {};
   const root = new THREE.Group();
   root.name = `Brasswake Part ${partId}`;
   const clone = object.clone(true);
+  sanitizeImportedBrasswakePart(clone, partId);
   root.add(clone);
   tuneBrasswakeObject(clone);
   const box = new THREE.Box3().setFromObject(clone);
@@ -3792,7 +3821,7 @@ function refreshBrasswakeModel(group = fortressGroup) {
 }
 
 function createFortressModel() {
-  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.22.2352.
+  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.23.0005.
   const group = new THREE.Group();
   group.name = 'Brasswake Modular Hex Fortress Marker';
   group.userData.brasswakeMarker = true;
@@ -4175,8 +4204,11 @@ function createFortressModel() {
     bowLamp.name = 'Brasswake Bow Lantern';
     bowLamp.position.set(-2.64, 0.44, -0.02);
     bowLamp.userData.windowGlow = true;
+    bowLamp.userData.keepBrasswakeDecoration = true;
     hull.add(bowLamp);
     const bowLight = new THREE.PointLight(0xffd56a, 0.7, 3.8);
+    bowLight.name = 'Brasswake Bow Lantern Light';
+    bowLight.userData.keepBrasswakeDecoration = true;
     bowLight.position.copy(bowLamp.position);
     hull.add(bowLight);
 
@@ -4235,7 +4267,9 @@ function createFortressModel() {
 
   // A tiny forward lantern gives the marker a readable nose without turning it into a smooth ship hull.
   const noseLamp = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), mat.windowGlow);
+  noseLamp.name = 'Brasswake Nose Lantern - Procedural Decorative';
   noseLamp.position.set(0, 0.55, -hexRow * 1.52);
+  noseLamp.userData.keepBrasswakeDecoration = true;
   group.add(noseLamp);
 
   const proceduralFallback = new THREE.Group();
@@ -6369,7 +6403,9 @@ function createBuilderPreviewFoundationHull() {
   bow.rotation.y = Math.PI / 4;
   hull.add(bow);
   const bowLamp = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 8), glow);
+  bowLamp.name = 'Builder Preview Brasswake Bow Lantern';
   bowLamp.position.set(-2.64, 0.44, -0.02);
+  bowLamp.userData.keepBrasswakeDecoration = true;
   hull.add(bowLamp);
   const keel = new THREE.Mesh(new THREE.BoxGeometry(2.75, 0.12, 0.18), brass);
   keel.position.set(-0.08, -0.31, 0);
@@ -7021,15 +7057,13 @@ function showBuildNotes() {
 
 showBuildNotes = function() {
   showModal(`<h1>Build Notes - ${VERSION}</h1>
-    <p><strong>Selected Location expansion:</strong> the left HUD column now extends down to the Command Menu button, giving the Selected Location panel more vertical room.</p>
-    <p><strong>Action-first layout:</strong> route/travel and local action buttons now appear above route previews, navigator summaries, and secondary details so available choices are easier to see.</p>
-    <p><strong>Recommended Next:</strong> selected locations now show a compact next-step cue explaining whether to ride a Current, plot with the Clockwork Navigator, salvage, harvest, repair, trade, brave a storm, or review combat readiness.</p>
-    <p><strong>Post-arrival guidance:</strong> arrival toasts now point toward the best local action for salvage, resource, storm, enemy, ruin, contract, and service-port locations.</p>
-    <p><strong>Combat audio fix:</strong> combat state now clears before contextual music restoration, so battle music does not take over non-combat tiles and victory/retreat/defeat stingers can play as one-shots.</p>
+    <p><strong>Brasswake artifact cleanup:</strong> imported GLB parts are now sanitized before placement so embedded cameras, lights, helper objects, debug icons, or named icon/helper meshes cannot appear in the main fortress model.</p>
+    <p><strong>Intentional bow details preserved:</strong> the procedural bow and nose lanterns are explicitly marked as decorative fallback geometry, while imported camera/light/helper artifacts are stripped from cloned GLB scenes.</p>
+    <p><strong>Builder separation:</strong> Fortress Builder selection highlights remain builder-only and are not allowed to bleed into the main Brasswake assembly.</p>
     <p><strong>Recent work preserved:</strong> Command Menu audio controls, singleton MusicManager, Fortress Builder RotX/RotY/RotZ controls, Undo Last Change, circular arrays, Copy Layout, GLB variants, live preview, saved underside engine layout, turn-then-move travel facing, and GLB fallback behavior remain in place.</p>
     <p><strong>Player faction canon:</strong> the captain commands <strong>Brasswake Free Command</strong>, an independent modular flying fortress-city with Steam Marshal infrastructure ties at Brassgate Anchorage but open future alliances and loyalties.</p>
     <p><strong>Preserved:</strong> single-file HTML structure, Three.js CDN map, external GLB/MP3 assets, gate-locked Current Gate / Jet Stream travel, Clockwork Navigator / Celestial Navigation Automaton, Plot Capacity: 1 Jump, Captain's Orders onboarding, route plotting/events, combat balance, music singleton behavior, and save/load compatibility.</p>
-    <p><strong>Validation:</strong> JavaScript syntax, module loader syntax, inline button handlers, version strings, GLTFLoader CDN reference, model asset paths, external music paths, and fallback code paths were checked. No embedded playable preview is included.</p>
+    <p><strong>Validation:</strong> JavaScript syntax, module loader syntax, inline button handlers, duplicate function declarations, version strings, GLTFLoader CDN reference, model asset paths, external music paths, and fallback code paths were checked. No embedded playable preview is included.</p>
     ${roadmapDoctrineHTML()}
     ${nextCampaignGoalsHTML()}
     ${balanceRoadmapHTML()}

@@ -1,30 +1,24 @@
 IRON KINGDOMS: SKY FORTRESS COMMAND
-Version: v0.26.06.22.2352
+Version: v0.26.06.23.0005
 
-Focused Selected Location readability and early-action guidance pass.
+Focused Brasswake visual artifact cleanup pass.
 
 PATCH INTENT
-- Use the lower-left space recovered by the collapsible Command Menu to expand the Selected Location panel.
-- Make selected-location actions and travel buttons visible earlier in the panel.
-- Add roadmap-aligned first-session and post-arrival guidance so players know what to do next after selecting or reaching a location.
-- Preserve the restored Command Menu, audio controls, Brasswake model/builder work, and current travel rules.
-- Preserve GLB fallbacks, save/load compatibility, gate-locked Current Gate travel, Clockwork Navigator, Plot Capacity: 1 Jump, Captain's Orders, combat balance, and singleton music behavior.
+- Remove or hide unidentified camera/light/helper/icon-like artifacts that can appear inside the Brasswake nose/front area.
+- Preserve real Brasswake GLB meshes, procedural fallback geometry, and Fortress Builder tools.
+- Keep the game as a single-file HTML build using the existing Three.js CDN plus matching GLTFLoader module.
+- Preserve external MP3 and GLB asset folders without base64 embedding.
 
 ISSUES ADDRESSED
-- The left panel still stopped above the Fleet Log even though command controls had moved into a collapsible lower-left dock.
-- Selected-location route/details could push the actual action buttons down the panel.
-- Arrival feedback was readable but did not always tell the player which local action to take next.
-- Battle music could remain selected after combat resolution, making non-combat tiles continue to use combat music.
-- Victory stingers could be missed because combat result audio was requested before combat state fully cleared.
+- Imported GLB scenes were cloned as whole scene graphs, so embedded cameras, lights, helper objects, debug nodes, or icon-like named meshes could be included in visible Brasswake assemblies.
+- The procedural fallback includes intentional bow/nose lantern details that could be confused with imported helper artifacts during cleanup.
+- Builder selection highlights needed to remain isolated to the Fortress Builder instead of being treated as normal gameplay geometry.
 
 FIXES MADE
-- Extended the left HUD column down to the Command Menu button, giving Selected Location more vertical room.
-- Added a compact Recommended Next cue to the selected-location panel.
-- Moved selected-location action buttons above route previews, navigator summaries, and secondary detail blocks.
-- Added selected-action styling so primary travel/local actions are easier to scan.
-- Added clearer post-arrival toasts for salvage, resource, storm, enemy, ruin, contract, and service-port locations.
-- Adjusted combat result music ordering so combat state clears before contextual music restore and victory/retreat/defeat stingers.
-- Preserved the restored Command Menu/audio controls and the latest Brasswake GLB layout/builder systems.
+- Added sanitizeImportedBrasswakePart() to strip imported cameras, lights, helper classes, debug/icon nodes, and strictly named helper/icon meshes before a GLB part is normalized and placed.
+- Kept real part meshes conservative by only removing mesh objects whose names clearly indicate helper/debug/icon artifacts.
+- Marked intentional procedural bow/nose lanterns as Brasswake decoration so they remain available as fallback visual details.
+- Preserved the existing GLB cache/clone flow, builder preview, circular arrays, variants, turn-then-move travel facing, and procedural fallbacks.
 
 MODEL FILES CHECKED
 - Brasswake base platform.glb
@@ -49,8 +43,10 @@ PRESERVED
 - Clockwork Navigator / Celestial Navigation Automaton.
 - Plot Capacity: 1 Jump.
 - Captain's Orders onboarding.
+- Selected Location UI and Command Menu layout.
 - Current combat balance.
-- Music singleton behavior.
+- Music singleton behavior and restored audio controls.
+- Brasswake GLB module visuals, Fortress Builder, live preview, arrays, variants, and Copy Layout.
 - External MP3 assets under assets/audio/music/.
 - External GLB assets under assets/models/brasswake/.
 
@@ -59,7 +55,7 @@ VALIDATION
 - Module script extracted from index.html and syntax checked.
 - Inline onclick handlers checked for missing global functions.
 - Duplicate function declarations checked.
-- Version consistency checked for v0.26.06.22.2352.
+- Version consistency checked for v0.26.06.23.0005.
 - Three.js CDN and matching module GLTFLoader references checked.
 - Model paths checked for assets/models/brasswake/.
 - All 15 Brasswake GLB files confirmed in the asset path.
@@ -68,9 +64,7 @@ VALIDATION
 - No embedded playable preview created.
 
 MANUAL QA STILL RECOMMENDED
-- Open index.html directly in a browser, start/load a campaign, open Command -> Builder, click Load GLB Folder, and choose assets/models/brasswake.
-- Test RotX, RotY, RotZ, and Scale on a visible slot.
-- Set an underside engine slot to a circular array count between 2 and 10 and confirm copies appear in a ring.
-- Toggle Face Outward and confirm the copies rotate around the ring.
-- Use Undo after a transform, reset, array edit, and variant edit.
-- If alternate GLBs are present in the folder, select them from Variant GLB and confirm the preview/main fortress swap models.
+- Open index.html directly in a browser and start or load a campaign.
+- Confirm the unidentified nose/front artifact no longer appears on the main Brasswake model.
+- Open Command -> Builder, click Load GLB Folder, choose assets/models/brasswake, and confirm the builder preview also omits the artifact.
+- Confirm intentional bow/nose lantern fallback details are acceptable; if they are the visible issue, they can be tuned or removed in a follow-up visual pass.
