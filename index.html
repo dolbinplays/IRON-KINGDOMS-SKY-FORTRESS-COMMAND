@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.22.2325</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.22.2330</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script type="importmap">
     { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -445,18 +445,18 @@
 
     .bottomLog {
       position: absolute;
-      left: 12px;
+      left: 364px;
       right: 12px;
       bottom: 12px;
       height: 156px;
       z-index: 10;
       display: grid;
-      grid-template-columns: 300px minmax(280px, 1fr) 430px;
+      grid-template-columns: minmax(280px, 1fr);
       gap: 10px;
       pointer-events: none;
     }
 
-    .logPanel, .controlsPanel, .helpPanel {
+    .logPanel, .controlsPanel, .helpPanel, .commandMenuPanel {
       pointer-events: auto;
       border: 1px solid rgba(217,164,65,0.55);
       background: linear-gradient(180deg, rgba(39,30,27,0.94), rgba(16,12,15,0.94));
@@ -477,8 +477,105 @@
     .logItem { margin-bottom: 5px; padding: 6px; font-size: 12px; color: #e9dfcf; }
     .logItem strong { color: var(--brass2); }
 
-    .controlsPanel .buttonGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .commandDock {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      width: 340px;
+      z-index: 38;
+      pointer-events: none;
+    }
+
+    .commandMenu {
+      position: relative;
+      pointer-events: auto;
+    }
+
+    .commandMenu summary {
+      list-style: none;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .commandMenu summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .commandMenuButton {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      min-height: 36px;
+      border: 1px solid rgba(217,164,65,0.68);
+      background: linear-gradient(180deg, rgba(62,42,24,0.96), rgba(20,15,16,0.96));
+      color: var(--brass2);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      box-shadow: 0 10px 24px var(--shadow), inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    .commandMenuButton span:last-child {
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.3px;
+    }
+
+    .commandMenu[open] .commandMenuButton span:last-child {
+      color: #ffe9b8;
+    }
+
+    .commandMenuPanel {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 44px;
+      max-height: min(390px, calc(100vh - 140px));
+      overflow-y: auto;
+    }
+
+    .commandMenuPanel .buttonGrid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: 8px;
+    }
+
     .helpPanel { color: var(--muted); font-size: 12px; line-height: 1.3; }
+
+    .audioControls {
+      margin-top: 7px;
+      border: 1px solid rgba(255,255,255,0.09);
+      background: rgba(0,0,0,0.16);
+      border-radius: 9px;
+      padding: 6px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 5px 8px;
+      align-items: center;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .audioControls button {
+      padding: 5px 7px;
+      font-size: 11px;
+      min-width: 58px;
+    }
+
+    .audioControls input[type="range"] {
+      width: 100%;
+      accent-color: var(--brass2);
+    }
+
+    .nowPlaying {
+      grid-column: 1 / -1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: -3px;
+    }
 
     .modalOverlay {
       position: absolute;
@@ -1234,7 +1331,8 @@
     }
     #gameRoot.mapFocus .leftColumn,
     #gameRoot.mapFocus .rightColumn,
-    #gameRoot.mapFocus .bottomLog { display: none !important; }
+    #gameRoot.mapFocus .bottomLog,
+    #gameRoot.mapFocus .commandDock { display: none !important; }
     #gameRoot.mapFocus .mapFocusToggle { display: block; }
 
 
@@ -1479,15 +1577,17 @@
       .topbar { grid-template-columns: 1fr; right: 12px; }
       .resourcesBar { grid-template-columns: repeat(5, 1fr); }
       .dayBox { display: none; }
-      .leftColumn { top: 178px; width: 310px; bottom: 168px; }
+      .leftColumn { top: 178px; width: 310px; bottom: 56px; }
       .rightColumn { top: 178px; width: 340px; bottom: 168px; }
-      .bottomLog { grid-template-columns: 1fr; height: 136px; }
-      .helpPanel, .controlsPanel { display: none; }
+      .bottomLog { left: 334px; grid-template-columns: 1fr; height: 136px; }
+      .commandDock { width: 310px; }
+      .helpPanel { display: none; }
     }
 
     @media (max-width: 760px) {
       .leftColumn, .rightColumn { position: absolute; top: auto; bottom: 12px; width: calc(50vw - 18px); height: 240px; }
       .bottomLog { display: none; }
+      .commandDock { display: none; }
       .resourcesBar { grid-template-columns: repeat(3, 1fr); }
       .topbar { max-height: 170px; overflow: hidden; }
       .miniLegend { grid-template-columns: 1fr 1fr; }
@@ -1511,7 +1611,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.22.2325</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.22.2330</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1521,6 +1621,10 @@
     <div class="panel" style="flex:0 0 auto;">
       <h2>Fortress Status</h2>
       <div id="fortressStats" class="statGrid"></div>
+    </div>
+    <div class="panel panelShell ordersPanel leftOrdersPanel" style="flex:0 0 auto;">
+      <div class="panelHeader"><h2>Captain's Orders</h2></div>
+      <div id="ordersList" class="ordersList"></div>
     </div>
     <div class="panel panelShell selectedPanelShell" style="flex:1 1 auto; min-height:0;">
       <div class="panelHeader"><h2>Selected Location</h2></div>
@@ -1542,25 +1646,32 @@
     </div>
   </div>
 
-  <div class="bottomLog hidden" id="hudBottom">
-    <div class="controlsPanel">
-      <h3>Command</h3>
-      <div class="buttonGrid">
-        <button class="btn primary" onclick="saveGame()">Save</button>
-        <button class="btn blue" onclick="loadGame()">Load</button>
-        <button class="btn ghost" onclick="showHelp()">Help</button>
-        <button class="btn ghost" onclick="showFortressBuilder()">Builder</button>
-        <button class="btn ghost" id="mapFocusBtn" onclick="toggleMapFocus()">Map</button>
-        <button class="btn red" onclick="confirmReset()">Reset</button>
+  <div class="commandDock hidden" id="hudCommand">
+    <details class="commandMenu">
+      <summary><span class="commandMenuButton"><span>Command Menu</span><span>Save / Audio / Help</span></span></summary>
+      <div class="commandMenuPanel">
+        <div class="buttonGrid">
+          <button class="btn primary" onclick="saveGame()">Save</button>
+          <button class="btn blue" onclick="loadGame()">Load</button>
+          <button class="btn ghost" onclick="showHelp()">Help</button>
+          <button class="btn ghost" onclick="showFortressBuilder()">Builder</button>
+          <button class="btn ghost" id="mapFocusBtn" onclick="toggleMapFocus()">Map</button>
+          <button class="btn red" onclick="confirmReset()">Reset</button>
+        </div>
+        <div class="audioControls">
+          <button class="btn ghost" id="musicToggleBtn" onclick="toggleMusicMuted()">Music On</button>
+          <input id="musicVolumeSlider" type="range" min="0" max="100" value="42" oninput="onMusicVolumeInput(this.value)" aria-label="Music volume" />
+          <div class="nowPlaying" id="nowPlayingLabel">Music queued until first click.</div>
+          <div class="nowPlaying musicDebugLine" id="musicDebugLabel">Debug: state=title / file=none / loops=0 / fade=no</div>
+        </div>
       </div>
-    </div>
+    </details>
+  </div>
+
+  <div class="bottomLog hidden" id="hudBottom">
     <div class="logPanel">
       <h3>Fleet Log</h3>
       <div id="eventLog"></div>
-    </div>
-    <div class="helpPanel ordersPanel">
-      <h3>Captain's Orders</h3>
-      <div id="ordersList" class="ordersList"></div>
     </div>
   </div>
 
@@ -1586,7 +1697,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.22.2325 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.22.2330 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
     </div>
   </div>
 </div>
@@ -1597,8 +1708,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.22.2325';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_22_2325';
+const VERSION = 'v0.26.06.22.2330';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_22_2330';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -1790,6 +1901,423 @@ window.addEventListener('brasswake:gltf-loader-ready', () => {
   if (fortressGroup) refreshBrasswakeModel();
 });
 
+// =============================================================
+// MUSIC MANAGER - singleton loop playback and restored settings
+// =============================================================
+const MUSIC_SETTINGS_KEY = SAVE_KEY + '_MUSIC_SETTINGS';
+const MUSIC_TRACKS = {
+  title: trackDef('Iron Kingdoms Above the Clouds', 'assets/audio/music/loops/music_01_iron_kingdoms_above_clouds_title_loop.mp3'),
+  captainsOrders: trackDef("Captain's Orders", 'assets/audio/music/loops/music_03_captains_orders_loop.mp3'),
+  skyMap: trackDef('The Sky Atlas Opens', 'assets/audio/music/loops/music_04_sky_atlas_opens_loop.mp3'),
+  brasswake: trackDef('Brasswake at Anchor', 'assets/audio/music/loops/music_05_brasswake_at_anchor_loop.mp3'),
+  workshop: trackDef('Workshop of the Flying City', 'assets/audio/music/loops/music_06_workshop_flying_city_loop.mp3'),
+  navigator: trackDef('The Clockwork Navigator', 'assets/audio/music/loops/music_07_clockwork_navigator_loop.mp3'),
+  routeSafe: trackDef('Blue-White Current', 'assets/audio/music/loops/music_09_blue_white_current_loop.mp3'),
+  routeTrade: trackDef('Gold-Lit Trade Current', 'assets/audio/music/loops/music_10_gold_lit_trade_current_loop.mp3'),
+  routeStorm: trackDef('Violet Pressure Stream', 'assets/audio/music/loops/music_11_violet_pressure_stream_loop.mp3'),
+  routePirate: trackDef('Teal Slipstream', 'assets/audio/music/loops/music_12_teal_slipstream_loop.mp3'),
+  routeBlocked: trackDef('No Charted Current', 'assets/audio/music/loops/music_13_no_charted_current_short_loop.mp3'),
+  routeRisk: trackDef('Fuel, Hull, and Distance', 'assets/audio/music/loops/music_14_fuel_hull_distance_loop.mp3'),
+  skyport: trackDef('Skyport Lanterns', 'assets/audio/music/loops/music_15_skyport_lanterns_loop.mp3'),
+  settlement: trackDef('Settlement Hearths in the Clouds', 'assets/audio/music/loops/music_16_settlement_hearths_clouds_loop.mp3'),
+  salvage: trackDef('Wreckfield Salvage', 'assets/audio/music/loops/music_17_wreckfield_salvage_loop.mp3'),
+  resource: trackDef('Harvest the Living Currents', 'assets/audio/music/loops/music_18_harvest_living_currents_loop.mp3'),
+  ruins: trackDef('Ruins of the First Engines', 'assets/audio/music/loops/music_19_ruins_first_engines_loop.mp3'),
+  saintElmo: trackDef('Saint Elmo Static', 'assets/audio/music/loops/music_20_saint_elmo_static_loop.mp3'),
+  storm: trackDef('Stormwall Horizon', 'assets/audio/music/loops/music_21_stormwall_horizon_loop.mp3'),
+  preCombat: trackDef('Enemy on the Horizon', 'assets/audio/music/loops/music_22_enemy_on_horizon_short_loop.mp3'),
+  combatStandard: trackDef('Broadside at Current Gate', 'assets/audio/music/loops/music_23_broadside_current_gate_loop.mp3'),
+  combatPirate: trackDef('Raider Ambush in the Slipstream', 'assets/audio/music/loops/music_24_raider_ambush_slipstream_loop.mp3'),
+  combatStorm: trackDef('Lightning in the Rigging', 'assets/audio/music/loops/music_25_lightning_in_rigging_loop.mp3'),
+  combatFaction: trackDef('Patrol at the Gate', 'assets/audio/music/loops/music_26_patrol_at_gate_loop.mp3'),
+  combatAncient: trackDef('Ancient Machine Awakens', 'assets/audio/music/loops/music_27_ancient_machine_awakens_loop.mp3'),
+  combatLowHull: trackDef('Last Hull, Hold Fast', 'assets/audio/music/loops/music_28_last_hull_hold_fast_loop.mp3'),
+  combatBoss: trackDef('Capital Fleet Duel', 'assets/audio/music/loops/music_29_capital_fleet_duel_loop.mp3'),
+  factionSteamMarshal: trackDef('Steam Marshal March', 'assets/audio/music/loops/music_33_steam_marshal_march_loop.mp3'),
+  factionArchmage: trackDef('Archmage Concordance', 'assets/audio/music/loops/music_34_archmage_concordance_loop.mp3'),
+  factionSkyAdmiral: trackDef("Sky Admiral's Blue Wake", 'assets/audio/music/loops/music_35_sky_admirals_blue_wake_loop.mp3'),
+  factionIronPriest: trackDef('Iron Priest Hymn of Gears', 'assets/audio/music/loops/music_36_iron_priest_hymn_gears_loop.mp3'),
+  factionThornRegent: trackDef("Thorn Regent's Living Engine", 'assets/audio/music/loops/music_37_thorn_regents_living_engine_loop.mp3'),
+  factionCinderKhan: trackDef('Cinder Khan Furnace Charge', 'assets/audio/music/loops/music_38_cinder_khan_furnace_charge_loop.mp3'),
+  factionDuskCorsair: trackDef('Dusk Corsair Moonwake', 'assets/audio/music/loops/music_39_dusk_corsair_moonwake_loop.mp3'),
+  factionFrostMatriarch: trackDef("Frost Matriarch's Cold Current", 'assets/audio/music/loops/music_40_frost_matriarch_cold_current_loop.mp3'),
+  factionFreebooter: trackDef('Freebooter Clans', 'assets/audio/music/loops/music_41_freebooter_clans_take2_loop.mp3'),
+  stormKeel: trackDef('Storm Keel Ascendant', 'assets/audio/music/loops/music_43_storm_keel_ascendant_loop.mp3')
+};
+const MUSIC_STINGERS = {
+  routeLocked: trackDef('Plot Capacity One', 'assets/audio/music/stingers/stinger_08_plot_capacity_one_route_locked.mp3'),
+  victory: trackDef('Victory: Route Secured', 'assets/audio/music/stingers/stinger_30_victory_route_secured.mp3'),
+  defeat: trackDef('Defeat: Brasswake Falls', 'assets/audio/music/stingers/stinger_31_defeat_brasswake_falls.mp3'),
+  retreat: trackDef('Retreat Under Smoke', 'assets/audio/music/stingers/stinger_32_retreat_under_smoke.mp3')
+};
+
+function trackDef(name, src) {
+  return { name, files: [{ src, title: name }] };
+}
+
+const MusicManager = (() => {
+  let unlocked = false, activeLoop = null, fadingLoop = null, currentState = null, currentTrackPath = '', currentTitle = '', pendingState = 'title';
+  let musicVolume = 0.42, musicMuted = false, fadeTimer = null, fadeToken = 0, crossfadeActive = false, initialized = false;
+  const managerLoops = new Set();
+  const activeStingers = new Set();
+  const warnedMissing = new Set();
+  const unlockEvents = ['pointerdown', 'click', 'keydown', 'touchstart'];
+
+  function init() {
+    if (initialized) return;
+    initialized = true;
+    loadSettings();
+    unlockEvents.forEach(evt => window.addEventListener(evt, unlockFromUserGesture, { once: true, passive: true }));
+    updateMusicUI();
+    enforceSingleLoopAudio('init');
+  }
+
+  function loadSettings() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(MUSIC_SETTINGS_KEY) || 'null');
+      if (saved && typeof saved.volume === 'number') musicVolume = clamp(saved.volume, 0, 1);
+      if (saved && typeof saved.muted === 'boolean') musicMuted = saved.muted;
+    } catch (err) {
+      console.warn('Music settings could not be loaded.', err);
+    }
+  }
+
+  function saveSettings() {
+    try { localStorage.setItem(MUSIC_SETTINGS_KEY, JSON.stringify({ volume: musicVolume, muted: musicMuted })); }
+    catch (err) { console.warn('Music settings could not be saved.', err); }
+  }
+
+  function unlockFromUserGesture() {
+    if (unlocked) return;
+    unlocked = true;
+    unlockEvents.forEach(evt => window.removeEventListener(evt, unlockFromUserGesture));
+    if (pendingState) playMusicState(pendingState, { force: true, fadeMs: 650 });
+    enforceSingleLoopAudio('audio-unlock');
+    updateMusicUI();
+  }
+
+  function effectiveVolume(scale = 1) { return musicMuted ? 0 : clamp(musicVolume * scale, 0, 1); }
+  function chooseFile(def) { return def?.files?.[0] || null; }
+  function isLoopPlayable(audio) { return !!audio && !audio.paused && !audio.ended; }
+  function safePause(audio) { try { audio?.pause(); } catch (err) { /* no-op */ } }
+
+  function cleanupLoopAudio(audio, reason = 'cleanup') {
+    if (!audio) return;
+    try { audio.loop = false; } catch (err) { /* no-op */ }
+    safePause(audio);
+    try { audio.currentTime = 0; } catch (err) { /* no-op */ }
+    try { audio.removeAttribute('src'); audio.load(); } catch (err) { /* no-op */ }
+    managerLoops.delete(audio);
+    if (fadingLoop === audio) fadingLoop = null;
+    if (activeLoop === audio) activeLoop = null;
+  }
+
+  function cancelCrossfade(reason = 'cancel-crossfade') {
+    fadeToken += 1;
+    if (fadeTimer) clearInterval(fadeTimer);
+    fadeTimer = null;
+    crossfadeActive = false;
+    if (fadingLoop && fadingLoop !== activeLoop) cleanupLoopAudio(fadingLoop, reason);
+    fadingLoop = null;
+  }
+
+  function completeCrossfadeNow(reason = 'complete-crossfade') {
+    cancelCrossfade(reason);
+    if (activeLoop) activeLoop.volume = effectiveVolume();
+    enforceSingleLoopAudio(reason);
+  }
+
+  function createLoopAudio(pick, stateName) {
+    const audio = new Audio(pick.src);
+    audio.loop = true;
+    audio.preload = 'auto';
+    audio.volume = 0;
+    audio.dataset.musicState = stateName;
+    audio.dataset.musicSrc = pick.src;
+    audio.addEventListener('error', () => {
+      if (!warnedMissing.has(pick.src)) {
+        warnedMissing.add(pick.src);
+        console.warn('Music file missing or could not be decoded:', pick.src);
+      }
+      cleanupLoopAudio(audio, 'loop-error');
+      updateMusicUI('Music unavailable: ' + (pick.title || stateName));
+      enforceSingleLoopAudio('loop-error');
+    });
+    managerLoops.add(audio);
+    return audio;
+  }
+
+  function playMusicState(stateName, options = {}) {
+    const def = MUSIC_TRACKS[stateName];
+    if (!def?.files?.length) {
+      if (stateName && !warnedMissing.has('state:' + stateName)) {
+        warnedMissing.add('state:' + stateName);
+        console.warn('Music state has no registered files:', stateName);
+      }
+      return;
+    }
+    pendingState = stateName;
+    if (!unlocked) {
+      currentTitle = def.name || stateName;
+      updateMusicUI('Queued: ' + currentTitle);
+      enforceSingleLoopAudio('queued-before-unlock');
+      return;
+    }
+    if (!options.force && stateName === currentState && isLoopPlayable(activeLoop)) {
+      updateMusicUI();
+      enforceSingleLoopAudio('same-state-request');
+      return;
+    }
+    const pick = chooseFile(def);
+    if (!pick?.src) return;
+    cancelCrossfade('new-state-request');
+    enforceSingleLoopAudio('before-new-loop');
+    const nextAudio = createLoopAudio(pick, stateName);
+    currentState = stateName;
+    currentTrackPath = pick.src;
+    currentTitle = pick.title || def.name || stateName;
+    beginCrossfadeTo(nextAudio, options.fadeMs ?? 900);
+    updateMusicUI();
+    enforceSingleLoopAudio('after-playMusicState');
+  }
+
+  function beginCrossfadeTo(nextAudio, fadeMs) {
+    const oldAudio = activeLoop && activeLoop !== nextAudio ? activeLoop : null;
+    const duration = Math.max(120, fadeMs || 0);
+    const token = ++fadeToken;
+    if (fadeTimer) clearInterval(fadeTimer);
+    fadingLoop = oldAudio;
+    activeLoop = nextAudio;
+    crossfadeActive = !!oldAudio;
+    nextAudio.loop = true;
+    nextAudio.volume = oldAudio ? 0 : effectiveVolume();
+    const playPromise = nextAudio.play();
+    if (playPromise?.catch) {
+      playPromise.catch(err => {
+        const key = 'play:' + (nextAudio.dataset.musicSrc || 'unknown');
+        if (!warnedMissing.has(key)) {
+          warnedMissing.add(key);
+          console.warn('Music play deferred or blocked:', err?.message || err);
+        }
+      });
+    }
+    if (!oldAudio || duration <= 130) {
+      if (oldAudio) cleanupLoopAudio(oldAudio, 'instant-replace');
+      fadingLoop = null;
+      crossfadeActive = false;
+      nextAudio.volume = effectiveVolume();
+      enforceSingleLoopAudio('instant-fade-complete');
+      return;
+    }
+    const started = performance.now();
+    const oldStartVolume = oldAudio.volume || effectiveVolume();
+    fadeTimer = setInterval(() => {
+      if (token !== fadeToken) return;
+      const t = clamp((performance.now() - started) / duration, 0, 1);
+      const target = effectiveVolume();
+      nextAudio.volume = target * t;
+      oldAudio.volume = oldStartVolume * (1 - t);
+      if (t >= 1) {
+        clearInterval(fadeTimer);
+        fadeTimer = null;
+        cleanupLoopAudio(oldAudio, 'fade-complete');
+        nextAudio.volume = target;
+        fadingLoop = null;
+        crossfadeActive = false;
+        enforceSingleLoopAudio('crossfade-complete');
+        updateMusicUI();
+      }
+    }, 50);
+  }
+
+  function playStinger(stingerName, options = {}) {
+    const def = MUSIC_STINGERS[stingerName];
+    if (!def?.files?.length || !unlocked) return;
+    const pick = chooseFile(def);
+    if (!pick?.src) return;
+    try {
+      const stinger = new Audio(pick.src);
+      stinger.loop = false;
+      stinger.preload = 'auto';
+      stinger.volume = effectiveVolume(options.volumeScale || 1.05);
+      activeStingers.add(stinger);
+      stinger._cleanupTimer = setTimeout(() => cleanupStinger(stinger, 'timeout'), Math.max(800, options.maxDurationMs || 7000));
+      if (activeLoop && options.duck !== false) activeLoop.volume = effectiveVolume(0.42);
+      stinger.addEventListener('ended', () => cleanupStinger(stinger, 'ended'));
+      stinger.addEventListener('error', () => {
+        if (!warnedMissing.has(pick.src)) {
+          warnedMissing.add(pick.src);
+          console.warn('Stinger file missing or could not be decoded:', pick.src);
+        }
+        cleanupStinger(stinger, 'error');
+      });
+      const p = stinger.play();
+      if (p?.catch) p.catch(() => cleanupStinger(stinger, 'play-blocked'));
+      enforceSingleLoopAudio('after-stinger-start');
+    } catch (err) {
+      console.warn('Unable to play stinger:', stingerName, err);
+    }
+  }
+
+  function cleanupStinger(stinger, reason = 'stinger-cleanup') {
+    if (!stinger) return;
+    if (stinger._cleanupTimer) clearTimeout(stinger._cleanupTimer);
+    try { stinger.loop = false; stinger.pause(); stinger.currentTime = 0; stinger.removeAttribute('src'); stinger.load(); } catch (err) { /* no-op */ }
+    activeStingers.delete(stinger);
+    if (activeLoop) activeLoop.volume = activeStingers.size ? effectiveVolume(0.42) : effectiveVolume();
+    enforceSingleLoopAudio('stinger-complete:' + reason);
+    updateMusicUI();
+  }
+
+  function enforceSingleLoopAudio(reason = 'unspecified') {
+    const allowed = new Set();
+    if (activeLoop) allowed.add(activeLoop);
+    if (crossfadeActive && fadingLoop) allowed.add(fadingLoop);
+    for (const audio of Array.from(managerLoops)) {
+      if (!allowed.has(audio)) cleanupLoopAudio(audio, 'enforce:' + reason);
+    }
+    if (!crossfadeActive && fadingLoop) cleanupLoopAudio(fadingLoop, 'enforce-no-crossfade:' + reason);
+    if (activeLoop) {
+      activeLoop.loop = true;
+      if (!crossfadeActive) activeLoop.volume = effectiveVolume();
+    }
+    if (fadingLoop) fadingLoop.loop = true;
+    updateMusicUI();
+  }
+
+  function setVolume(value) {
+    const n = typeof value === 'number' ? value : parseFloat(value);
+    musicVolume = clamp(Number.isFinite(n) ? n : 0.42, 0, 1);
+    if (activeLoop) activeLoop.volume = effectiveVolume();
+    if (fadingLoop) fadingLoop.volume = Math.min(fadingLoop.volume, effectiveVolume());
+    activeStingers.forEach(stinger => { stinger.volume = effectiveVolume(1.05); });
+    saveSettings();
+    enforceSingleLoopAudio('set-volume');
+  }
+
+  function setMuted(value) {
+    musicMuted = !!value;
+    if (activeLoop) activeLoop.volume = effectiveVolume();
+    if (fadingLoop) fadingLoop.volume = Math.min(fadingLoop.volume, effectiveVolume());
+    activeStingers.forEach(stinger => { stinger.volume = effectiveVolume(1.05); });
+    saveSettings();
+    enforceSingleLoopAudio('set-muted');
+  }
+
+  function updateMusicUI(overrideLabel) {
+    const toggle = document.getElementById('musicToggleBtn');
+    const slider = document.getElementById('musicVolumeSlider');
+    const label = document.getElementById('nowPlayingLabel');
+    const debug = document.getElementById('musicDebugLabel');
+    if (toggle) toggle.textContent = musicMuted ? 'Music Off' : 'Music On';
+    if (slider && document.activeElement !== slider) slider.value = String(Math.round(musicVolume * 100));
+    if (label) label.textContent = overrideLabel || (currentTitle ? `${unlocked ? 'Now Playing' : 'Queued'}: ${currentTitle}` : 'Music ready.');
+    if (debug) {
+      const file = currentTrackPath ? currentTrackPath.split('/').pop() : 'none';
+      debug.textContent = `Debug: state=${currentState || pendingState || 'none'} - file=${file} - loops=${managerLoops.size} - fade=${crossfadeActive ? 'yes' : 'no'} - stingers=${activeStingers.size}`;
+    }
+  }
+
+  return {
+    init,
+    playMusicState,
+    playStinger,
+    completeCrossfadeNow,
+    setVolume,
+    setMuted,
+    isMuted: () => musicMuted,
+    getVolume: () => musicVolume,
+    getCurrentState: () => currentState,
+    enforceSingleLoopAudio,
+    updateMusicUI
+  };
+})();
+
+function enforceMusicSingleton(reason = 'manual') {
+  MusicManager.enforceSingleLoopAudio(reason);
+}
+
+function toggleMusicMuted() {
+  MusicManager.setMuted(!MusicManager.isMuted());
+}
+
+function onMusicVolumeInput(value) {
+  MusicManager.setVolume((parseFloat(value) || 0) / 100);
+}
+
+function routeTypeToMusicState(routeType) {
+  if (routeType === 'trade') return 'routeTrade';
+  if (routeType === 'storm') return 'routeStorm';
+  if (routeType === 'pirate') return 'routePirate';
+  return 'routeSafe';
+}
+
+function locationTypeToMusicState(loc) {
+  if (!loc) return 'skyMap';
+  if (loc.type === 'skyport') return 'skyport';
+  if (loc.type === 'settlement' || loc.type === 'contract') return 'settlement';
+  if (loc.type === 'salvage') return loc.depleted ? 'skyMap' : 'salvage';
+  if (loc.type === 'resource') return loc.depleted ? 'skyMap' : 'resource';
+  if (loc.type === 'ruins') return loc.depleted ? 'skyMap' : 'ruins';
+  if (loc.type === 'storm') return loc.depleted ? 'skyMap' : 'storm';
+  if (loc.type === 'enemy') return loc.depleted ? 'skyMap' : 'preCombat';
+  return 'skyMap';
+}
+
+function factionToMusicState(factionKey) {
+  const map = {
+    steam: 'factionSteamMarshal', archmage: 'factionArchmage', sky: 'factionSkyAdmiral', priest: 'factionIronPriest',
+    thorn: 'factionThornRegent', cinder: 'factionCinderKhan', dusk: 'factionDuskCorsair', frost: 'factionFrostMatriarch', pirates: 'factionFreebooter'
+  };
+  return map[factionKey] || 'skyMap';
+}
+
+function combatToMusicState(combat = game?.combat) {
+  if (!combat) return 'combatStandard';
+  const stats = computeStats();
+  if (game && stats.maxHull && game.hull / stats.maxHull <= 0.30) return 'combatLowHull';
+  if ((combat.danger || 1) >= 4) return 'combatBoss';
+  if (combat.ancient) return 'combatAncient';
+  if (combat.storm) return 'combatStorm';
+  if (combat.ambush || combat.faction === 'pirates') return 'combatPirate';
+  if (combat.faction && combat.faction !== 'pirates') return 'combatFaction';
+  return 'combatStandard';
+}
+
+function updateMusicForContext(reason = 'auto') {
+  if (!game) return MusicManager.playMusicState('title');
+  if (game.inCombat && game.combat) return MusicManager.playMusicState(combatToMusicState(game.combat));
+  if (isTraveling) return;
+  const title = document.getElementById('titleScreen');
+  if (title && !title.classList.contains('hidden')) return MusicManager.playMusicState('title');
+  if (!game.flags?.traveledOnce && game.currentLocationId === 'loc_home') return MusicManager.playMusicState('captainsOrders');
+  MusicManager.playMusicState(locationTypeToMusicState(getLocation(game.currentLocationId)));
+}
+
+function updateMusicForRightTab(tab) {
+  if (!game) return;
+  if (tab === 'tech') return MusicManager.playMusicState('navigator');
+  if (tab === 'rooms') return MusicManager.playMusicState('brasswake');
+  if (tab === 'upgrades') return MusicManager.playMusicState('workshop');
+  if (tab === 'factions') {
+    const loc = getLocation(game.selectedLocationId) || getLocation(game.currentLocationId);
+    return MusicManager.playMusicState(factionToMusicState(loc?.faction || 'steam'));
+  }
+}
+
+function playCombatResultMusic(result) {
+  const restoreToken = ++combatResultMusicToken;
+  const resultLoopState = MusicManager.getCurrentState();
+  if (result === 'victory') MusicManager.playStinger('victory', { duck: true });
+  else if (result === 'retreat') MusicManager.playStinger('retreat', { duck: true });
+  else MusicManager.playStinger('defeat', { duck: true });
+  setTimeout(() => {
+    if (restoreToken !== combatResultMusicToken) return;
+    if (MusicManager.getCurrentState() !== resultLoopState) return;
+    updateMusicForContext('combat-result');
+  }, 1700);
+}
+
 // Three.js objects
 let scene, camera, renderer, raycaster, mouse, clock;
 let worldGroup, hexGroup, locationGroup, aiFleetGroup, fortressGroup, lineGroup, selectionRing, hoverRing, currentRing;
@@ -1823,6 +2351,8 @@ function distance2D(a, b) { return Math.hypot(a.x - b.x, a.z - b.z); }
 window.addEventListener('load', () => {
   document.getElementById('versionLabel').textContent = VERSION;
   document.getElementById('loadTitleBtn').disabled = !localStorage.getItem(SAVE_KEY);
+  MusicManager.init();
+  MusicManager.playMusicState('title');
   if (!window.THREE) {
     document.getElementById('threeError').style.display = 'flex';
     return;
@@ -2397,6 +2927,10 @@ function plotRouteTo(targetId) {
   const path = findCurrentRoutePath(game.currentLocationId, targetId);
   if (!path || path.nodeIds.length < 2) return showToast('No known Current route reaches that destination yet.');
   game.plottedRoute = { targetId, routeIds: path.routeIds, nodeIds: path.nodeIds, nextHopId: path.nodeIds[1] };
+  MusicManager.playMusicState('navigator', { fadeMs: 120 });
+  MusicManager.completeCrossfadeNow('navigator-route-plot');
+  MusicManager.playStinger('routeLocked', { duck: true, volumeScale: 0.72, maxDurationMs: 2600 });
+  MusicManager.enforceSingleLoopAudio('route-locked');
   game.selectedLocationId = path.nodeIds[1];
   const target = getLocation(targetId);
   const nextHop = getLocation(path.nodeIds[1]);
@@ -3216,7 +3750,7 @@ function refreshBrasswakeModel(group = fortressGroup) {
 }
 
 function createFortressModel() {
-  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.22.2325.
+  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.22.2330.
   const group = new THREE.Group();
   group.name = 'Brasswake Modular Hex Fortress Marker';
   group.userData.brasswakeMarker = true;
@@ -3764,6 +4298,8 @@ function startNewGame() {
   game = createNewState();
   document.getElementById('titleScreen').classList.add('hidden');
   showHUD(true);
+  MusicManager.playMusicState('captainsOrders', { fadeMs: 900 });
+  MusicManager.enforceSingleLoopAudio('campaign-start');
   refreshBrasswakeModel();
   buildWorldMeshes();
   centerCameraOnCurrent();
@@ -3773,7 +4309,7 @@ function startNewGame() {
 }
 
 function showHUD(show) {
-  ['hudTop','hudLeft','hudRight','hudBottom'].forEach(id => document.getElementById(id).classList.toggle('hidden', !show));
+  ['hudTop','hudLeft','hudRight','hudBottom','hudCommand'].forEach(id => document.getElementById(id)?.classList.toggle('hidden', !show));
 }
 
 function renderUI() {
@@ -3967,6 +4503,7 @@ function renderRightPanel() {
 function setRightTab(tab) {
   activeRightTab = tab;
   renderRightPanel();
+  updateMusicForRightTab(tab);
 }
 
 function setRightPanelContent(html) {
@@ -4484,6 +5021,7 @@ function currentTravelText(route, from, to) {
 function beginCurrentTravel(route, loc, cost) {
   const meta = CURRENT_ROUTE_TYPES[route.type] || CURRENT_ROUTE_TYPES.safe;
   const cur = getLocation(game.currentLocationId);
+  MusicManager.playMusicState(routeTypeToMusicState(route?.type), { fadeMs: 900 });
   hideToastNow();
   deferredToastText = null;
   const content = document.getElementById('modalContent');
@@ -4573,6 +5111,8 @@ function finishTravel(loc, days, mode) {
   advanceDay(days || 1);
   revealNearby();
   isTraveling = false;
+  updateMusicForContext('arrival');
+  MusicManager.enforceSingleLoopAudio('travel-complete');
   addLog(`Arrived at ${loc.name}${mode === 'current' ? ' by Jet Stream Current' : ''}.`);
   const routeEventText = mode === 'current' ? resolveCurrentRouteEvent(loc) : '';
   const routeToast = routeEventText ? cleanToastText(routeEventText) : '';
@@ -5050,11 +5590,13 @@ function startCombat(enemySpec) {
     round: 1,
     log: [`${enemySpec.ambush ? 'Ambush!' : 'Contact!'} ${enemySpec.name} closes to firing range.`]
   };
+  MusicManager.playMusicState(combatToMusicState(game.combat), { fadeMs: 650 });
   openCombatModal();
 }
 
 function openCombatModal() {
   const c = game.combat;
+  MusicManager.playMusicState(combatToMusicState(c), { fadeMs: 500 });
   const stats = computeStats();
   const hangar = game.rooms.hangar ? true : false;
   const modal = document.getElementById('modalOverlay');
@@ -5233,10 +5775,12 @@ function endCombat(victory, retreated, destroyed = false) {
     if ((c.danger || 1) <= 1) setOrderFlag('foughtLowDanger');
     addLog(`Victory over ${c.enemyName}: +${steel} steel, +${gold} gold, +${fuel} fuel.`);
     showResultModal('Victory in the Clouds', combatSummaryHTML(c, `The enemy fleet breaks apart under Brasswake's guns. Salvage crews recover ${steel} steel, ${gold} gold, and ${fuel} fuel.`), 'Continue', closeModal);
+    playCombatResultMusic('victory');
   } else if (retreated) {
     if ((c.danger || 1) <= 1) { setOrderFlag('foughtLowDanger'); setOrderFlag('survivedHostileContact'); }
     addLog(`Brasswake retreated from ${c.enemyName}. Hostile contact survived; repairs recommended.`, 'warn');
     showResultModal('Retreat Successful', combatSummaryHTML(c, 'The fortress escaped into cloud cover. Some gold and momentum were lost, but the campaign continues.'), 'Continue', closeModal);
+    playCombatResultMusic('retreat');
   } else if (destroyed) {
     game.hull = 1;
     const lossGold = Math.min(game.resources.gold, 40);
@@ -5246,9 +5790,11 @@ function endCombat(victory, retreated, destroyed = false) {
     addResource('population', -Math.min(game.resources.population - 1, 5), true);
     addLog(`Near catastrophe against ${c.enemyName}. Brasswake emergency-crashed but survived at 1 hull.`, 'bad');
     showResultModal('Catastrophic Defeat', combatSummaryHTML(c, 'The fortress was nearly destroyed. Emergency ballast kept Brasswake aloft at 1 hull, but resources and crew were lost.'), 'Continue', closeModal);
+    playCombatResultMusic('defeat');
   } else {
     addLog(`Defeat against ${c.enemyName}. The fortress limps away heavily damaged.`, 'bad');
     showResultModal('Defeat', combatSummaryHTML(c, 'The fortress disengages under smoke and broken armor.'), 'Continue', closeModal);
+    playCombatResultMusic('defeat');
   }
   game.inCombat = false;
   game.combat = null;
@@ -5273,6 +5819,8 @@ function closeModal() {
   document.getElementById('modalContent').classList.remove('builderModal');
   document.getElementById('modalOverlay').classList.remove('active');
   if (wasFortressBuilder) refreshBrasswakeModel();
+  updateMusicForContext('modal-close');
+  MusicManager.enforceSingleLoopAudio('modal-close');
   renderUI();
   resetSelectedPanelScrollSoon();
 }
@@ -6137,6 +6685,7 @@ function loadGame(fromTitle = false) {
     buildWorldMeshes();
     centerCameraOnCurrent();
     renderUI();
+    updateMusicForContext('load-game');
     addLog('Campaign loaded from local storage.');
     showToast('Campaign loaded.');
   } catch (err) {
@@ -6393,12 +6942,12 @@ function showBuildNotes() {
 
 showBuildNotes = function() {
   showModal(`<h1>Build Notes - ${VERSION}</h1>
-    <p><strong>Brasswake underside engine layout refinement:</strong> applies the latest saved Fortress Builder layout for the underside lift ring and turn engine cluster.</p>
-    <p><strong>Lift engine ring:</strong> the underside lift engine now renders as a six-copy circular array with smaller per-engine scale and shared facing, making the underdeck cluster read as a compact lift system instead of a wide outward-facing spray.</p>
-    <p><strong>Turn engine placement:</strong> the underside turn engine cluster now uses the newest all-axis position, rotation, and scale values from the Builder export.</p>
-    <p><strong>Builder continuity:</strong> RotX/RotY/RotZ controls, Undo Last Change, circular arrays, Copy Layout, GLB variants, and the live preview remain available for continued technical-art tuning.</p>
-    <p><strong>Turn-move preservation:</strong> Brasswake still rotates in place toward the next Current Gate / Jet Stream hop before moving and keeps that facing after arrival.</p>
-    <p><strong>Fallback behavior:</strong> if GLTFLoader or a GLB file is unavailable, that slot uses a procedural fallback mesh and the campaign continues without crashing.</p>
+    <p><strong>UI regression repair:</strong> restores the newer cleaned-up HUD shell without rolling back recent Brasswake model, builder, route, or upgrade work.</p>
+    <p><strong>Command menu restored:</strong> Save, Load, Help, Builder, Map, Reset, and audio controls are back in a collapsible lower-left Command Menu, freeing the bottom HUD for a wider Fleet Log.</p>
+    <p><strong>Captain's Orders restored:</strong> orders now live in the left column beneath Fortress Status, giving onboarding more room and keeping the selected-location panel readable.</p>
+    <p><strong>Music settings restored:</strong> the music on/off button, volume slider, now-playing label, and debug line are connected to a central singleton MusicManager with persistent volume/mute settings.</p>
+    <p><strong>Audio safety:</strong> music uses one active loop plus one optional fading loop during crossfade; stingers remain non-looping and missing MP3 files log warnings without crashing the game.</p>
+    <p><strong>Recent work preserved:</strong> Fortress Builder RotX/RotY/RotZ controls, Undo Last Change, circular arrays, Copy Layout, GLB variants, live preview, saved underside engine layout, turn-then-move travel facing, and GLB fallback behavior remain in place.</p>
     <p><strong>Player faction canon:</strong> the captain commands <strong>Brasswake Free Command</strong>, an independent modular flying fortress-city with Steam Marshal infrastructure ties at Brassgate Anchorage but open future alliances and loyalties.</p>
     <p><strong>Preserved:</strong> single-file HTML structure, Three.js CDN map, external GLB/MP3 assets, gate-locked Current Gate / Jet Stream travel, Clockwork Navigator / Celestial Navigation Automaton, Plot Capacity: 1 Jump, Captain's Orders onboarding, route plotting/events, combat balance, music singleton behavior, and save/load compatibility.</p>
     <p><strong>Validation:</strong> JavaScript syntax, module loader syntax, inline button handlers, version strings, GLTFLoader CDN reference, model asset paths, external music paths, and fallback code paths were checked. No embedded playable preview is included.</p>

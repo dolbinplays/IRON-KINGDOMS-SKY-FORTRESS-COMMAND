@@ -1,25 +1,29 @@
-# IRON KINGDOMS: SKY FORTRESS COMMAND - v0.26.06.22.2325
+# IRON KINGDOMS: SKY FORTRESS COMMAND - v0.26.06.22.2330
 
-Focused Brasswake underside engine layout refinement pass.
+Focused UI and audio regression repair pass.
 
 ## Patch Intent
 
-- Apply the user's saved Brasswake Builder underside engine refinements.
-- Tune the six-engine underside lift ring scale and facing.
-- Move and rotate the underside turn engine cluster into its revised aft-side placement.
-- Preserve the builder's all-axis rotation, undo, circular array, variant, and live preview controls.
+- Restore the newer cleaned-up HUD layout without rolling back recent Brasswake model/builder work.
+- Move Captain's Orders back into the left panel so the selected-location panel and Fleet Log are easier to read.
+- Restore the collapsible Command Menu with Save, Load, Help, Builder, Map, Reset, and music controls.
+- Restore singleton music playback, mute, and volume persistence.
 - Preserve GLB fallbacks, save/load compatibility, gate-locked Current Gate travel, Clockwork Navigator, Plot Capacity: 1 Jump, Captain's Orders, combat balance, and singleton music behavior.
 
 ## Issues Addressed
 
-- The previous committed lift engine ring was too large and faced outward; the saved layout uses smaller engines without outward yawing.
-- The underside turn engine cluster needed the latest saved placement, all-axis rotation, and scale.
+- The command controls and Captain's Orders had regressed into the lower HUD layout, crowding the Fleet Log and reducing selected-location readability.
+- Music and volume controls were no longer present in the HUD.
+- The active `index.html` no longer contained the music manager, volume persistence, or guarded music context hooks.
 
 ## Fixes Made
 
-- Updated `undersideLift` to `scale: 0.47` and `faceOutward: false` while keeping the six-engine ring.
-- Updated `undersideTurn` to position `[2.80, -0.10, -0.10]`, rotation `[-1.60, 0.45, 1.60]`, and scale `0.80`.
-- Kept the shared array placement helper so the six lift engines render in both the main fortress and builder preview.
+- Restored the left-column Captain's Orders panel and expanded bottom Fleet Log layout.
+- Restored the collapsible lower-left Command Menu and kept the recent Fortress Builder button inside it.
+- Restored the music on/off button, music volume slider, now-playing label, and unobtrusive debug line.
+- Reintroduced a central singleton `MusicManager` using external MP3 paths under `assets/audio/music/`.
+- Reconnected music context changes for title, campaign start, right-panel tabs, route plotting, travel, arrival, combat, result stingers, modal close, and load game.
+- Preserved the latest Brasswake GLB layout and builder controls, including the saved underside engine ring and turn-engine placement.
 
 ## Model Files Checked
 
@@ -59,7 +63,7 @@ All 15 model files are expected under `assets/models/brasswake/`:
 - Extracted module script from `index.html` and ran syntax validation.
 - Checked inline `onclick` handlers for missing global function references.
 - Checked duplicate function declarations.
-- Checked version consistency for `v0.26.06.22.2325`.
+- Checked version consistency for `v0.26.06.22.2330`.
 - Confirmed Three.js CDN and matching module GLTFLoader references remain.
 - Confirmed model paths point to `assets/models/brasswake/`.
 - Confirmed all 15 Brasswake GLB files are present in the asset path.
