@@ -3,8 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.20.1322</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.22.1833</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+  </script>
+  <script type="module">
+    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+    window.BrasswakeGLTFLoader = GLTFLoader;
+    window.dispatchEvent(new Event('brasswake:gltf-loader-ready'));
+  </script>
   <style>
     :root {
       --bg: #100c12;
@@ -469,7 +477,7 @@
     .logItem { margin-bottom: 5px; padding: 6px; font-size: 12px; color: #e9dfcf; }
     .logItem strong { color: var(--brass2); }
 
-    .controlsPanel .buttonGrid { grid-template-columns: repeat(5, 1fr); }
+    .controlsPanel .buttonGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .helpPanel { color: var(--muted); font-size: 12px; line-height: 1.3; }
 
     .modalOverlay {
@@ -502,6 +510,204 @@
       margin: 0 0 10px;
       color: var(--brass2);
       text-shadow: 0 3px 0 #000;
+    }
+
+    .modal.builderModal {
+      max-width: 1240px;
+      width: min(1240px, 96vw);
+    }
+
+    .builderGrid {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.75fr) minmax(360px, 1.45fr) minmax(260px, 0.95fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .builderCard {
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.18);
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .builderCard h2 {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .builderSlotList {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      max-height: 540px;
+      overflow-y: auto;
+      padding-right: 3px;
+    }
+
+    .builderSlotItem {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 8px;
+      align-items: center;
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 9px;
+      background: rgba(0,0,0,0.22);
+      color: #fff6df;
+      padding: 7px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .builderSlotItem:hover,
+    .builderSlotItem.active {
+      border-color: rgba(244,207,120,0.68);
+      background: rgba(217,164,65,0.12);
+    }
+
+    .builderSlotThumb {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.16), rgba(0,0,0,0.18)),
+        var(--part-color, #b78335);
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.28);
+    }
+
+    .builderSlotThumb::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      top: 10px;
+      width: 22px;
+      height: 14px;
+      border-radius: 3px;
+      border: 2px solid rgba(8,7,10,0.55);
+      background: rgba(255,246,223,0.18);
+      transform: skewX(-12deg);
+    }
+
+    .builderSlotThumb::after {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 24px;
+      width: 26px;
+      height: 3px;
+      border-radius: 99px;
+      background: rgba(8,7,10,0.55);
+    }
+
+    .builderSlotName {
+      color: #fff2d2;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .builderSlotMeta {
+      color: var(--muted);
+      font-size: 10.5px;
+      line-height: 1.22;
+      margin-top: 2px;
+      overflow-wrap: anywhere;
+    }
+
+    .builderPreviewWrap {
+      position: relative;
+      height: min(50vh, 440px);
+      min-height: 320px;
+      border: 1px solid rgba(244,207,120,0.28);
+      border-radius: 12px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 20%, rgba(128,185,255,0.16), transparent 42%),
+        linear-gradient(180deg, rgba(10,11,18,0.96), rgba(4,5,8,0.98));
+    }
+
+    .builderPreviewWrap canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .builderPreviewHint {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 8px;
+      color: rgba(255,246,223,0.66);
+      font-size: 11px;
+      line-height: 1.25;
+      pointer-events: none;
+      text-shadow: 0 2px 4px #000;
+    }
+
+    .builderSelect,
+    .builderInput,
+    .builderTextArea,
+    .builderRange {
+      width: 100%;
+      border: 1px solid rgba(244,207,120,0.30);
+      border-radius: 8px;
+      background: rgba(8,7,10,0.78);
+      color: #fff6df;
+      padding: 7px 8px;
+      font-size: 12px;
+    }
+
+    .builderTextArea {
+      min-height: 150px;
+      resize: vertical;
+      font-family: Consolas, Monaco, monospace;
+      line-height: 1.35;
+      white-space: pre;
+    }
+
+    .builderControls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .builderRow {
+      display: grid;
+      grid-template-columns: 46px 1fr 62px;
+      gap: 7px;
+      align-items: center;
+      margin-bottom: 7px;
+    }
+
+    .builderRow label {
+      color: var(--brass2);
+      font-weight: 900;
+      font-size: 12px;
+    }
+
+    .builderNudges {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin: -2px 0 8px 53px;
+    }
+
+    .builderValue {
+      color: var(--muted);
+      font-size: 11px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    @media (max-width: 760px) {
+      .builderGrid { grid-template-columns: 1fr; }
+      .builderControls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .builderRow { grid-template-columns: 42px 1fr 58px; }
+      .builderNudges { margin-left: 49px; }
     }
 
     .combatGrid {
@@ -694,6 +900,11 @@
       border-color: rgba(127,209,132,0.66);
       background: rgba(127,209,132,0.11);
       color: #dcffdf;
+    }
+    .warningBox.warn {
+      border-color: rgba(244,207,120,0.72);
+      background: rgba(244,207,120,0.13);
+      color: #ffe9b8;
     }
 
     .statusPill {
@@ -1300,7 +1511,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.20.1322</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.22.1833</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1338,6 +1549,7 @@
         <button class="btn primary" onclick="saveGame()">Save</button>
         <button class="btn blue" onclick="loadGame()">Load</button>
         <button class="btn ghost" onclick="showHelp()">Help</button>
+        <button class="btn ghost" onclick="showFortressBuilder()">Builder</button>
         <button class="btn ghost" id="mapFocusBtn" onclick="toggleMapFocus()">Map</button>
         <button class="btn red" onclick="confirmReset()">Reset</button>
       </div>
@@ -1374,7 +1586,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.20.1322 · Single-file HTML · Three.js CDN build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.22.1833 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
     </div>
   </div>
 </div>
@@ -1385,12 +1597,13 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.20.1322';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_20_1322';
+const VERSION = 'v0.26.06.22.1833';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_22_1833';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
 const HEX_MAP_RADIUS = 5;
+const DEFAULT_FORTRESS_FACING = 0;
 
 const FACTIONS = {
   steam: { name: 'Steam Marshal', color: 0xb72d2d, accent: '#d64a37', flavor: 'Red imperial brass military power.' },
@@ -1482,6 +1695,72 @@ const CURRENT_ROUTE_TYPES = {
   pirate: { label: 'Pirate Slipstream', color: 0x5de2df, risk: 'High', desc: 'A hidden smuggler current with poor charts and possible ambushes.' }
 };
 
+const BRASSWAKE_MODEL_BASE_PATH = 'assets/models/brasswake/';
+const BRASSWAKE_ROOT_SCALE = 1.95;
+
+const BRASSWAKE_MODEL_PARTS = {
+  basePlatform: { file: 'Brasswake base platform.glb', targetSize: 4.6, color: 0x3b444c },
+  commandTower: { file: 'Brasswake command tower.glb', targetSize: 1.95, color: 0xd2a34a },
+  liftEngine: { file: 'Brasswake underside lift engine cluster.glb', targetSize: 2.05, color: 0x80eaff },
+  turnEngine: { file: 'Brasswake underside turn engine cluster.glb', targetSize: 1.55, color: 0x80eaff },
+  dockingArm: { file: 'Brasswake side docking arm.glb', targetSize: 1.70, color: 0xb78335 },
+  scoutCradle: { file: 'Brasswake small scout craft cradle.glb', targetSize: 1.35, color: 0x5de2df },
+  expansionFrame: { file: 'Brasswake expansion frame.glb', targetSize: 1.55, color: 0xb78335 },
+  armorWall: { file: 'Brasswake armor wall segment.glb', targetSize: 1.35, color: 0x6f7780 },
+  cannonTurret: { file: 'Brasswake cannon turret.glb', targetSize: 1.05, color: 0xd2a34a },
+  radarMast: { file: 'Brasswake radar mast.glb', targetSize: 1.55, color: 0x80b9ff },
+  hangarModule: { file: 'Brasswake hangar module.glb', targetSize: 1.65, color: 0x5de2df },
+  foundryModule: { file: 'Brasswake foundry module.glb', targetSize: 1.58, color: 0xff8a35 },
+  storageModule: { file: 'Brasswake storage module.glb', targetSize: 1.55, color: 0xb9c6d0 },
+  hydroponicsModule: { file: 'Brasswake hydroponics module.glb', targetSize: 1.50, color: 0x7fd184 },
+  hospitalModule: { file: 'Brasswake hospital module.glb', targetSize: 1.46, color: 0xd7c6ff }
+};
+
+const BRASSWAKE_MODULE_DEFS = {
+  command: { name: 'Command Tower / Bridge', category: 'Core Systems', source: 'core', description: 'Brasswake Free Command command deck and navigation authority.', gameplay: '+Command identity and campaign planning', visual: 'Mounts the command tower above the core platform.' },
+  lift: { name: 'Lift Engine Cluster', category: 'Core Systems', source: 'core', description: 'Primary arc-lift machinery that keeps the fortress-city aloft.', gameplay: '+Flight foundation', visual: 'Adds underside lift engines.' },
+  turn: { name: 'Turn Engine Cluster', category: 'Navigation / Scouting', source: 'core', description: 'Maneuvering engines for current alignment and fortress heading.', gameplay: '+Maneuvering identity', visual: 'Adds lower/rear turn engine machinery.' },
+  armor1: { name: 'Armor Wall Segments', category: 'Defense', source: 'upgrade', key: 'armor', min: 1, description: 'Layered wall plates protect exposed module edges.', gameplay: UPGRADE_DATA.armor.benefit, visual: 'Adds armor wall segments to Brasswake.' },
+  turret1: { name: 'Cannon Turrets', category: 'Defense', source: 'upgrade', key: 'weapons', min: 1, description: 'Gun turrets show visible broadside refits.', gameplay: UPGRADE_DATA.weapons.benefit, visual: 'Adds extra cannon turrets as Weapons improves.' },
+  radar: { name: 'Radar Mast', category: 'Navigation / Scouting', source: 'upgradeOrRoom', key: 'sensors', roomKey: 'radar', min: 1, description: 'A brass receiver mast for route discovery and navigation.', gameplay: '+Sensor radius', visual: 'Adds a radar mast above Brasswake.' },
+  storage: { name: 'Storage Module', category: 'Economy', source: 'upgrade', key: 'storage', min: 1, description: 'External hold space for fuel, food, steel, and gold.', gameplay: UPGRADE_DATA.storage.benefit, visual: 'Adds a storage module to the fortress frame.' },
+  hydroponics: { name: 'Hydroponics Module', category: 'Economy', source: 'room', key: 'hydroponics', description: 'Warm glass farms for food security during long routes.', gameplay: ROOM_DATA.hydroponics.benefit, visual: 'Adds the hydroponics module.' },
+  foundry: { name: 'Foundry Module', category: 'Economy', source: 'room', key: 'foundry', description: 'Industrial smelters turn salvage into usable plate.', gameplay: ROOM_DATA.foundry.benefit, visual: 'Adds the foundry module.' },
+  hangar: { name: 'Hangar Module', category: 'Support', source: 'roomOrUpgrade', key: 'hangar', upgradeKey: 'hangarCap', min: 1, description: 'Launch bay and scout cradle for air wing operations.', gameplay: '+Combat and future scouting hooks', visual: 'Adds hangar hardware and a small craft cradle.' },
+  hospital: { name: 'Hospital Module', category: 'Support', source: 'room', key: 'hospital', description: 'Medical cabins and recovery cranes for battered crew.', gameplay: ROOM_DATA.hospital.benefit, visual: 'Adds the hospital module.' },
+  expansion: { name: 'Expansion Frames', category: 'Expansion', source: 'core', description: 'Visible empty sockets for future rooms and refits.', gameplay: '+Readable upgrade space', visual: 'Shows empty expansion frames before modules fill them.' }
+};
+
+const BRASSWAKE_SLOT_LAYOUT = [
+  { slot: 'core', part: 'basePlatform', module: 'command', position: [0, 0.08, 0], rotation: [0, 0, 0], scale: 1.08 },
+  { slot: 'bridge', part: 'commandTower', module: 'command', position: [0, 1.28, 0.02], rotation: [0, 0, 0], scale: 0.95 },
+  { slot: 'undersideLift', part: 'liftEngine', module: 'lift', position: [0, -0.82, 0], rotation: [0, 0, 0], scale: 1.05 },
+  { slot: 'undersideTurn', part: 'turnEngine', module: 'turn', position: [0.42, -0.62, 0.95], rotation: [0, Math.PI, 0], scale: 0.86 },
+  { slot: 'portDock', part: 'dockingArm', module: 'command', position: [-1.58, 0.32, 0.22], rotation: [0, Math.PI / 2, 0], scale: 0.76 },
+  { slot: 'expansionA', part: 'expansionFrame', module: 'expansion', position: [1.18, 0.30, -0.70], rotation: [0, -0.38, 0], scale: 0.74 },
+  { slot: 'expansionB', part: 'expansionFrame', module: 'expansion', position: [-1.18, 0.30, -0.68], rotation: [0, 0.38, 0], scale: 0.68 },
+  { slot: 'armorPort', part: 'armorWall', module: 'command', position: [-1.30, 0.68, -0.12], rotation: [0, Math.PI / 2, 0], scale: 0.78 },
+  { slot: 'armorStarboard', part: 'armorWall', module: 'armor1', position: [1.30, 0.68, -0.12], rotation: [0, -Math.PI / 2, 0], scale: 0.78, requires: { upgrade: 'armor', min: 1 } },
+  { slot: 'armorForward', part: 'armorWall', module: 'armor1', position: [-1.02, 0.70, 0], rotation: [0, Math.PI / 2, 0], scale: 0.70, requires: { upgrade: 'armor', min: 2 } },
+  { slot: 'turretForward', part: 'cannonTurret', module: 'command', position: [-1.02, 0.95, -0.36], rotation: [0, -Math.PI / 2, 0], scale: 0.78 },
+  { slot: 'turretPort', part: 'cannonTurret', module: 'turret1', position: [-0.72, 0.84, 0.58], rotation: [0, -Math.PI / 2, 0], scale: 0.64, requires: { upgrade: 'weapons', min: 2 } },
+  { slot: 'turretStarboard', part: 'cannonTurret', module: 'turret1', position: [0.72, 0.84, 0.58], rotation: [0, Math.PI / 2, 0], scale: 0.64, requires: { upgrade: 'weapons', min: 3 } },
+  { slot: 'radar', part: 'radarMast', module: 'radar', position: [0.64, 1.34, 0.04], rotation: [0, 0.28, 0], scale: 0.66 },
+  { slot: 'storage', part: 'storageModule', module: 'storage', position: [1.04, 0.44, 0.66], rotation: [0, -0.22, 0], scale: 0.70 },
+  { slot: 'hydroponics', part: 'hydroponicsModule', module: 'hydroponics', position: [-1.04, 0.44, 0.70], rotation: [0, 0.24, 0], scale: 0.68 },
+  { slot: 'foundry', part: 'foundryModule', module: 'foundry', position: [0.42, 0.42, 1.10], rotation: [0, Math.PI, 0], scale: 0.66 },
+  { slot: 'hospital', part: 'hospitalModule', module: 'hospital', position: [-0.46, 0.42, 1.08], rotation: [0, Math.PI, 0], scale: 0.62 },
+  { slot: 'hangar', part: 'hangarModule', module: 'hangar', position: [1.22, 0.40, -0.32], rotation: [0, -Math.PI / 2, 0], scale: 0.68 },
+  { slot: 'scoutCradle', part: 'scoutCradle', module: 'hangar', position: [1.68, 0.50, -0.34], rotation: [0, -Math.PI / 2, 0], scale: 0.54 }
+];
+
+const BRASSWAKE_DEFAULT_SLOT_LAYOUT = BRASSWAKE_SLOT_LAYOUT.map(slot => ({
+  ...slot,
+  position: [...slot.position],
+  rotation: [...slot.rotation],
+  requires: slot.requires ? { ...slot.requires } : undefined
+}));
+
 // =============================================================
 // GAME STATE
 // =============================================================
@@ -1493,6 +1772,20 @@ let selectedMesh = null;
 let toastTimer = null;
 let currentHudAlert = null;
 let deferredToastText = null;
+let brasswakeModelLoader = null;
+let brasswakeModelRefreshToken = 0;
+const brasswakePartCache = new Map();
+const brasswakePartPromises = new Map();
+const brasswakePartWarnings = new Set();
+const brasswakeLocalPartURLs = new Map();
+let fortressBuilderOpen = false;
+let activeBuilderSlot = 'core';
+let fortressBuilderPreview = null;
+
+window.addEventListener('brasswake:gltf-loader-ready', () => {
+  brasswakeModelLoader = null;
+  if (fortressGroup) refreshBrasswakeModel();
+});
 
 // Three.js objects
 let scene, camera, renderer, raycaster, mouse, clock;
@@ -1641,12 +1934,14 @@ function createNewState() {
     hull: 100,
     rooms: { bridge: 1, engine: 1, barracks: 1, workshop: 1, storage: 1, hydroponics: 0, foundry: 0, radar: 0, hangar: 0, hospital: 0 },
     upgrades: { engines: 0, armor: 0, weapons: 0, storage: 0, sensors: 0, repairs: 0, hangarCap: 0 },
+    modules: {},
     locations: [],
     hexTiles: [],
     currentRoutes: [],
     aiFleets: [],
     currentLocationId: 'loc_home',
     selectedLocationId: 'loc_home',
+    fortressFacing: DEFAULT_FORTRESS_FACING,
     plottedRoute: null,
     discovered: { loc_home: true },
     relations: {},
@@ -1683,6 +1978,7 @@ function createNewState() {
   state.hexTiles = generateHexTilesFromLocations(state.locations);
   state.currentRoutes = generateCurrentRoutes(rng, state.locations);
   state.aiFleets = generateAIFleets(rng, state.locations);
+  syncBrasswakeModulesFromProgress(state);
   state.log.push({ day: 1, text: 'The fortress-crown <strong>Brasswake</strong> takes command at Brassgate Anchorage.' });
   state.log.push({ day: 1, text: 'Captain’s Orders: complete a safe contract or salvage run, then upgrade or repair before taking bigger fights.' });
   revealNearby(state);
@@ -1755,6 +2051,37 @@ function hexToWorld(q, r) {
     x: HEX_SIZE * Math.sqrt(3) * (q + r / 2),
     z: HEX_SIZE * 1.5 * r
   };
+}
+
+function normalizeAngleRadians(angle) {
+  if (!Number.isFinite(angle)) return DEFAULT_FORTRESS_FACING;
+  let normalized = angle % (Math.PI * 2);
+  if (normalized <= -Math.PI) normalized += Math.PI * 2;
+  if (normalized > Math.PI) normalized -= Math.PI * 2;
+  return normalized;
+}
+
+function shortestAngleDelta(from, to) {
+  return normalizeAngleRadians(to - from);
+}
+
+function getFortressFacing() {
+  return normalizeAngleRadians(game?.fortressFacing);
+}
+
+function setFortressFacing(angle) {
+  const facing = normalizeAngleRadians(angle);
+  if (game) game.fortressFacing = facing;
+  if (fortressGroup) fortressGroup.rotation.y = facing;
+  return facing;
+}
+
+function fortressFacingToward(fromLoc, toLoc) {
+  if (!fromLoc || !toLoc) return getFortressFacing();
+  const dx = toLoc.x - fromLoc.x;
+  const dz = toLoc.z - fromLoc.z;
+  if (Math.hypot(dx, dz) < 0.001) return getFortressFacing();
+  return normalizeAngleRadians(Math.atan2(dz, -dx));
 }
 
 function hexDistance(q1, r1, q2, r2) {
@@ -2235,6 +2562,8 @@ function roadmapDoctrineHTML(compact = false) {
   const cls = compact ? 'roadmapDoctrineCard compact' : 'roadmapDoctrineCard';
   return `<div class="${cls}"><strong>Navigation Doctrine / Roadmap Bible</strong>
     <ul>
+      <li><strong>Player Faction:</strong> Brasswake Free Command. The captain commands an independent modular flying fortress-city, not Steam Marshal, Archmage, Sky Admiral, Iron Priest, Thorn Regent, Cinder Khan, Dusk Corsair, Frost Matriarch, or Freebooter Clans.</li>
+      <li>Brasswake begins at Brassgate Anchorage with practical Steam Marshal infrastructure ties and positive early relations, but alliances, contracts, routes, and loyalties should remain campaign choices.</li>
       <li><strong>Celestial Navigation Automaton</strong> is the official system name; <strong>Clockwork Navigator</strong> is the common nickname.</li>
       <li>Starting Plot Capacity is <strong>1 Current Gate jump</strong>. The automaton locks the next jump while the captain keeps final-destination context.</li>
       <li>Future upgrades can increase plot capacity and add stronger route-memory, risk prediction, and faction gate handling.</li>
@@ -2554,10 +2883,273 @@ function createLocationMarker(loc) {
   return group;
 }
 
+function isBrasswakeModuleInstalled(def, state = game) {
+  if (!def) return false;
+  if (def.source === 'core') return true;
+  const up = state?.upgrades || {};
+  const rooms = state?.rooms || {};
+  const min = def.min || 1;
+  if (def.source === 'upgrade') return (up[def.key] || 0) >= min;
+  if (def.source === 'room') return !!rooms[def.key];
+  if (def.source === 'upgradeOrRoom') return (up[def.key] || 0) >= min || !!rooms[def.roomKey];
+  if (def.source === 'roomOrUpgrade') return !!rooms[def.key] || (up[def.upgradeKey] || 0) >= min;
+  return false;
+}
+
+function syncBrasswakeModulesFromProgress(state = game) {
+  if (!state) return {};
+  state.modules = state.modules || {};
+  Object.entries(BRASSWAKE_MODULE_DEFS).forEach(([key, def]) => {
+    state.modules[key] = isBrasswakeModuleInstalled(def, state);
+  });
+  return state.modules;
+}
+
+function isBrasswakeSlotVisible(slot, state = game) {
+  const moduleDef = BRASSWAKE_MODULE_DEFS[slot.module];
+  if (!isBrasswakeModuleInstalled(moduleDef, state)) return false;
+  const req = slot.requires || null;
+  if (req?.upgrade && ((state?.upgrades?.[req.upgrade] || 0) < (req.min || 1))) return false;
+  if (req?.room && !state?.rooms?.[req.room]) return false;
+  return true;
+}
+
+function getBrasswakeLoader() {
+  if (brasswakeModelLoader) return brasswakeModelLoader;
+  const LoaderClass = window.BrasswakeGLTFLoader || window.THREE?.GLTFLoader;
+  if (!LoaderClass) {
+    if (!brasswakePartWarnings.has('loader')) {
+      brasswakePartWarnings.add('loader');
+      console.warn('Brasswake GLB loader unavailable. Using procedural module fallbacks.');
+    }
+    return null;
+  }
+  brasswakeModelLoader = new LoaderClass();
+  return brasswakeModelLoader;
+}
+
+function expectedBrasswakeModelFiles() {
+  return Object.values(BRASSWAKE_MODEL_PARTS).map(part => part.file);
+}
+
+function localBrasswakeModelCount() {
+  return expectedBrasswakeModelFiles().filter(file => brasswakeLocalPartURLs.has(file)).length;
+}
+
+function getBrasswakePartURL(fileName) {
+  return brasswakeLocalPartURLs.get(fileName) || (BRASSWAKE_MODEL_BASE_PATH + fileName);
+}
+
+function clearBrasswakePartLoadCaches() {
+  brasswakePartCache.clear();
+  brasswakePartPromises.clear();
+  brasswakePartWarnings.clear();
+}
+
+function revokeLocalBrasswakeURLs() {
+  brasswakeLocalPartURLs.forEach(url => URL.revokeObjectURL(url));
+  brasswakeLocalPartURLs.clear();
+}
+
+function registerLocalBrasswakeModelFiles(files) {
+  const expected = new Set(expectedBrasswakeModelFiles());
+  revokeLocalBrasswakeURLs();
+  Array.from(files || []).forEach(file => {
+    if (!expected.has(file.name)) return;
+    brasswakeLocalPartURLs.set(file.name, URL.createObjectURL(file));
+  });
+  clearBrasswakePartLoadCaches();
+  refreshBrasswakeModel();
+  refreshFortressBuilderPreview();
+  if (fortressBuilderOpen) renderFortressBuilderModal();
+  const count = localBrasswakeModelCount();
+  showToast(count ? `Loaded ${count}/${expected.size} local Brasswake GLBs.` : 'No matching Brasswake GLBs found in that selection.');
+}
+
+function promptLoadBrasswakeModelFolder() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.multiple = true;
+  input.accept = '.glb,model/gltf-binary';
+  input.setAttribute('webkitdirectory', '');
+  input.setAttribute('directory', '');
+  input.onchange = () => registerLocalBrasswakeModelFiles(input.files);
+  input.click();
+}
+
+function loadBrasswakePart(partId) {
+  const part = BRASSWAKE_MODEL_PARTS[partId];
+  const loader = getBrasswakeLoader();
+  if (!part || !loader) return Promise.reject(new Error(`Brasswake part unavailable: ${partId}`));
+  if (brasswakePartCache.has(partId)) return Promise.resolve(brasswakePartCache.get(partId));
+  if (brasswakePartPromises.has(partId)) return brasswakePartPromises.get(partId);
+  const url = getBrasswakePartURL(part.file);
+  const promise = new Promise((resolve, reject) => {
+    loader.load(url, gltf => {
+      const source = gltf.scene || gltf.scenes?.[0];
+      if (!source) {
+        reject(new Error(`Brasswake GLB had no scene: ${url}`));
+        return;
+      }
+      brasswakePartCache.set(partId, source);
+      resolve(source);
+    }, undefined, err => {
+      if (!brasswakePartWarnings.has(partId)) {
+        brasswakePartWarnings.add(partId);
+        console.warn(`Brasswake GLB failed to load: ${url}`, err);
+      }
+      reject(err);
+    });
+  });
+  brasswakePartPromises.set(partId, promise);
+  promise.catch(() => brasswakePartPromises.delete(partId));
+  return promise;
+}
+
+function tuneBrasswakeObject(root) {
+  root.traverse(child => {
+    if (!child.isMesh) return;
+    child.castShadow = true;
+    child.receiveShadow = true;
+    if (Array.isArray(child.material)) {
+      child.material = child.material.map(mat => mat?.clone ? mat.clone() : mat);
+    } else if (child.material?.clone) {
+      child.material = child.material.clone();
+    }
+    const mats = Array.isArray(child.material) ? child.material : [child.material];
+    mats.forEach(mat => {
+      if (!mat) return;
+      if ('metalness' in mat) mat.metalness = Math.max(mat.metalness || 0, 0.35);
+      if ('roughness' in mat) mat.roughness = Math.max(mat.roughness || 0, 0.45);
+    });
+  });
+}
+
+function normalizeBrasswakePart(partId, object) {
+  const def = BRASSWAKE_MODEL_PARTS[partId] || {};
+  const root = new THREE.Group();
+  root.name = `Brasswake Part ${partId}`;
+  const clone = object.clone(true);
+  root.add(clone);
+  tuneBrasswakeObject(clone);
+  const box = new THREE.Box3().setFromObject(clone);
+  if (!box.isEmpty()) {
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+    clone.position.sub(center);
+    const maxDim = Math.max(size.x, size.y, size.z, 0.001);
+    root.scale.setScalar((def.targetSize || 1) / maxDim);
+  }
+  return root;
+}
+
+function createBrasswakeFallbackPart(partId, slot) {
+  const def = BRASSWAKE_MODEL_PARTS[partId] || {};
+  const group = new THREE.Group();
+  group.name = `Fallback ${partId}`;
+  const color = def.color || 0xb78335;
+  const metal = new THREE.MeshStandardMaterial({ color, metalness: 0.55, roughness: 0.58, emissive: color, emissiveIntensity: 0.035 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x242930, metalness: 0.48, roughness: 0.68 });
+  let body;
+  if (partId.includes('Engine')) {
+    body = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.42, 0.62, 12), dark);
+    body.rotation.x = Math.PI / 2;
+    const glow = new THREE.Mesh(new THREE.TorusGeometry(0.46, 0.035, 8, 24), new THREE.MeshBasicMaterial({ color: 0x80eaff, transparent: true, opacity: 0.7 }));
+    glow.rotation.x = Math.PI / 2;
+    group.add(glow);
+  } else if (partId === 'radarMast') {
+    body = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.07, 1.5, 8), metal);
+    body.position.y = 0.55;
+    const dish = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.025, 8, 24), metal);
+    dish.position.y = 1.35;
+    dish.rotation.x = Math.PI / 2;
+    group.add(dish);
+  } else if (partId === 'cannonTurret') {
+    body = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.32, 0.22, 12), metal);
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.07, 0.82, 10), dark);
+    barrel.rotation.x = Math.PI / 2;
+    barrel.position.z = -0.38;
+    barrel.position.y = 0.16;
+    group.add(barrel);
+  } else if (partId === 'armorWall') {
+    body = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.38, 0.16), metal);
+    body.position.y = 0.18;
+  } else if (partId === 'expansionFrame') {
+    body = new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.045, 6, 6), metal);
+    body.rotation.x = Math.PI / 2;
+  } else {
+    body = new THREE.Mesh(new THREE.BoxGeometry(1.05, partId === 'commandTower' ? 1.0 : 0.42, 0.92), metal);
+    body.position.y = partId === 'commandTower' ? 0.48 : 0.18;
+  }
+  body.castShadow = true;
+  body.receiveShadow = true;
+  group.add(body);
+  group.userData.fallbackPart = partId;
+  return group;
+}
+
+function placeBrasswakePart(parent, slot, object) {
+  object.name = `Brasswake ${slot.slot}`;
+  object.position.set(...slot.position);
+  object.rotation.set(...slot.rotation);
+  object.scale.multiplyScalar(slot.scale || 1);
+  object.userData.brasswakeSlot = slot.slot;
+  parent.add(object);
+}
+
+function addBrasswakeBuilderHighlight(parent, slot) {
+  if (!fortressBuilderOpen || slot.slot !== activeBuilderSlot) return;
+  const highlight = new THREE.Group();
+  highlight.name = `Builder Highlight ${slot.slot}`;
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0xf4cf78, transparent: true, opacity: 0.72, wireframe: true });
+  const boxMat = new THREE.MeshBasicMaterial({ color: 0x80eaff, transparent: true, opacity: 0.36, wireframe: true });
+  const footprint = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.12, 1.35), ringMat);
+  footprint.position.set(slot.position[0], slot.position[1] + 0.04, slot.position[2]);
+  footprint.rotation.set(...slot.rotation);
+  footprint.scale.setScalar(Math.max(0.65, slot.scale || 1));
+  highlight.add(footprint);
+  const mast = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.25, 0.16), boxMat);
+  mast.position.set(slot.position[0], slot.position[1] + 0.68, slot.position[2]);
+  highlight.add(mast);
+  parent.add(highlight);
+}
+
+function refreshBrasswakeModel(group = fortressGroup) {
+  if (!group) return;
+  syncBrasswakeModulesFromProgress();
+  const old = group.getObjectByName('Brasswake GLB Modular Assembly');
+  if (old) group.remove(old);
+  const assembly = new THREE.Group();
+  const token = ++brasswakeModelRefreshToken;
+  assembly.name = 'Brasswake GLB Modular Assembly';
+  assembly.userData.brasswakeAssembly = true;
+  group.add(assembly);
+  const proceduralFallback = group.userData.proceduralFallback;
+  if (proceduralFallback) proceduralFallback.visible = !getBrasswakeLoader();
+
+  BRASSWAKE_SLOT_LAYOUT.filter(slot => isBrasswakeSlotVisible(slot) || (fortressBuilderOpen && slot.slot === activeBuilderSlot)).forEach(slot => {
+    const slotRoot = new THREE.Group();
+    slotRoot.name = `Brasswake Slot ${slot.slot}`;
+    assembly.add(slotRoot);
+    placeBrasswakePart(slotRoot, slot, createBrasswakeFallbackPart(slot.part, slot));
+    addBrasswakeBuilderHighlight(slotRoot, slot);
+    loadBrasswakePart(slot.part)
+      .then(source => {
+        if (token !== brasswakeModelRefreshToken || !slotRoot.parent) return;
+        slotRoot.clear();
+        placeBrasswakePart(slotRoot, slot, normalizeBrasswakePart(slot.part, source));
+        addBrasswakeBuilderHighlight(slotRoot, slot);
+      })
+      .catch(() => {
+        // The fallback mesh is already in this slot.
+      });
+  });
+}
+
 function createFortressModel() {
-  // Procedural Brasswake marker v0.26.06.20.1322
-  // Lightweight in-game representation of the starting fortress: a modular hex-built sky city.
-  // Future fortress-builder work can map actual rooms/upgrades to these visible hex modules.
+  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.22.1833.
   const group = new THREE.Group();
   group.name = 'Brasswake Modular Hex Fortress Marker';
   group.userData.brasswakeMarker = true;
@@ -2893,6 +3485,71 @@ function createFortressModel() {
     group.add(cable);
   }
 
+  function createCohesiveFoundationHull() {
+    const hull = new THREE.Group();
+    hull.name = 'Brasswake Cohesive Foundation Hull';
+    const foundationMat = mat.darkIron.clone();
+    foundationMat.transparent = true;
+    foundationMat.opacity = 0.88;
+    const deckMat = mat.wornIron.clone();
+    deckMat.transparent = true;
+    deckMat.opacity = 0.82;
+    const bowMat = mat.brassBright.clone();
+    bowMat.transparent = true;
+    bowMat.opacity = 0.95;
+
+    const core = new THREE.Mesh(new THREE.BoxGeometry(3.25, 0.32, 2.18), foundationMat);
+    core.position.set(0, -0.03, 0.12);
+    core.castShadow = true;
+    core.receiveShadow = true;
+    hull.add(core);
+
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(2.72, 0.10, 1.72), deckMat);
+    deck.position.set(0, 0.18, 0.04);
+    deck.castShadow = true;
+    deck.receiveShadow = true;
+    hull.add(deck);
+
+    const portWing = new THREE.Mesh(new THREE.BoxGeometry(1.04, 0.22, 1.24), foundationMat);
+    portWing.position.set(-1.28, 0.04, 0.12);
+    portWing.rotation.y = 0.16;
+    hull.add(portWing);
+
+    const starboardWing = new THREE.Mesh(new THREE.BoxGeometry(1.04, 0.22, 1.24), foundationMat);
+    starboardWing.position.set(1.28, 0.04, 0.12);
+    starboardWing.rotation.y = -0.16;
+    hull.add(starboardWing);
+
+    const bow = new THREE.Mesh(new THREE.ConeGeometry(0.62, 1.18, 4), bowMat);
+    bow.name = 'Brasswake Bow Prow - Local Negative X';
+    bow.position.set(-2.02, 0.20, -0.02);
+    bow.rotation.z = Math.PI / 2;
+    bow.rotation.y = Math.PI / 4;
+    bow.castShadow = true;
+    hull.add(bow);
+
+    const bowLamp = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 8), mat.windowGlow);
+    bowLamp.name = 'Brasswake Bow Lantern';
+    bowLamp.position.set(-2.64, 0.44, -0.02);
+    bowLamp.userData.windowGlow = true;
+    hull.add(bowLamp);
+    const bowLight = new THREE.PointLight(0xffd56a, 0.7, 3.8);
+    bowLight.position.copy(bowLamp.position);
+    hull.add(bowLight);
+
+    const keel = new THREE.Mesh(new THREE.BoxGeometry(2.75, 0.12, 0.18), mat.brass);
+    keel.position.set(-0.08, -0.31, 0);
+    hull.add(keel);
+
+    for (let z of [-0.95, 0.95]) {
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(2.82, 0.065, 0.055), mat.brassBright);
+      rail.position.set(0.05, 0.35, z);
+      hull.add(rail);
+    }
+
+    return hull;
+  }
+
   const modules = [
     createBridgeModule(),
     createEngineWorkshopModule(),
@@ -2938,8 +3595,17 @@ function createFortressModel() {
   noseLamp.position.set(0, 0.55, -hexRow * 1.52);
   group.add(noseLamp);
 
-  group.scale.setScalar(1.32);
-  group.rotation.y = -0.18;
+  const proceduralFallback = new THREE.Group();
+  proceduralFallback.name = 'Procedural Brasswake Fallback';
+  proceduralFallback.userData.proceduralFallback = true;
+  while (group.children.length) proceduralFallback.add(group.children[0]);
+  group.add(proceduralFallback);
+  group.userData.proceduralFallback = proceduralFallback;
+  group.add(createCohesiveFoundationHull());
+  refreshBrasswakeModel(group);
+
+  group.scale.setScalar(BRASSWAKE_ROOT_SCALE);
+  group.rotation.y = getFortressFacing();
   return group;
 }
 
@@ -3031,6 +3697,7 @@ function startNewGame() {
   game = createNewState();
   document.getElementById('titleScreen').classList.add('hidden');
   showHUD(true);
+  refreshBrasswakeModel();
   buildWorldMeshes();
   centerCameraOnCurrent();
   renderUI();
@@ -3242,6 +3909,86 @@ function setRightPanelContent(html) {
   panel.scrollTop = 0;
 }
 
+function brasswakeVisualEffectForUpgrade(key) {
+  const effects = {
+    engines: 'Supports the lift and turn engine cluster identity.',
+    armor: 'Adds more armor wall segments around exposed fortress edges.',
+    weapons: 'Adds additional cannon turrets to the Brasswake model.',
+    storage: 'Adds a visible storage module to the expansion frame.',
+    sensors: 'Adds or activates the radar mast module.',
+    repairs: 'Reinforces workshop/service identity; deeper repair bay visuals are future work.',
+    hangarCap: 'Adds hangar/scout cradle hardware for future air wing growth.'
+  };
+  return effects[key] || 'Updates Brasswake modular readiness.';
+}
+
+function brasswakeVisualEffectForRoom(key) {
+  const effects = {
+    hydroponics: 'Adds the hydroponics module.',
+    foundry: 'Adds the foundry module.',
+    radar: 'Adds the radar mast if sensors have not already revealed it.',
+    hangar: 'Adds the hangar module and scout craft cradle.',
+    hospital: 'Adds the hospital module.',
+    bridge: 'Shown by the starting command tower.',
+    engine: 'Shown by the starting lift engine cluster.',
+    barracks: 'Represented by the starting core structure.',
+    workshop: 'Represented by the starting service frame.',
+    storage: 'Storage upgrade adds the external storage module.'
+  };
+  return effects[key] || 'Updates Brasswake modular layout.';
+}
+
+function brasswakeModuleStatus(def) {
+  const installed = isBrasswakeModuleInstalled(def);
+  const up = game?.upgrades || {};
+  const rooms = game?.rooms || {};
+  let level = installed ? 'Installed' : 'Locked';
+  let cost = 'BASE';
+  let prereq = 'Starting system';
+  if (def.source === 'upgrade') {
+    const current = up[def.key] || 0;
+    level = `Lv ${current}/${UPGRADE_DATA[def.key]?.max || def.min}`;
+    cost = current >= (def.min || 1) ? 'INSTALLED' : formatCost(upgradeCost(def.key));
+    prereq = `${UPGRADE_DATA[def.key]?.name || def.key} Lv ${def.min || 1}`;
+  } else if (def.source === 'room') {
+    cost = rooms[def.key] ? 'BUILT' : formatCost(ROOM_DATA[def.key]?.cost || {});
+    prereq = `Build ${ROOM_DATA[def.key]?.name || def.key}`;
+  } else if (def.source === 'upgradeOrRoom') {
+    const current = up[def.key] || 0;
+    cost = installed ? 'INSTALLED' : `${formatCost(upgradeCost(def.key))} or ${formatCost(ROOM_DATA[def.roomKey]?.cost || {})}`;
+    level = installed ? 'Installed' : `Lv ${current}/${UPGRADE_DATA[def.key]?.max || def.min}`;
+    prereq = `${UPGRADE_DATA[def.key]?.name || def.key} Lv ${def.min || 1} or ${ROOM_DATA[def.roomKey]?.name || def.roomKey}`;
+  } else if (def.source === 'roomOrUpgrade') {
+    const current = up[def.upgradeKey] || 0;
+    cost = installed ? 'INSTALLED' : `${formatCost(ROOM_DATA[def.key]?.cost || {})} or ${formatCost(upgradeCost(def.upgradeKey))}`;
+    level = installed ? 'Installed' : `Hangar ${rooms[def.key] ? 'Built' : 'Empty'} / Cap Lv ${current}`;
+    prereq = `${ROOM_DATA[def.key]?.name || def.key} or ${UPGRADE_DATA[def.upgradeKey]?.name || def.upgradeKey} Lv ${def.min || 1}`;
+  }
+  return { installed, level, cost, prereq };
+}
+
+function brasswakeModuleSummaryHTML() {
+  syncBrasswakeModulesFromProgress();
+  const categories = ['Core Systems', 'Defense', 'Economy', 'Support', 'Navigation / Scouting', 'Expansion'];
+  const cards = categories.map(category => {
+    const items = Object.entries(BRASSWAKE_MODULE_DEFS).filter(([,def]) => def.category === category);
+    if (!items.length) return '';
+    return `<div class="techChainCard"><strong>${category}</strong>` + items.map(([,def]) => {
+      const status = brasswakeModuleStatus(def);
+      return `<div class="roomCard" style="margin-top:8px;">
+        <div class="cardTitle"><span>${def.name} <span class="tag ${status.installed ? 'good' : 'warn'}">${status.level}</span></span><span class="cost">${status.cost}</span></div>
+        <div class="smallNote">${def.description}<br/>
+          <strong style="color:var(--brass2)">Effect:</strong> ${def.gameplay}<br/>
+          <strong style="color:var(--brass2)">Visual:</strong> ${def.visual}<br/>
+          <strong style="color:var(--brass2)">Prerequisite:</strong> ${status.prereq}</div>
+      </div>`;
+    }).join('') + `</div>`;
+  }).join('');
+  return `<h2>Brasswake Modules</h2>
+    <p class="smallNote"><strong>Player Faction:</strong> Brasswake Free Command. You are an independent modular flying fortress-city, not one of the major factions. Brassgate Anchorage gives practical Steam Marshal infrastructure ties and positive early relations, but alliances and loyalties remain campaign choices.</p>
+    ${cards}`;
+}
+
 function renderUpgradePanel() {
   const affordable = affordableUpgradeKeys();
   const showUpgradeEmphasis = !!(game.flags?.earnedReward || game.flags?.resolvedEvent || game.flags?.upgradedOrRepaired);
@@ -3262,10 +4009,10 @@ function renderUpgradePanel() {
       const pulse = can && isRecommended ? 'pulse' : '';
       return `<div class="upgradeCard ${can ? 'affordable' : ''}">
         <div class="cardTitle"><span>${u.name} <span class="tag blue">Lv ${level}/${u.max}</span>${readyTag}</span><span class="cost">${maxed ? 'MAX' : formatCost(cost)}</span></div>
-        <div class="smallNote">${u.desc}<br/><strong style="color:var(--brass2)">${u.benefit}</strong></div>
+        <div class="smallNote">${u.desc}<br/><strong style="color:var(--brass2)">${u.benefit}</strong><br/><strong style="color:var(--brass2)">Visual:</strong> ${brasswakeVisualEffectForUpgrade(key)}</div>
         <button class="btn primary ${pulse}" style="margin-top:8px; width:100%;" ${can ? '' : 'disabled'} onclick="buyUpgrade('${key}')">${maxed ? 'Fully Upgraded' : 'Upgrade'}</button>
       </div>`;
-    }).join('');
+    }).join('') + brasswakeModuleSummaryHTML();
   setRightPanelContent(html);
 }
 
@@ -3314,17 +4061,17 @@ function researchStormKeel() {
 }
 
 function renderRoomsPanel() {
-  const html = `<h2>Fortress Rooms</h2><p class="smallNote">Starting rooms are already installed. Buildable rooms provide real Phase 1 bonuses. Future roadmap work can tie these rooms to visible Brasswake hex modules.</p>` +
+  const html = `<h2>Fortress Rooms</h2><p class="smallNote">Starting rooms are already installed. Buildable rooms provide real Phase 1 bonuses. Built modules now appear on Brasswake when their GLB parts are available, with procedural fallbacks if files are missing.</p>` +
     Object.entries(ROOM_DATA).map(([key,r]) => {
       const level = game.rooms[key] || 0;
       const built = level > 0;
       const canBuild = !r.base && !built && canAfford(r.cost || {});
       return `<div class="roomCard">
         <div class="cardTitle"><span>${r.name} ${built ? '<span class="tag good">Installed</span>' : '<span class="tag">Empty Slot</span>'}</span><span class="cost">${r.base ? 'BASE' : built ? 'BUILT' : formatCost(r.cost)}</span></div>
-        <div class="smallNote">${r.desc}<br/><strong style="color:var(--brass2)">${r.benefit}</strong></div>
+        <div class="smallNote">${r.desc}<br/><strong style="color:var(--brass2)">${r.benefit}</strong><br/><strong style="color:var(--brass2)">Visual:</strong> ${brasswakeVisualEffectForRoom(key)}</div>
         ${r.base ? '' : `<button class="btn green" style="margin-top:8px; width:100%;" ${canBuild ? '' : 'disabled'} onclick="buildRoom('${key}')">${built ? 'Room Built' : 'Build Room'}</button>`}
       </div>`;
-    }).join('');
+    }).join('') + brasswakeModuleSummaryHTML();
   setRightPanelContent(html);
 }
 
@@ -4453,9 +5200,577 @@ function showResultModal(title, bodyHtml, button, callback) {
 }
 
 function closeModal() {
+  const wasFortressBuilder = fortressBuilderOpen;
+  fortressBuilderOpen = false;
+  disposeFortressBuilderPreview();
+  document.getElementById('modalContent').classList.remove('builderModal');
   document.getElementById('modalOverlay').classList.remove('active');
+  if (wasFortressBuilder) refreshBrasswakeModel();
   renderUI();
   resetSelectedPanelScrollSoon();
+}
+
+function getBuilderSlot(slotName = activeBuilderSlot) {
+  return BRASSWAKE_SLOT_LAYOUT.find(slot => slot.slot === slotName) || BRASSWAKE_SLOT_LAYOUT[0];
+}
+
+function getDefaultBuilderSlot(slotName) {
+  return BRASSWAKE_DEFAULT_SLOT_LAYOUT.find(slot => slot.slot === slotName);
+}
+
+function formatBuilderNumber(value) {
+  return Number(value || 0).toFixed(2);
+}
+
+function builderSlotVisibilityLabel(slot) {
+  if (!game) return 'No active campaign';
+  if (fortressBuilderOpen && slot.slot === activeBuilderSlot && !isBrasswakeSlotVisible(slot)) return 'Previewing locked slot';
+  return isBrasswakeSlotVisible(slot) ? 'Visible now' : 'Hidden until module/upgrade is installed';
+}
+
+function builderSlotStatusClass(slot) {
+  const label = builderSlotVisibilityLabel(slot);
+  if (label.startsWith('Visible')) return 'good';
+  if (label.startsWith('Previewing')) return 'blue';
+  return 'warn';
+}
+
+function colorToCSS(color) {
+  return `#${(color || 0xb78335).toString(16).padStart(6, '0')}`;
+}
+
+function builderDependencyText(slot) {
+  const def = BRASSWAKE_MODULE_DEFS[slot.module];
+  const req = slot.requires;
+  const base = def?.source === 'core' ? 'Starting system' : (def?.name || slot.module);
+  if (req?.upgrade) return `${base}; requires ${req.upgrade} Lv ${req.min || 1}`;
+  if (req?.room) return `${base}; requires ${req.room}`;
+  return base;
+}
+
+function builderAssetStatusHTML() {
+  const loaded = localBrasswakeModelCount();
+  const total = expectedBrasswakeModelFiles().length;
+  const isFilePage = location.protocol === 'file:';
+  if (loaded) {
+    return `<div class="warningBox good"><strong>Local GLBs active:</strong> ${loaded}/${total} Brasswake model files are loaded from your selected folder.</div>`;
+  }
+  if (isFilePage) {
+    return `<div class="warningBox warn"><strong>Direct file mode:</strong> browsers often block GLTFLoader from fetching external GLBs from <code>file://</code>. If Brasswake looks like simple primitives, click <strong>Load GLB Folder</strong> and choose <code>assets/models/brasswake</code>.</div>`;
+  }
+  return `<div class="warningBox"><strong>GLB source:</strong> using relative paths under <code>${BRASSWAKE_MODEL_BASE_PATH}</code>. Fallback primitives appear only for missing or blocked files.</div>`;
+}
+
+function builderSlotListHTML() {
+  return BRASSWAKE_SLOT_LAYOUT.map(slot => {
+    const part = BRASSWAKE_MODEL_PARTS[slot.part] || {};
+    const status = builderSlotVisibilityLabel(slot);
+    const active = slot.slot === activeBuilderSlot ? 'active' : '';
+    return `<button class="builderSlotItem ${active}" onclick="selectBuilderSlot('${slot.slot}')">
+      <span class="builderSlotThumb" style="--part-color:${colorToCSS(part.color)}"></span>
+      <span>
+        <span class="builderSlotName">${escapeHTML(slot.slot)} <span class="tag ${builderSlotStatusClass(slot)}">${escapeHTML(status)}</span></span>
+        <span class="builderSlotMeta">${escapeHTML(builderDependencyText(slot))}<br>${escapeHTML(part.file || slot.part)}</span>
+      </span>
+    </button>`;
+  }).join('');
+}
+
+function builderSlotOptionsHTML() {
+  return BRASSWAKE_SLOT_LAYOUT.map(slot => {
+    const visible = game && isBrasswakeSlotVisible(slot);
+    const prefix = visible ? '* ' : '';
+    return `<option value="${slot.slot}" ${slot.slot === activeBuilderSlot ? 'selected' : ''}>${prefix}${slot.slot} (${slot.part})</option>`;
+  }).join('');
+}
+
+function builderNumberRowHTML(label, kind, index, value, min, max, step = 0.1) {
+  const safeValue = formatBuilderNumber(value);
+  const idBase = `builder_${kind}_${index}`;
+  return `<div class="builderRow">
+    <label>${label}</label>
+    <input id="${idBase}_range" class="builderRange" type="range" min="${min}" max="${max}" step="${step}" value="${safeValue}" oninput="setBuilderSlotNumber('${kind}', ${index}, this.value)">
+    <input id="${idBase}_number" class="builderInput" type="number" min="${min}" max="${max}" step="${step}" value="${safeValue}" onchange="setBuilderSlotNumber('${kind}', ${index}, this.value)">
+  </div>
+  <div class="builderNudges">
+    <button class="btn ghost" onclick="adjustBuilderSlot('${kind}', ${index}, ${-step})">-${step}</button>
+    <button class="btn ghost" onclick="adjustBuilderSlot('${kind}', ${index}, ${step})">+${step}</button>
+  </div>`;
+}
+
+function exportBrasswakeLayout() {
+  const lines = BRASSWAKE_SLOT_LAYOUT.map(slot => {
+    const fields = [
+      `slot: '${slot.slot}'`,
+      `part: '${slot.part}'`,
+      `module: '${slot.module}'`,
+      `position: [${slot.position.map(formatBuilderNumber).join(', ')}]`,
+      `rotation: [${slot.rotation.map(formatBuilderNumber).join(', ')}]`,
+      `scale: ${formatBuilderNumber(slot.scale || 1)}`
+    ];
+    if (slot.requires) {
+      const reqFields = Object.entries(slot.requires).map(([key, value]) => typeof value === 'string' ? `${key}: '${value}'` : `${key}: ${value}`);
+      fields.push(`requires: { ${reqFields.join(', ')} }`);
+    }
+    return `  { ${fields.join(', ')} }`;
+  });
+  return `const BRASSWAKE_SLOT_LAYOUT = [\n${lines.join(',\n')}\n];`;
+}
+
+function showFortressBuilder() {
+  if (!game) {
+    showToast('Start or load a campaign before opening the fortress builder.');
+    return;
+  }
+  fortressBuilderOpen = true;
+  renderFortressBuilderModal();
+}
+
+function renderFortressBuilderModal() {
+  const slot = getBuilderSlot();
+  activeBuilderSlot = slot.slot;
+  const moduleDef = BRASSWAKE_MODULE_DEFS[slot.module];
+  const part = BRASSWAKE_MODEL_PARTS[slot.part];
+  const visibleLabel = builderSlotVisibilityLabel(slot);
+  const exportText = escapeHTML(exportBrasswakeLayout());
+  const statusClass = builderSlotStatusClass(slot);
+  const content = document.getElementById('modalContent');
+  content.classList.add('builderModal');
+  content.innerHTML = `<h1>Brasswake Fortress Builder</h1>
+    <p class="smallNote">Developer layout tool. Adjustments apply to this browser session only; use Copy Layout after tuning to capture the slot table for the next code patch.</p>
+    <div class="builderGrid">
+      <div class="builderCard">
+        <h2>GLB Slots</h2>
+        ${builderAssetStatusHTML()}
+        <button class="btn blue" style="width:100%; margin:8px 0;" onclick="promptLoadBrasswakeModelFolder()">Load GLB Folder</button>
+        <div class="builderSlotList">${builderSlotListHTML()}</div>
+      </div>
+      <div class="builderCard">
+        <h2>Live Fortress Preview</h2>
+        <div class="builderPreviewWrap" id="builderPreviewWrap">
+          <div class="builderPreviewHint">Drag to orbit. Mouse wheel zooms. Click a part to select its slot.</div>
+        </div>
+      </div>
+      <div class="builderCard">
+        <h2>Selected Slot</h2>
+        <select class="builderSelect" onchange="selectBuilderSlot(this.value)">${builderSlotOptionsHTML()}</select>
+        <p><span class="tag ${statusClass}">${visibleLabel}</span></p>
+        <p class="smallNote"><strong>${escapeHTML(moduleDef?.name || slot.module)}</strong><br>${escapeHTML(moduleDef?.visual || 'Visual placement slot.')}<br>Part: ${escapeHTML(part?.file || slot.part)}</p>
+        <div class="buttonGrid">
+          <button class="btn ghost" onclick="resetBuilderSlot('${slot.slot}')">Reset Slot</button>
+          <button class="btn ghost" onclick="resetBuilderLayout()">Reset All</button>
+        </div>
+        <h2>Transform</h2>
+        ${builderNumberRowHTML('X', 'position', 0, slot.position[0], -3.5, 3.5, 0.05)}
+        ${builderNumberRowHTML('Y', 'position', 1, slot.position[1], -1.5, 2.6, 0.05)}
+        ${builderNumberRowHTML('Z', 'position', 2, slot.position[2], -2.5, 2.5, 0.05)}
+        ${builderNumberRowHTML('RotY', 'rotation', 1, slot.rotation[1], -3.15, 3.15, 0.05)}
+        <div class="builderRow">
+          <label>Scale</label>
+          <input id="builder_scale_range" class="builderRange" type="range" min="0.1" max="2.5" step="0.025" value="${formatBuilderNumber(slot.scale || 1)}" oninput="setBuilderSlotScale(this.value)">
+          <input id="builder_scale_number" class="builderInput" type="number" min="0.1" max="2.5" step="0.025" value="${formatBuilderNumber(slot.scale || 1)}" onchange="setBuilderSlotScale(this.value)">
+        </div>
+        <div class="builderNudges">
+          <button class="btn ghost" onclick="adjustBuilderScale(-0.025)">-0.025</button>
+          <button class="btn ghost" onclick="adjustBuilderScale(0.025)">+0.025</button>
+        </div>
+        <div class="builderControls">
+          <button class="btn blue" onclick="snapBuilderSlotToDeck()">Deck</button>
+          <button class="btn blue" onclick="centerBuilderSlotOnHull()">Center</button>
+          <button class="btn primary" onclick="copyBuilderLayout()">Copy Layout</button>
+          <button class="btn ghost" onclick="closeModal()">Close</button>
+        </div>
+      </div>
+    </div>
+    <h2 style="margin-top:14px;">Current Layout Export</h2>
+    <textarea class="builderTextArea" id="builderExport" readonly>${exportText}</textarea>`;
+  document.getElementById('modalOverlay').classList.add('active');
+  setupFortressBuilderPreview();
+  refreshBrasswakeModel();
+  refreshFortressBuilderPreview();
+  updateBuilderControlValues();
+}
+
+function selectBuilderSlot(slotName) {
+  activeBuilderSlot = slotName;
+  refreshBrasswakeModel();
+  renderFortressBuilderModal();
+}
+
+function adjustBuilderSlot(kind, index, delta) {
+  const slot = getBuilderSlot();
+  if (!slot || !Array.isArray(slot[kind])) return;
+  slot[kind][index] = Number((slot[kind][index] + delta).toFixed(3));
+  updateBuilderAfterTransform();
+}
+
+function setBuilderSlotNumber(kind, index, value) {
+  const slot = getBuilderSlot();
+  const parsed = parseFloat(value);
+  if (!slot || !Array.isArray(slot[kind]) || !Number.isFinite(parsed)) return;
+  slot[kind][index] = Number(parsed.toFixed(3));
+  updateBuilderAfterTransform();
+}
+
+function adjustBuilderScale(delta) {
+  const slot = getBuilderSlot();
+  slot.scale = Number(clamp((slot.scale || 1) + delta, 0.1, 3.0).toFixed(3));
+  updateBuilderAfterTransform();
+}
+
+function setBuilderSlotScale(value) {
+  const parsed = parseFloat(value);
+  if (!Number.isFinite(parsed)) return;
+  const slot = getBuilderSlot();
+  slot.scale = Number(clamp(parsed, 0.1, 3.0).toFixed(3));
+  updateBuilderAfterTransform();
+}
+
+function resetBuilderSlot(slotName) {
+  const slot = getBuilderSlot(slotName);
+  const defaults = getDefaultBuilderSlot(slotName);
+  if (!slot || !defaults) return;
+  slot.position = [...defaults.position];
+  slot.rotation = [...defaults.rotation];
+  slot.scale = defaults.scale;
+  updateBuilderAfterTransform(true);
+}
+
+function resetBuilderLayout() {
+  BRASSWAKE_DEFAULT_SLOT_LAYOUT.forEach(defaults => {
+    const slot = getBuilderSlot(defaults.slot);
+    if (!slot) return;
+    slot.position = [...defaults.position];
+    slot.rotation = [...defaults.rotation];
+    slot.scale = defaults.scale;
+  });
+  updateBuilderAfterTransform(true);
+}
+
+function snapBuilderSlotToDeck() {
+  const slot = getBuilderSlot();
+  slot.position[1] = 0.44;
+  updateBuilderAfterTransform();
+}
+
+function centerBuilderSlotOnHull() {
+  const slot = getBuilderSlot();
+  slot.position[0] = 0;
+  slot.position[2] = 0;
+  updateBuilderAfterTransform();
+}
+
+function updateBuilderAfterTransform() {
+  refreshFortressBuilderPreview();
+  updateBuilderControlValues();
+}
+
+function updateBuilderControlValues() {
+  const slot = getBuilderSlot();
+  const fields = [
+    ['position', 0, slot.position[0]],
+    ['position', 1, slot.position[1]],
+    ['position', 2, slot.position[2]],
+    ['rotation', 1, slot.rotation[1]]
+  ];
+  fields.forEach(([kind, index, value]) => {
+    const formatted = formatBuilderNumber(value);
+    const range = document.getElementById(`builder_${kind}_${index}_range`);
+    const number = document.getElementById(`builder_${kind}_${index}_number`);
+    if (range && document.activeElement !== range) range.value = formatted;
+    if (number && document.activeElement !== number) number.value = formatted;
+  });
+  const scaleValue = formatBuilderNumber(slot.scale || 1);
+  const scaleRange = document.getElementById('builder_scale_range');
+  const scaleNumber = document.getElementById('builder_scale_number');
+  if (scaleRange && document.activeElement !== scaleRange) scaleRange.value = scaleValue;
+  if (scaleNumber && document.activeElement !== scaleNumber) scaleNumber.value = scaleValue;
+  const exportArea = document.getElementById('builderExport');
+  if (exportArea) exportArea.value = exportBrasswakeLayout();
+}
+
+function createBuilderPreviewFoundationHull() {
+  const hull = new THREE.Group();
+  hull.name = 'Builder Preview Foundation Hull';
+  const darkIron = new THREE.MeshStandardMaterial({ color: 0x252b31, metalness: 0.64, roughness: 0.58 });
+  const wornIron = new THREE.MeshStandardMaterial({ color: 0x3b444c, metalness: 0.52, roughness: 0.64 });
+  const brass = new THREE.MeshStandardMaterial({ color: 0xb78335, metalness: 0.70, roughness: 0.42 });
+  const brassBright = new THREE.MeshStandardMaterial({ color: 0xd2a34a, metalness: 0.66, roughness: 0.34, emissive: 0x221500, emissiveIntensity: 0.10 });
+  const glow = new THREE.MeshBasicMaterial({ color: 0xffbf4a });
+
+  const core = new THREE.Mesh(new THREE.BoxGeometry(3.25, 0.32, 2.18), darkIron);
+  core.position.set(0, -0.03, 0.12);
+  hull.add(core);
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(2.72, 0.10, 1.72), wornIron);
+  deck.position.set(0, 0.18, 0.04);
+  hull.add(deck);
+  const portWing = new THREE.Mesh(new THREE.BoxGeometry(1.04, 0.22, 1.24), darkIron);
+  portWing.position.set(-1.28, 0.04, 0.12);
+  portWing.rotation.y = 0.16;
+  hull.add(portWing);
+  const starboardWing = new THREE.Mesh(new THREE.BoxGeometry(1.04, 0.22, 1.24), darkIron);
+  starboardWing.position.set(1.28, 0.04, 0.12);
+  starboardWing.rotation.y = -0.16;
+  hull.add(starboardWing);
+  const bow = new THREE.Mesh(new THREE.ConeGeometry(0.62, 1.18, 4), brassBright);
+  bow.position.set(-2.02, 0.20, -0.02);
+  bow.rotation.z = Math.PI / 2;
+  bow.rotation.y = Math.PI / 4;
+  hull.add(bow);
+  const bowLamp = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 8), glow);
+  bowLamp.position.set(-2.64, 0.44, -0.02);
+  hull.add(bowLamp);
+  const keel = new THREE.Mesh(new THREE.BoxGeometry(2.75, 0.12, 0.18), brass);
+  keel.position.set(-0.08, -0.31, 0);
+  hull.add(keel);
+  for (let z of [-0.95, 0.95]) {
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(2.82, 0.065, 0.055), brassBright);
+    rail.position.set(0.05, 0.35, z);
+    hull.add(rail);
+  }
+  return hull;
+}
+
+function markBuilderSelectable(object, slotName) {
+  object.traverse(child => {
+    child.userData.builderSlot = slotName;
+  });
+}
+
+function createBuilderSlotHighlight(slot) {
+  const highlight = new THREE.Group();
+  highlight.name = `Builder Preview Highlight ${slot.slot}`;
+  const footprintMat = new THREE.MeshBasicMaterial({ color: 0xf4cf78, transparent: true, opacity: 0.95, wireframe: true });
+  const glowMat = new THREE.MeshBasicMaterial({ color: 0x80eaff, transparent: true, opacity: 0.42, wireframe: true });
+  const footprint = new THREE.Mesh(new THREE.BoxGeometry(1.52, 0.16, 1.52), footprintMat);
+  footprint.position.set(slot.position[0], slot.position[1] + 0.07, slot.position[2]);
+  footprint.rotation.set(...slot.rotation);
+  footprint.scale.setScalar(Math.max(0.68, slot.scale || 1));
+  highlight.add(footprint);
+  const vertical = new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.45, 0.18), glowMat);
+  vertical.position.set(slot.position[0], slot.position[1] + 0.78, slot.position[2]);
+  highlight.add(vertical);
+  return highlight;
+}
+
+function addBuilderPreviewPart(parent, slot, token) {
+  const slotRoot = new THREE.Group();
+  slotRoot.name = `Builder Preview Slot ${slot.slot}`;
+  slotRoot.userData.builderSlot = slot.slot;
+  parent.add(slotRoot);
+  const fallback = createBrasswakeFallbackPart(slot.part, slot);
+  markBuilderSelectable(fallback, slot.slot);
+  placeBrasswakePart(slotRoot, slot, fallback);
+  if (slot.slot === activeBuilderSlot) slotRoot.add(createBuilderSlotHighlight(slot));
+  loadBrasswakePart(slot.part)
+    .then(source => {
+      if (!fortressBuilderPreview || token !== fortressBuilderPreview.token || !slotRoot.parent) return;
+      slotRoot.clear();
+      const part = normalizeBrasswakePart(slot.part, source);
+      markBuilderSelectable(part, slot.slot);
+      placeBrasswakePart(slotRoot, slot, part);
+      if (slot.slot === activeBuilderSlot) slotRoot.add(createBuilderSlotHighlight(slot));
+    })
+    .catch(() => {
+      // The preview fallback is already visible.
+    });
+}
+
+function updateFortressBuilderCamera() {
+  const preview = fortressBuilderPreview;
+  if (!preview) return;
+  const cp = Math.cos(preview.pitch);
+  preview.camera.position.set(
+    Math.sin(preview.yaw) * cp * preview.distance,
+    1.4 + Math.sin(preview.pitch) * preview.distance,
+    Math.cos(preview.yaw) * cp * preview.distance
+  );
+  preview.camera.lookAt(0, 0.45, 0);
+}
+
+function resizeFortressBuilderPreview() {
+  const preview = fortressBuilderPreview;
+  if (!preview || !preview.wrap) return;
+  const width = Math.max(240, preview.wrap.clientWidth || 480);
+  const height = Math.max(240, preview.wrap.clientHeight || 360);
+  if (preview.width === width && preview.height === height) return;
+  preview.width = width;
+  preview.height = height;
+  preview.renderer.setSize(width, height, false);
+  preview.camera.aspect = width / height;
+  preview.camera.updateProjectionMatrix();
+}
+
+function setupFortressBuilderPreview() {
+  disposeFortressBuilderPreview();
+  const wrap = document.getElementById('builderPreviewWrap');
+  if (!wrap || !window.THREE) return;
+  const previewScene = new THREE.Scene();
+  previewScene.background = new THREE.Color(0x08090d);
+  const previewCamera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+  const previewRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  previewRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  wrap.appendChild(previewRenderer.domElement);
+
+  const root = new THREE.Group();
+  root.name = 'Builder Preview Root';
+  root.scale.setScalar(BRASSWAKE_ROOT_SCALE * 0.86);
+  previewScene.add(root);
+  previewScene.add(new THREE.HemisphereLight(0xe0ecff, 0x251b12, 1.65));
+  const key = new THREE.DirectionalLight(0xffdf9e, 2.1);
+  key.position.set(-5, 7, 4);
+  previewScene.add(key);
+  const rim = new THREE.PointLight(0x80b9ff, 1.2, 12);
+  rim.position.set(3.5, 3.2, -4);
+  previewScene.add(rim);
+
+  fortressBuilderPreview = {
+    scene: previewScene,
+    camera: previewCamera,
+    renderer: previewRenderer,
+    wrap,
+    root,
+    raycaster: new THREE.Raycaster(),
+    mouse: new THREE.Vector2(),
+    yaw: -0.58,
+    pitch: 0.46,
+    distance: 8.6,
+    dragging: false,
+    moved: false,
+    lastX: 0,
+    lastY: 0,
+    token: 0,
+    frameId: null,
+    width: 0,
+    height: 0
+  };
+
+  const onPointerDown = event => {
+    const preview = fortressBuilderPreview;
+    if (!preview) return;
+    preview.dragging = true;
+    preview.moved = false;
+    preview.lastX = event.clientX;
+    preview.lastY = event.clientY;
+    previewRenderer.domElement.setPointerCapture?.(event.pointerId);
+  };
+  const onPointerMove = event => {
+    const preview = fortressBuilderPreview;
+    if (!preview || !preview.dragging) return;
+    const dx = event.clientX - preview.lastX;
+    const dy = event.clientY - preview.lastY;
+    if (Math.abs(dx) + Math.abs(dy) > 3) preview.moved = true;
+    preview.lastX = event.clientX;
+    preview.lastY = event.clientY;
+    preview.yaw -= dx * 0.008;
+    preview.pitch = clamp(preview.pitch + dy * 0.006, -0.22, 1.08);
+    updateFortressBuilderCamera();
+  };
+  const onPointerUp = event => {
+    const preview = fortressBuilderPreview;
+    if (!preview) return;
+    previewRenderer.domElement.releasePointerCapture?.(event.pointerId);
+    const shouldPick = !preview.moved;
+    preview.dragging = false;
+    if (shouldPick) selectBuilderSlotFromPreview(event);
+  };
+  const onWheel = event => {
+    const preview = fortressBuilderPreview;
+    if (!preview) return;
+    event.preventDefault();
+    preview.distance = clamp(preview.distance + Math.sign(event.deltaY) * 0.55, 4.5, 14);
+    updateFortressBuilderCamera();
+  };
+
+  fortressBuilderPreview.handlers = { onPointerDown, onPointerMove, onPointerUp, onWheel };
+  previewRenderer.domElement.addEventListener('pointerdown', onPointerDown);
+  previewRenderer.domElement.addEventListener('pointermove', onPointerMove);
+  previewRenderer.domElement.addEventListener('pointerup', onPointerUp);
+  previewRenderer.domElement.addEventListener('wheel', onWheel, { passive: false });
+
+  updateFortressBuilderCamera();
+  function frame() {
+    const preview = fortressBuilderPreview;
+    if (!preview) return;
+    resizeFortressBuilderPreview();
+    preview.renderer.render(preview.scene, preview.camera);
+    preview.frameId = requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+function selectBuilderSlotFromPreview(event) {
+  const preview = fortressBuilderPreview;
+  if (!preview) return;
+  const rect = preview.renderer.domElement.getBoundingClientRect();
+  preview.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  preview.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  preview.raycaster.setFromCamera(preview.mouse, preview.camera);
+  const hits = preview.raycaster.intersectObjects(preview.root.children, true);
+  for (const hit of hits) {
+    let obj = hit.object;
+    while (obj) {
+      const slotName = obj.userData?.builderSlot;
+      if (slotName && getBuilderSlot(slotName)) {
+        selectBuilderSlot(slotName);
+        return;
+      }
+      obj = obj.parent;
+    }
+  }
+}
+
+function refreshFortressBuilderPreview() {
+  const preview = fortressBuilderPreview;
+  if (!preview) return;
+  preview.token += 1;
+  preview.root.clear();
+  preview.root.add(createBuilderPreviewFoundationHull());
+  BRASSWAKE_SLOT_LAYOUT
+    .filter(slot => isBrasswakeSlotVisible(slot) || slot.slot === activeBuilderSlot)
+    .forEach(slot => addBuilderPreviewPart(preview.root, slot, preview.token));
+}
+
+function disposeFortressBuilderPreview() {
+  const preview = fortressBuilderPreview;
+  if (!preview) return;
+  if (preview.frameId) cancelAnimationFrame(preview.frameId);
+  const canvas = preview.renderer?.domElement;
+  const handlers = preview.handlers || {};
+  if (canvas) {
+    canvas.removeEventListener('pointerdown', handlers.onPointerDown);
+    canvas.removeEventListener('pointermove', handlers.onPointerMove);
+    canvas.removeEventListener('pointerup', handlers.onPointerUp);
+    canvas.removeEventListener('wheel', handlers.onWheel);
+    if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+  }
+  preview.renderer?.dispose();
+  fortressBuilderPreview = null;
+}
+
+function fallbackCopyBuilderLayout(text) {
+  const area = document.getElementById('builderExport');
+  if (area) {
+    area.focus();
+    area.select();
+  }
+  try {
+    document.execCommand('copy');
+    showToast('Layout copied.');
+  } catch (err) {
+    showToast('Copy unavailable. Select the layout text manually.');
+  }
+}
+
+function copyBuilderLayout() {
+  const text = exportBrasswakeLayout();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => showToast('Layout copied.'))
+      .catch(() => fallbackCopyBuilderLayout(text));
+    return;
+  }
+  fallbackCopyBuilderLayout(text);
 }
 
 // =============================================================
@@ -4472,6 +5787,8 @@ function buyUpgrade(key) {
   game.upgrades[key] = level + 1;
   if (key === 'armor') game.hull = Math.min(computeStats().maxHull, game.hull + 18);
   setOrderFlag('upgradedOrRepaired');
+  syncBrasswakeModulesFromProgress();
+  refreshBrasswakeModel();
   addLog(`${data.name} upgraded to level ${game.upgrades[key]}.`);
   showToast(`${data.name} upgraded.`);
   revealNearby();
@@ -4487,6 +5804,8 @@ function buildRoom(key) {
   spendResources(room.cost);
   game.rooms[key] = 1;
   setOrderFlag('upgradedOrRepaired');
+  syncBrasswakeModulesFromProgress();
+  refreshBrasswakeModel();
   addLog(`${room.name} constructed aboard Brasswake. ${room.benefit}.`);
   showToast(`${room.name} built.`);
   revealNearby();
@@ -4511,6 +5830,8 @@ function grantCheapestResearchBoost() {
   const key = possible[0];
   game.upgrades[key] += 1;
   setOrderFlag('upgradedOrRepaired');
+  syncBrasswakeModulesFromProgress();
+  refreshBrasswakeModel();
   addLog(`Ancient plans recovered. ${UPGRADE_DATA[key].name} improves to level ${game.upgrades[key]} without cost.`);
 }
 
@@ -4583,6 +5904,7 @@ function loadGame(fromTitle = false) {
     document.getElementById('titleScreen').classList.add('hidden');
     showHUD(true);
     revealNearby();
+    refreshBrasswakeModel();
     buildWorldMeshes();
     centerCameraOnCurrent();
     renderUI();
@@ -4620,6 +5942,9 @@ function normalizeLoadedGame() {
   Object.keys(FACTIONS).forEach(k => { if (typeof game.relations[k] !== 'number') game.relations[k] = k === 'pirates' ? -65 : 0; });
   game.rooms = Object.assign({ bridge: 1, engine: 1, barracks: 1, workshop: 1, storage: 1, hydroponics: 0, foundry: 0, radar: 0, hangar: 0, hospital: 0 }, game.rooms || {});
   game.upgrades = Object.assign({ engines: 0, armor: 0, weapons: 0, storage: 0, sensors: 0, repairs: 0, hangarCap: 0 }, game.upgrades || {});
+  game.modules = Object.assign({}, game.modules || {});
+  syncBrasswakeModulesFromProgress(game);
+  game.fortressFacing = normalizeAngleRadians(game.fortressFacing);
   game.discovered = game.discovered || { [game.currentLocationId || 'loc_home']: true };
   game.plottedRoute = game.plottedRoute || null;
   game.locations.forEach(l => { l.discovered = !!game.discovered[l.id]; });
@@ -4837,6 +6162,23 @@ function showBuildNotes() {
     <button class="btn primary" onclick="closeModal()">Close</button>`);
 }
 
+showBuildNotes = function() {
+  showModal(`<h1>Build Notes - ${VERSION}</h1>
+    <p><strong>Brasswake visual cohesion pass:</strong> the modular GLB assembly now rides on a larger shared foundation hull with a bright local-negative-X bow cue so Brasswake reads as one fortress-city instead of scattered parts.</p>
+    <p><strong>Fortress builder:</strong> the Command panel now includes a visual Builder with a slot list, live Three.js fortress preview, orbit/zoom controls, click-to-select parts, sliders, numeric inputs, deck/center helpers, reset controls, and layout export.</p>
+    <p><strong>Direct-file GLB loading:</strong> if opening <code>index.html</code> directly makes Brasswake look like fallback primitives, use Builder -> Load GLB Folder and choose <code>assets/models/brasswake</code>. The game will use local object URLs for the real GLB files without embedding them.</p>
+    <p><strong>Turn-move preservation:</strong> Brasswake still rotates in place toward the next Current Gate / Jet Stream hop before moving and keeps that facing after arrival.</p>
+    <p><strong>Visual progression preserved:</strong> the starting fortress shows the base platform, command tower, lift/turn engines, docking arm, expansion frames, a starting armor plate, and a starting cannon. Purchased upgrades and built rooms add radar, storage, hydroponics, foundry, hospital, hangar, scout cradle, extra armor, and extra turrets.</p>
+    <p><strong>Fallback behavior:</strong> if GLTFLoader or a GLB file is unavailable, that slot uses a procedural fallback mesh and the campaign continues without crashing.</p>
+    <p><strong>Player faction canon:</strong> the captain commands <strong>Brasswake Free Command</strong>, an independent modular flying fortress-city with Steam Marshal infrastructure ties at Brassgate Anchorage but open future alliances and loyalties.</p>
+    <p><strong>Preserved:</strong> single-file HTML structure, Three.js CDN map, external GLB/MP3 assets, gate-locked Current Gate / Jet Stream travel, Clockwork Navigator / Celestial Navigation Automaton, Plot Capacity: 1 Jump, Captain's Orders onboarding, route plotting/events, combat balance, music singleton behavior, and save/load compatibility.</p>
+    <p><strong>Validation:</strong> JavaScript syntax, module loader syntax, inline button handlers, version strings, GLTFLoader CDN reference, model asset paths, local GLB folder loading path, external music paths, and fallback code paths were checked. No embedded playable preview is included.</p>
+    ${roadmapDoctrineHTML()}
+    ${nextCampaignGoalsHTML()}
+    ${balanceRoadmapHTML()}
+    <button class="btn primary" onclick="closeModal()">Close</button>`);
+};
+
 // =============================================================
 // THREE.JS INTERACTION AND ANIMATION
 // =============================================================
@@ -4859,7 +6201,7 @@ function animate() {
     });
     if (fortressGroup.visible) {
       fortressGroup.position.y = 4.8 + Math.sin(elapsed * 1.6) * 0.18;
-      fortressGroup.rotation.y = -0.18 + Math.sin(elapsed * 0.6) * 0.08;
+      fortressGroup.rotation.y = getFortressFacing();
       // Subtle in-map life for Brasswake's arc-lift engines; no external assets required.
       fortressGroup.traverse(child => {
         if (child.userData?.arcLiftRing) {
@@ -4995,24 +6337,67 @@ function updateFortressPosition(animateMove = false) {
   if (!game || !fortressGroup) return;
   const loc = getLocation(game.currentLocationId);
   fortressGroup.position.set(loc.x, 4.8, loc.z);
+  fortressGroup.rotation.y = getFortressFacing();
   fortressGroup.visible = true;
 }
 
 function animateFortressTo(loc, done) {
+  if (!fortressGroup || !loc) {
+    done && done();
+    return;
+  }
   const start = fortressGroup.position.clone();
   const end = new THREE.Vector3(loc.x, 4.8, loc.z);
-  const startTime = performance.now();
-  const duration = 900;
-  function step() {
-    const t = clamp((performance.now() - startTime) / duration, 0, 1);
-    const eased = t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2)/2;
-    fortressGroup.position.lerpVectors(start, end, eased);
-    cameraState.targetX = fortressGroup.position.x;
-    cameraState.targetZ = fortressGroup.position.z;
-    if (t < 1) requestAnimationFrame(step);
-    else done && done();
+  const fromLoc = getLocation(game?.currentLocationId);
+  const startFacing = getFortressFacing();
+  const targetFacing = fortressFacingToward(fromLoc, loc);
+  const facingDelta = shortestAngleDelta(startFacing, targetFacing);
+  const turnDuration = clamp(220 + Math.abs(facingDelta) * 170, 220, 560);
+  const moveDuration = 900;
+
+  function easeInOut(t) {
+    return t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2)/2;
   }
-  step();
+
+  function move() {
+    const moveStartTime = performance.now();
+    setFortressFacing(targetFacing);
+    function stepMove() {
+      const t = clamp((performance.now() - moveStartTime) / moveDuration, 0, 1);
+      const eased = easeInOut(t);
+      fortressGroup.position.lerpVectors(start, end, eased);
+      fortressGroup.rotation.y = targetFacing;
+      cameraState.targetX = fortressGroup.position.x;
+      cameraState.targetZ = fortressGroup.position.z;
+      if (t < 1) requestAnimationFrame(stepMove);
+      else {
+        fortressGroup.position.copy(end);
+        setFortressFacing(targetFacing);
+        done && done();
+      }
+    }
+    stepMove();
+  }
+
+  function turn() {
+    const turnStartTime = performance.now();
+    function stepTurn() {
+      const t = clamp((performance.now() - turnStartTime) / turnDuration, 0, 1);
+      const eased = easeInOut(t);
+      setFortressFacing(startFacing + facingDelta * eased);
+      cameraState.targetX = fortressGroup.position.x;
+      cameraState.targetZ = fortressGroup.position.z;
+      if (t < 1) requestAnimationFrame(stepTurn);
+      else move();
+    }
+    stepTurn();
+  }
+
+  if (Math.abs(facingDelta) < 0.015) {
+    move();
+  } else {
+    turn();
+  }
 }
 
 function refreshSelectionVisuals() {
