@@ -1,29 +1,29 @@
 IRON KINGDOMS: SKY FORTRESS COMMAND
-Version: v0.26.06.22.1833
+Version: v0.26.06.22.1900
 
-Focused Brasswake visual builder usability and direct-file GLB loading pass.
+Focused Brasswake Fortress Builder transform, undo, array, and variant pass.
 
 PATCH INTENT
-- Make the loaded Brasswake GLB assembly read as one cohesive modular flying fortress-city.
-- Preserve the restored turn-in-place-before-moving fortress travel behavior.
-- Add a more visual in-game Fortress Builder so slot placement can be tuned against a live preview instead of guessed.
-- Make the real GLB files easier to load when opening index.html directly from disk.
+- Make Brasswake module placement easier to tune by adding all-axis rotation controls.
+- Add a bounded session-local undo stack for the most recent builder edits.
+- Add circular array controls so repeated parts, especially underside engines, can be arranged around a slot center.
+- Let locally loaded GLB variants be swapped per selected slot in the builder.
 - Preserve GLB fallbacks, save/load compatibility, gate-locked Current Gate travel, Clockwork Navigator, Plot Capacity: 1 Jump, Captain's Orders, combat balance, and singleton music behavior.
 
 ISSUES ADDRESSED
-- The GLBs were loading, but the fortress could read as small disconnected model parts rather than a unified player fortress.
-- The forward direction was still hard to read in motion because the model did not have a strong bow cue.
-- Iterating GLB slot placement required code-only edits and browser reloads, slowing technical-art tuning.
-- When opened directly as a file:// page, browser security can block GLTFLoader from fetching external GLB files by relative path, leaving only procedural fallback primitives visible.
+- The builder only exposed Y rotation, making it hard to correct GLB parts with different local orientations.
+- Builder edits were immediate but had no undo path.
+- Repeated underside parts had to be represented as separate slots rather than a quick circular array.
+- Extra candidate GLBs in the selected model folder could not be previewed against an existing slot.
 
 FIXES MADE
-- Added a larger shared foundation hull under the GLB assembly so Brasswake has a continuous fortress silhouette.
-- Added a bright bow prow and lantern at local negative X, matching the rule that the left-pointing side is the front of Brasswake.
-- Increased the overall fortress root scale and tightened the starting GLB slot layout.
-- Expanded the Builder into a three-column layout with a visual slot list, a dedicated live Three.js fortress preview, and transform controls.
-- The Builder can select slots, preview locked future modules, click parts in the preview, orbit/zoom the preview, nudge position, adjust Y rotation and scale with sliders plus numeric inputs, snap to deck height, center on hull, reset one slot or all slots, and copy the current BRASSWAKE_SLOT_LAYOUT table.
-- Added a Load GLB Folder action for direct-file testing. Choose assets/models/brasswake so the browser can use local .glb object URLs instead of blocked file:// fetches.
-- Kept the GLTFLoader module path, cached GLB cloning, per-slot fallback meshes, and persistent game.fortressFacing travel behavior intact.
+- Added RotX and RotZ sliders, numeric inputs, and nudge buttons while preserving RotY behavior.
+- Added Undo, backed by a 25-entry session-local layout snapshot stack.
+- Added circular array controls for selected slots: count 1-10, radius, start angle, angle span, vertical offset, and Face Outward.
+- Array copies now render in both the live builder preview and the main Brasswake model using the same shared placement helper.
+- Array copies use cloned cached GLB scenes or procedural fallbacks; clicking any copy in the preview selects the parent slot.
+- Added variant support for locally selected GLB folders. Extra .glb files whose names start with a part's base filename appear in a Variant GLB selector for that slot.
+- Copy Layout now exports full rotation arrays, optional array objects, and optional variantFile values.
 
 MODEL FILES CHECKED
 - Brasswake base platform.glb
@@ -51,23 +51,25 @@ PRESERVED
 - Current combat balance.
 - Music singleton behavior.
 - External MP3 assets under assets/audio/music/.
+- External GLB assets under assets/models/brasswake/.
 
 VALIDATION
 - JavaScript extracted from index.html and syntax checked.
 - Module script extracted from index.html and syntax checked.
 - Inline onclick handlers checked for missing global functions.
 - Duplicate function declarations checked.
-- Version consistency checked for v0.26.06.22.1833.
+- Version consistency checked for v0.26.06.22.1900.
 - Three.js CDN and matching module GLTFLoader references checked.
 - Model paths checked for assets/models/brasswake/.
 - All 15 Brasswake GLB files confirmed in the asset path.
-- Local GLB folder loader checked to avoid base64-embedded model assets.
-- Referenced music files remain external.
+- Referenced music files remain external and present.
 - No embedded audio/model data URLs found.
 - No embedded playable preview created.
 
 MANUAL QA STILL RECOMMENDED
 - Open index.html directly in a browser, start/load a campaign, open Command -> Builder, click Load GLB Folder, and choose assets/models/brasswake.
-- Confirm the builder status reports local GLBs active and the preview/main fortress replace fallback primitives with real parts.
-- Use the live preview to orbit, click a slot, nudge it with sliders, confirm the highlight updates immediately, then reset the slot.
-- Ride a Current Gate / Jet Stream hop and confirm Brasswake turns before moving, then remains facing the arrival direction.
+- Test RotX, RotY, RotZ, and Scale on a visible slot.
+- Set an underside engine slot to a circular array count between 2 and 10 and confirm copies appear in a ring.
+- Toggle Face Outward and confirm the copies rotate around the ring.
+- Use Undo after a transform, reset, array edit, and variant edit.
+- If alternate GLBs are present in the folder, select them from Variant GLB and confirm the preview/main fortress swap models.

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.22.1833</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.22.1900</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script type="importmap">
     { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -1511,7 +1511,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.22.1833</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.22.1900</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1586,7 +1586,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.22.1833 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.22.1900 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
     </div>
   </div>
 </div>
@@ -1597,8 +1597,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.22.1833';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_22_1833';
+const VERSION = 'v0.26.06.22.1900';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_22_1900';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -1758,6 +1758,8 @@ const BRASSWAKE_DEFAULT_SLOT_LAYOUT = BRASSWAKE_SLOT_LAYOUT.map(slot => ({
   ...slot,
   position: [...slot.position],
   rotation: [...slot.rotation],
+  array: slot.array ? { ...slot.array } : undefined,
+  variantFile: slot.variantFile,
   requires: slot.requires ? { ...slot.requires } : undefined
 }));
 
@@ -1781,6 +1783,7 @@ const brasswakeLocalPartURLs = new Map();
 let fortressBuilderOpen = false;
 let activeBuilderSlot = 'core';
 let fortressBuilderPreview = null;
+let builderUndoStack = [];
 
 window.addEventListener('brasswake:gltf-loader-ready', () => {
   brasswakeModelLoader = null;
@@ -2936,8 +2939,26 @@ function localBrasswakeModelCount() {
   return expectedBrasswakeModelFiles().filter(file => brasswakeLocalPartURLs.has(file)).length;
 }
 
+function baseGLBStem(fileName) {
+  return String(fileName || '').replace(/\.glb$/i, '').toLowerCase().trim();
+}
+
+function getBrasswakeSlotPartFile(slot) {
+  return slot?.variantFile || BRASSWAKE_MODEL_PARTS[slot?.part]?.file || '';
+}
+
 function getBrasswakePartURL(fileName) {
   return brasswakeLocalPartURLs.get(fileName) || (BRASSWAKE_MODEL_BASE_PATH + fileName);
+}
+
+function brasswakeVariantFilesForPart(partId) {
+  const part = BRASSWAKE_MODEL_PARTS[partId];
+  if (!part) return [];
+  const base = baseGLBStem(part.file);
+  const localMatches = Array.from(brasswakeLocalPartURLs.keys())
+    .filter(file => baseGLBStem(file).startsWith(base))
+    .sort((a, b) => a.localeCompare(b));
+  return [...new Set([part.file, ...localMatches])];
 }
 
 function clearBrasswakePartLoadCaches() {
@@ -2955,7 +2976,7 @@ function registerLocalBrasswakeModelFiles(files) {
   const expected = new Set(expectedBrasswakeModelFiles());
   revokeLocalBrasswakeURLs();
   Array.from(files || []).forEach(file => {
-    if (!expected.has(file.name)) return;
+    if (!/\.glb$/i.test(file.name)) return;
     brasswakeLocalPartURLs.set(file.name, URL.createObjectURL(file));
   });
   clearBrasswakePartLoadCaches();
@@ -2981,9 +3002,11 @@ function loadBrasswakePart(partId) {
   const part = BRASSWAKE_MODEL_PARTS[partId];
   const loader = getBrasswakeLoader();
   if (!part || !loader) return Promise.reject(new Error(`Brasswake part unavailable: ${partId}`));
-  if (brasswakePartCache.has(partId)) return Promise.resolve(brasswakePartCache.get(partId));
-  if (brasswakePartPromises.has(partId)) return brasswakePartPromises.get(partId);
-  const url = getBrasswakePartURL(part.file);
+  const fileName = arguments.length > 1 && arguments[1] ? arguments[1] : part.file;
+  const cacheKey = `${partId}|${fileName}`;
+  if (brasswakePartCache.has(cacheKey)) return Promise.resolve(brasswakePartCache.get(cacheKey));
+  if (brasswakePartPromises.has(cacheKey)) return brasswakePartPromises.get(cacheKey);
+  const url = getBrasswakePartURL(fileName);
   const promise = new Promise((resolve, reject) => {
     loader.load(url, gltf => {
       const source = gltf.scene || gltf.scenes?.[0];
@@ -2991,18 +3014,18 @@ function loadBrasswakePart(partId) {
         reject(new Error(`Brasswake GLB had no scene: ${url}`));
         return;
       }
-      brasswakePartCache.set(partId, source);
+      brasswakePartCache.set(cacheKey, source);
       resolve(source);
     }, undefined, err => {
-      if (!brasswakePartWarnings.has(partId)) {
-        brasswakePartWarnings.add(partId);
+      if (!brasswakePartWarnings.has(cacheKey)) {
+        brasswakePartWarnings.add(cacheKey);
         console.warn(`Brasswake GLB failed to load: ${url}`, err);
       }
       reject(err);
     });
   });
-  brasswakePartPromises.set(partId, promise);
-  promise.catch(() => brasswakePartPromises.delete(partId));
+  brasswakePartPromises.set(cacheKey, promise);
+  promise.catch(() => brasswakePartPromises.delete(cacheKey));
   return promise;
 }
 
@@ -3090,28 +3113,68 @@ function createBrasswakeFallbackPart(partId, slot) {
   return group;
 }
 
-function placeBrasswakePart(parent, slot, object) {
-  object.name = `Brasswake ${slot.slot}`;
-  object.position.set(...slot.position);
-  object.rotation.set(...slot.rotation);
-  object.scale.multiplyScalar(slot.scale || 1);
+function getSlotArrayConfig(slot) {
+  const cfg = slot.array || {};
+  return {
+    count: clamp(Math.round(Number(cfg.count) || 1), 1, 10),
+    radius: clamp(Number.isFinite(Number(cfg.radius)) ? Number(cfg.radius) : 0.75, 0, 3),
+    startAngle: Number.isFinite(Number(cfg.startAngle)) ? Number(cfg.startAngle) : 0,
+    angleSpan: Number.isFinite(Number(cfg.angleSpan)) ? Number(cfg.angleSpan) : Math.PI * 2,
+    yOffset: Number.isFinite(Number(cfg.yOffset)) ? Number(cfg.yOffset) : 0,
+    faceOutward: !!cfg.faceOutward
+  };
+}
+
+function isSlotArrayActive(slot) {
+  const cfg = getSlotArrayConfig(slot);
+  return cfg.count > 1;
+}
+
+function iterBrasswakeSlotPlacements(slot) {
+  const cfg = getSlotArrayConfig(slot);
+  if (cfg.count <= 1) {
+    return [{ index: 0, angle: 0, position: [...slot.position], rotation: [...slot.rotation], scale: slot.scale || 1 }];
+  }
+  const placements = [];
+  for (let i = 0; i < cfg.count; i++) {
+    const angle = cfg.startAngle + cfg.angleSpan * (i / cfg.count);
+    const position = [
+      slot.position[0] + Math.cos(angle) * cfg.radius,
+      slot.position[1] + cfg.yOffset,
+      slot.position[2] + Math.sin(angle) * cfg.radius
+    ];
+    const rotation = [...slot.rotation];
+    if (cfg.faceOutward) rotation[1] = normalizeAngleRadians((rotation[1] || 0) + angle);
+    placements.push({ index: i, angle, position, rotation, scale: slot.scale || 1 });
+  }
+  return placements;
+}
+
+function placeBrasswakePart(parent, slot, object, placement = null) {
+  const p = placement || { index: 0, position: slot.position, rotation: slot.rotation, scale: slot.scale || 1 };
+  object.name = `Brasswake ${slot.slot}${p.index ? ` ${p.index + 1}` : ''}`;
+  object.position.set(...p.position);
+  object.rotation.set(...p.rotation);
+  object.scale.multiplyScalar(p.scale || 1);
   object.userData.brasswakeSlot = slot.slot;
+  object.userData.brasswakeSlotInstance = p.index || 0;
   parent.add(object);
 }
 
-function addBrasswakeBuilderHighlight(parent, slot) {
+function addBrasswakeBuilderHighlight(parent, slot, placement = null) {
   if (!fortressBuilderOpen || slot.slot !== activeBuilderSlot) return;
+  const p = placement || { position: slot.position, rotation: slot.rotation, scale: slot.scale || 1 };
   const highlight = new THREE.Group();
   highlight.name = `Builder Highlight ${slot.slot}`;
   const ringMat = new THREE.MeshBasicMaterial({ color: 0xf4cf78, transparent: true, opacity: 0.72, wireframe: true });
   const boxMat = new THREE.MeshBasicMaterial({ color: 0x80eaff, transparent: true, opacity: 0.36, wireframe: true });
   const footprint = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.12, 1.35), ringMat);
-  footprint.position.set(slot.position[0], slot.position[1] + 0.04, slot.position[2]);
-  footprint.rotation.set(...slot.rotation);
-  footprint.scale.setScalar(Math.max(0.65, slot.scale || 1));
+  footprint.position.set(p.position[0], p.position[1] + 0.04, p.position[2]);
+  footprint.rotation.set(...p.rotation);
+  footprint.scale.setScalar(Math.max(0.65, p.scale || 1));
   highlight.add(footprint);
   const mast = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.25, 0.16), boxMat);
-  mast.position.set(slot.position[0], slot.position[1] + 0.68, slot.position[2]);
+  mast.position.set(p.position[0], p.position[1] + 0.68, p.position[2]);
   highlight.add(mast);
   parent.add(highlight);
 }
@@ -3133,14 +3196,18 @@ function refreshBrasswakeModel(group = fortressGroup) {
     const slotRoot = new THREE.Group();
     slotRoot.name = `Brasswake Slot ${slot.slot}`;
     assembly.add(slotRoot);
-    placeBrasswakePart(slotRoot, slot, createBrasswakeFallbackPart(slot.part, slot));
-    addBrasswakeBuilderHighlight(slotRoot, slot);
-    loadBrasswakePart(slot.part)
+    iterBrasswakeSlotPlacements(slot).forEach(placement => {
+      placeBrasswakePart(slotRoot, slot, createBrasswakeFallbackPart(slot.part, slot), placement);
+      addBrasswakeBuilderHighlight(slotRoot, slot, placement);
+    });
+    loadBrasswakePart(slot.part, getBrasswakeSlotPartFile(slot))
       .then(source => {
         if (token !== brasswakeModelRefreshToken || !slotRoot.parent) return;
         slotRoot.clear();
-        placeBrasswakePart(slotRoot, slot, normalizeBrasswakePart(slot.part, source));
-        addBrasswakeBuilderHighlight(slotRoot, slot);
+        iterBrasswakeSlotPlacements(slot).forEach(placement => {
+          placeBrasswakePart(slotRoot, slot, normalizeBrasswakePart(slot.part, source), placement);
+          addBrasswakeBuilderHighlight(slotRoot, slot, placement);
+        });
       })
       .catch(() => {
         // The fallback mesh is already in this slot.
@@ -3149,7 +3216,7 @@ function refreshBrasswakeModel(group = fortressGroup) {
 }
 
 function createFortressModel() {
-  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.22.1833.
+  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.22.1900.
   const group = new THREE.Group();
   group.name = 'Brasswake Modular Hex Fortress Marker';
   group.userData.brasswakeMarker = true;
@@ -5222,6 +5289,53 @@ function formatBuilderNumber(value) {
   return Number(value || 0).toFixed(2);
 }
 
+function cloneBuilderSlot(slot) {
+  return {
+    ...slot,
+    position: [...slot.position],
+    rotation: [...slot.rotation],
+    array: slot.array ? { ...slot.array } : undefined,
+    variantFile: slot.variantFile,
+    requires: slot.requires ? { ...slot.requires } : undefined
+  };
+}
+
+function snapshotBuilderLayout() {
+  return BRASSWAKE_SLOT_LAYOUT.map(cloneBuilderSlot);
+}
+
+function applyBuilderSnapshot(snapshot) {
+  snapshot.forEach(saved => {
+    const slot = getBuilderSlot(saved.slot);
+    if (!slot) return;
+    slot.position = [...saved.position];
+    slot.rotation = [...saved.rotation];
+    slot.scale = saved.scale;
+    if (saved.array) slot.array = { ...saved.array };
+    else delete slot.array;
+    if (saved.variantFile) slot.variantFile = saved.variantFile;
+    else delete slot.variantFile;
+  });
+}
+
+function pushBuilderUndo(label = 'Layout edit') {
+  builderUndoStack.push({ label, snapshot: snapshotBuilderLayout() });
+  if (builderUndoStack.length > 25) builderUndoStack.shift();
+}
+
+function undoBuilderChange() {
+  const item = builderUndoStack.pop();
+  if (!item) {
+    showToast('Nothing to undo.');
+    return;
+  }
+  applyBuilderSnapshot(item.snapshot);
+  refreshBrasswakeModel();
+  refreshFortressBuilderPreview();
+  renderFortressBuilderModal();
+  showToast(`Undid: ${item.label}`);
+}
+
 function builderSlotVisibilityLabel(slot) {
   if (!game) return 'No active campaign';
   if (fortressBuilderOpen && slot.slot === activeBuilderSlot && !isBrasswakeSlotVisible(slot)) return 'Previewing locked slot';
@@ -5298,6 +5412,31 @@ function builderNumberRowHTML(label, kind, index, value, min, max, step = 0.1) {
   </div>`;
 }
 
+function builderVariantSelectHTML(slot) {
+  const variants = brasswakeVariantFilesForPart(slot.part);
+  if (variants.length <= 1) {
+    return `<p class="smallNote"><strong>Variant:</strong> ${escapeHTML(getBrasswakeSlotPartFile(slot))}</p>`;
+  }
+  return `<label class="smallNote" style="display:block; margin-top:8px;"><strong>Variant GLB</strong></label>
+    <select class="builderSelect" onchange="setBuilderSlotVariant(this.value)">
+      ${variants.map(file => `<option value="${escapeHTML(file)}" ${file === getBrasswakeSlotPartFile(slot) ? 'selected' : ''}>${escapeHTML(file)}</option>`).join('')}
+    </select>`;
+}
+
+function builderArrayControlsHTML(slot) {
+  const cfg = getSlotArrayConfig(slot);
+  return `<h2>Circular Array</h2>
+    <p class="smallNote">Count 1 renders the normal single part. Higher counts distribute copies around this slot's position.</p>
+    ${builderNumberRowHTML('Count', 'array', 'count', cfg.count, 1, 10, 1)}
+    ${builderNumberRowHTML('Radius', 'array', 'radius', cfg.radius, 0, 3, 0.05)}
+    ${builderNumberRowHTML('Start', 'array', 'startAngle', cfg.startAngle, -6.28, 6.28, 0.05)}
+    ${builderNumberRowHTML('Span', 'array', 'angleSpan', cfg.angleSpan, 0, 6.28, 0.05)}
+    ${builderNumberRowHTML('YOffset', 'array', 'yOffset', cfg.yOffset, -1.5, 1.5, 0.05)}
+    <label class="smallNote" style="display:flex; gap:8px; align-items:center; margin:7px 0 10px;">
+      <input type="checkbox" ${cfg.faceOutward ? 'checked' : ''} onchange="setBuilderArrayFaceOutward(this.checked)"> Face copies outward
+    </label>`;
+}
+
 function exportBrasswakeLayout() {
   const lines = BRASSWAKE_SLOT_LAYOUT.map(slot => {
     const fields = [
@@ -5308,6 +5447,11 @@ function exportBrasswakeLayout() {
       `rotation: [${slot.rotation.map(formatBuilderNumber).join(', ')}]`,
       `scale: ${formatBuilderNumber(slot.scale || 1)}`
     ];
+    if (slot.variantFile) fields.push(`variantFile: '${slot.variantFile.replace(/'/g, "\\'")}'`);
+    if (slot.array && getSlotArrayConfig(slot).count > 1) {
+      const cfg = getSlotArrayConfig(slot);
+      fields.push(`array: { count: ${cfg.count}, radius: ${formatBuilderNumber(cfg.radius)}, startAngle: ${formatBuilderNumber(cfg.startAngle)}, angleSpan: ${formatBuilderNumber(cfg.angleSpan)}, yOffset: ${formatBuilderNumber(cfg.yOffset)}, faceOutward: ${cfg.faceOutward} }`);
+    }
     if (slot.requires) {
       const reqFields = Object.entries(slot.requires).map(([key, value]) => typeof value === 'string' ? `${key}: '${value}'` : `${key}: ${value}`);
       fields.push(`requires: { ${reqFields.join(', ')} }`);
@@ -5356,6 +5500,7 @@ function renderFortressBuilderModal() {
         <select class="builderSelect" onchange="selectBuilderSlot(this.value)">${builderSlotOptionsHTML()}</select>
         <p><span class="tag ${statusClass}">${visibleLabel}</span></p>
         <p class="smallNote"><strong>${escapeHTML(moduleDef?.name || slot.module)}</strong><br>${escapeHTML(moduleDef?.visual || 'Visual placement slot.')}<br>Part: ${escapeHTML(part?.file || slot.part)}</p>
+        ${builderVariantSelectHTML(slot)}
         <div class="buttonGrid">
           <button class="btn ghost" onclick="resetBuilderSlot('${slot.slot}')">Reset Slot</button>
           <button class="btn ghost" onclick="resetBuilderLayout()">Reset All</button>
@@ -5364,7 +5509,9 @@ function renderFortressBuilderModal() {
         ${builderNumberRowHTML('X', 'position', 0, slot.position[0], -3.5, 3.5, 0.05)}
         ${builderNumberRowHTML('Y', 'position', 1, slot.position[1], -1.5, 2.6, 0.05)}
         ${builderNumberRowHTML('Z', 'position', 2, slot.position[2], -2.5, 2.5, 0.05)}
+        ${builderNumberRowHTML('RotX', 'rotation', 0, slot.rotation[0], -3.15, 3.15, 0.05)}
         ${builderNumberRowHTML('RotY', 'rotation', 1, slot.rotation[1], -3.15, 3.15, 0.05)}
+        ${builderNumberRowHTML('RotZ', 'rotation', 2, slot.rotation[2], -3.15, 3.15, 0.05)}
         <div class="builderRow">
           <label>Scale</label>
           <input id="builder_scale_range" class="builderRange" type="range" min="0.1" max="2.5" step="0.025" value="${formatBuilderNumber(slot.scale || 1)}" oninput="setBuilderSlotScale(this.value)">
@@ -5374,7 +5521,9 @@ function renderFortressBuilderModal() {
           <button class="btn ghost" onclick="adjustBuilderScale(-0.025)">-0.025</button>
           <button class="btn ghost" onclick="adjustBuilderScale(0.025)">+0.025</button>
         </div>
+        ${builderArrayControlsHTML(slot)}
         <div class="builderControls">
+          <button class="btn ghost" onclick="undoBuilderChange()">Undo</button>
           <button class="btn blue" onclick="snapBuilderSlotToDeck()">Deck</button>
           <button class="btn blue" onclick="centerBuilderSlotOnHull()">Center</button>
           <button class="btn primary" onclick="copyBuilderLayout()">Copy Layout</button>
@@ -5399,21 +5548,36 @@ function selectBuilderSlot(slotName) {
 
 function adjustBuilderSlot(kind, index, delta) {
   const slot = getBuilderSlot();
-  if (!slot || !Array.isArray(slot[kind])) return;
-  slot[kind][index] = Number((slot[kind][index] + delta).toFixed(3));
+  if (!slot) return;
+  pushBuilderUndo(`${kind} ${index}`);
+  if (kind === 'array') {
+    const cfg = getSlotArrayConfig(slot);
+    const current = Number(cfg[index]) || 0;
+    setSlotArrayValue(slot, index, current + delta);
+  } else {
+    if (!Array.isArray(slot[kind])) return;
+    slot[kind][index] = Number((slot[kind][index] + delta).toFixed(3));
+  }
   updateBuilderAfterTransform();
 }
 
 function setBuilderSlotNumber(kind, index, value) {
   const slot = getBuilderSlot();
   const parsed = parseFloat(value);
-  if (!slot || !Array.isArray(slot[kind]) || !Number.isFinite(parsed)) return;
-  slot[kind][index] = Number(parsed.toFixed(3));
+  if (!slot || !Number.isFinite(parsed)) return;
+  pushBuilderUndo(`${kind} ${index}`);
+  if (kind === 'array') {
+    setSlotArrayValue(slot, index, parsed);
+  } else {
+    if (!Array.isArray(slot[kind])) return;
+    slot[kind][index] = Number(parsed.toFixed(3));
+  }
   updateBuilderAfterTransform();
 }
 
 function adjustBuilderScale(delta) {
   const slot = getBuilderSlot();
+  pushBuilderUndo('scale');
   slot.scale = Number(clamp((slot.scale || 1) + delta, 0.1, 3.0).toFixed(3));
   updateBuilderAfterTransform();
 }
@@ -5422,6 +5586,7 @@ function setBuilderSlotScale(value) {
   const parsed = parseFloat(value);
   if (!Number.isFinite(parsed)) return;
   const slot = getBuilderSlot();
+  pushBuilderUndo('scale');
   slot.scale = Number(clamp(parsed, 0.1, 3.0).toFixed(3));
   updateBuilderAfterTransform();
 }
@@ -5430,37 +5595,80 @@ function resetBuilderSlot(slotName) {
   const slot = getBuilderSlot(slotName);
   const defaults = getDefaultBuilderSlot(slotName);
   if (!slot || !defaults) return;
+  pushBuilderUndo('reset slot');
   slot.position = [...defaults.position];
   slot.rotation = [...defaults.rotation];
   slot.scale = defaults.scale;
+  if (defaults.array) slot.array = { ...defaults.array };
+  else delete slot.array;
+  if (defaults.variantFile) slot.variantFile = defaults.variantFile;
+  else delete slot.variantFile;
   updateBuilderAfterTransform(true);
 }
 
 function resetBuilderLayout() {
+  pushBuilderUndo('reset all');
   BRASSWAKE_DEFAULT_SLOT_LAYOUT.forEach(defaults => {
     const slot = getBuilderSlot(defaults.slot);
     if (!slot) return;
     slot.position = [...defaults.position];
     slot.rotation = [...defaults.rotation];
     slot.scale = defaults.scale;
+    if (defaults.array) slot.array = { ...defaults.array };
+    else delete slot.array;
+    if (defaults.variantFile) slot.variantFile = defaults.variantFile;
+    else delete slot.variantFile;
   });
   updateBuilderAfterTransform(true);
 }
 
 function snapBuilderSlotToDeck() {
   const slot = getBuilderSlot();
+  pushBuilderUndo('snap to deck');
   slot.position[1] = 0.44;
   updateBuilderAfterTransform();
 }
 
 function centerBuilderSlotOnHull() {
   const slot = getBuilderSlot();
+  pushBuilderUndo('center on hull');
   slot.position[0] = 0;
   slot.position[2] = 0;
   updateBuilderAfterTransform();
 }
 
+function setSlotArrayValue(slot, key, value) {
+  const cfg = getSlotArrayConfig(slot);
+  if (key === 'count') cfg.count = clamp(Math.round(value), 1, 10);
+  else if (key === 'radius') cfg.radius = clamp(Number(value) || 0, 0, 3);
+  else if (key === 'startAngle') cfg.startAngle = clamp(Number(value) || 0, -6.28, 6.28);
+  else if (key === 'angleSpan') cfg.angleSpan = clamp(Number(value) || 0, 0, 6.28);
+  else if (key === 'yOffset') cfg.yOffset = clamp(Number(value) || 0, -1.5, 1.5);
+  slot.array = cfg.count > 1 || slot.array ? cfg : undefined;
+}
+
+function setBuilderArrayFaceOutward(checked) {
+  const slot = getBuilderSlot();
+  pushBuilderUndo('array face outward');
+  const cfg = getSlotArrayConfig(slot);
+  cfg.faceOutward = !!checked;
+  slot.array = cfg.count > 1 || checked ? cfg : undefined;
+  updateBuilderAfterTransform();
+}
+
+function setBuilderSlotVariant(fileName) {
+  const slot = getBuilderSlot();
+  pushBuilderUndo('variant');
+  const defaultFile = BRASSWAKE_MODEL_PARTS[slot.part]?.file;
+  if (fileName && fileName !== defaultFile) slot.variantFile = fileName;
+  else delete slot.variantFile;
+  refreshBrasswakeModel();
+  refreshFortressBuilderPreview();
+  updateBuilderControlValues();
+}
+
 function updateBuilderAfterTransform() {
+  refreshBrasswakeModel();
   refreshFortressBuilderPreview();
   updateBuilderControlValues();
 }
@@ -5471,7 +5679,9 @@ function updateBuilderControlValues() {
     ['position', 0, slot.position[0]],
     ['position', 1, slot.position[1]],
     ['position', 2, slot.position[2]],
-    ['rotation', 1, slot.rotation[1]]
+    ['rotation', 0, slot.rotation[0]],
+    ['rotation', 1, slot.rotation[1]],
+    ['rotation', 2, slot.rotation[2]]
   ];
   fields.forEach(([kind, index, value]) => {
     const formatted = formatBuilderNumber(value);
@@ -5487,6 +5697,20 @@ function updateBuilderControlValues() {
   if (scaleNumber && document.activeElement !== scaleNumber) scaleNumber.value = scaleValue;
   const exportArea = document.getElementById('builderExport');
   if (exportArea) exportArea.value = exportBrasswakeLayout();
+  const cfg = getSlotArrayConfig(slot);
+  [
+    ['count', cfg.count],
+    ['radius', cfg.radius],
+    ['startAngle', cfg.startAngle],
+    ['angleSpan', cfg.angleSpan],
+    ['yOffset', cfg.yOffset]
+  ].forEach(([key, value]) => {
+    const formatted = key === 'count' ? String(Math.round(value)) : formatBuilderNumber(value);
+    const range = document.getElementById(`builder_array_${key}_range`);
+    const number = document.getElementById(`builder_array_${key}_number`);
+    if (range && document.activeElement !== range) range.value = formatted;
+    if (number && document.activeElement !== number) number.value = formatted;
+  });
 }
 
 function createBuilderPreviewFoundationHull() {
@@ -5537,18 +5761,19 @@ function markBuilderSelectable(object, slotName) {
   });
 }
 
-function createBuilderSlotHighlight(slot) {
+function createBuilderSlotHighlight(slot, placement = null) {
+  const p = placement || { position: slot.position, rotation: slot.rotation, scale: slot.scale || 1 };
   const highlight = new THREE.Group();
   highlight.name = `Builder Preview Highlight ${slot.slot}`;
   const footprintMat = new THREE.MeshBasicMaterial({ color: 0xf4cf78, transparent: true, opacity: 0.95, wireframe: true });
   const glowMat = new THREE.MeshBasicMaterial({ color: 0x80eaff, transparent: true, opacity: 0.42, wireframe: true });
   const footprint = new THREE.Mesh(new THREE.BoxGeometry(1.52, 0.16, 1.52), footprintMat);
-  footprint.position.set(slot.position[0], slot.position[1] + 0.07, slot.position[2]);
-  footprint.rotation.set(...slot.rotation);
-  footprint.scale.setScalar(Math.max(0.68, slot.scale || 1));
+  footprint.position.set(p.position[0], p.position[1] + 0.07, p.position[2]);
+  footprint.rotation.set(...p.rotation);
+  footprint.scale.setScalar(Math.max(0.68, p.scale || 1));
   highlight.add(footprint);
   const vertical = new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.45, 0.18), glowMat);
-  vertical.position.set(slot.position[0], slot.position[1] + 0.78, slot.position[2]);
+  vertical.position.set(p.position[0], p.position[1] + 0.78, p.position[2]);
   highlight.add(vertical);
   return highlight;
 }
@@ -5558,18 +5783,22 @@ function addBuilderPreviewPart(parent, slot, token) {
   slotRoot.name = `Builder Preview Slot ${slot.slot}`;
   slotRoot.userData.builderSlot = slot.slot;
   parent.add(slotRoot);
-  const fallback = createBrasswakeFallbackPart(slot.part, slot);
-  markBuilderSelectable(fallback, slot.slot);
-  placeBrasswakePart(slotRoot, slot, fallback);
-  if (slot.slot === activeBuilderSlot) slotRoot.add(createBuilderSlotHighlight(slot));
-  loadBrasswakePart(slot.part)
+  iterBrasswakeSlotPlacements(slot).forEach(placement => {
+    const fallback = createBrasswakeFallbackPart(slot.part, slot);
+    markBuilderSelectable(fallback, slot.slot);
+    placeBrasswakePart(slotRoot, slot, fallback, placement);
+    if (slot.slot === activeBuilderSlot) slotRoot.add(createBuilderSlotHighlight(slot, placement));
+  });
+  loadBrasswakePart(slot.part, getBrasswakeSlotPartFile(slot))
     .then(source => {
       if (!fortressBuilderPreview || token !== fortressBuilderPreview.token || !slotRoot.parent) return;
       slotRoot.clear();
-      const part = normalizeBrasswakePart(slot.part, source);
-      markBuilderSelectable(part, slot.slot);
-      placeBrasswakePart(slotRoot, slot, part);
-      if (slot.slot === activeBuilderSlot) slotRoot.add(createBuilderSlotHighlight(slot));
+      iterBrasswakeSlotPlacements(slot).forEach(placement => {
+        const part = normalizeBrasswakePart(slot.part, source);
+        markBuilderSelectable(part, slot.slot);
+        placeBrasswakePart(slotRoot, slot, part, placement);
+        if (slot.slot === activeBuilderSlot) slotRoot.add(createBuilderSlotHighlight(slot, placement));
+      });
     })
     .catch(() => {
       // The preview fallback is already visible.
@@ -6164,15 +6393,16 @@ function showBuildNotes() {
 
 showBuildNotes = function() {
   showModal(`<h1>Build Notes - ${VERSION}</h1>
-    <p><strong>Brasswake visual cohesion pass:</strong> the modular GLB assembly now rides on a larger shared foundation hull with a bright local-negative-X bow cue so Brasswake reads as one fortress-city instead of scattered parts.</p>
-    <p><strong>Fortress builder:</strong> the Command panel now includes a visual Builder with a slot list, live Three.js fortress preview, orbit/zoom controls, click-to-select parts, sliders, numeric inputs, deck/center helpers, reset controls, and layout export.</p>
-    <p><strong>Direct-file GLB loading:</strong> if opening <code>index.html</code> directly makes Brasswake look like fallback primitives, use Builder -> Load GLB Folder and choose <code>assets/models/brasswake</code>. The game will use local object URLs for the real GLB files without embedding them.</p>
+    <p><strong>Fortress builder transform pass:</strong> selected slots now support RotX, RotY, RotZ, position, and scale controls with sliders, numeric inputs, and nudge buttons.</p>
+    <p><strong>Undo:</strong> the Builder now keeps a 25-step session-local undo stack for transforms, reset actions, deck/center helpers, array edits, and variant swaps.</p>
+    <p><strong>Circular arrays:</strong> selected slots can render 1-10 copies in a ring around the slot center, with radius, start angle, angle span, vertical offset, and Face Outward controls. This is intended for underside engine clusters and similar repeated modules.</p>
+    <p><strong>Variant GLBs:</strong> after using Builder -> Load GLB Folder, extra <code>.glb</code> files whose names start with a part's base filename appear in a Variant GLB dropdown for the selected slot.</p>
     <p><strong>Turn-move preservation:</strong> Brasswake still rotates in place toward the next Current Gate / Jet Stream hop before moving and keeps that facing after arrival.</p>
-    <p><strong>Visual progression preserved:</strong> the starting fortress shows the base platform, command tower, lift/turn engines, docking arm, expansion frames, a starting armor plate, and a starting cannon. Purchased upgrades and built rooms add radar, storage, hydroponics, foundry, hospital, hangar, scout cradle, extra armor, and extra turrets.</p>
+    <p><strong>Builder export:</strong> Copy Layout now includes full rotation arrays, optional circular array data, and optional variant file choices when active.</p>
     <p><strong>Fallback behavior:</strong> if GLTFLoader or a GLB file is unavailable, that slot uses a procedural fallback mesh and the campaign continues without crashing.</p>
     <p><strong>Player faction canon:</strong> the captain commands <strong>Brasswake Free Command</strong>, an independent modular flying fortress-city with Steam Marshal infrastructure ties at Brassgate Anchorage but open future alliances and loyalties.</p>
     <p><strong>Preserved:</strong> single-file HTML structure, Three.js CDN map, external GLB/MP3 assets, gate-locked Current Gate / Jet Stream travel, Clockwork Navigator / Celestial Navigation Automaton, Plot Capacity: 1 Jump, Captain's Orders onboarding, route plotting/events, combat balance, music singleton behavior, and save/load compatibility.</p>
-    <p><strong>Validation:</strong> JavaScript syntax, module loader syntax, inline button handlers, version strings, GLTFLoader CDN reference, model asset paths, local GLB folder loading path, external music paths, and fallback code paths were checked. No embedded playable preview is included.</p>
+    <p><strong>Validation:</strong> JavaScript syntax, module loader syntax, inline button handlers, version strings, GLTFLoader CDN reference, model asset paths, external music paths, and fallback code paths were checked. No embedded playable preview is included.</p>
     ${roadmapDoctrineHTML()}
     ${nextCampaignGoalsHTML()}
     ${balanceRoadmapHTML()}
