@@ -1,29 +1,22 @@
 IRON KINGDOMS: SKY FORTRESS COMMAND
-Version: v0.26.06.22.1900
+Version: v0.26.06.22.2006
 
-Focused Brasswake Fortress Builder transform, undo, array, and variant pass.
+Focused Brasswake tuned layout and underside lift engine array pass.
 
 PATCH INTENT
-- Make Brasswake module placement easier to tune by adding all-axis rotation controls.
-- Add a bounded session-local undo stack for the most recent builder edits.
-- Add circular array controls so repeated parts, especially underside engines, can be arranged around a slot center.
-- Let locally loaded GLB variants be swapped per selected slot in the builder.
+- Apply the user's copied Brasswake Builder layout as the new source layout.
+- Add a six-engine circular array to the underside lift engine slot so the ring is visible by default.
+- Preserve the builder's all-axis rotation, undo, circular array, variant, and live preview controls.
 - Preserve GLB fallbacks, save/load compatibility, gate-locked Current Gate travel, Clockwork Navigator, Plot Capacity: 1 Jump, Captain's Orders, combat balance, and singleton music behavior.
 
 ISSUES ADDRESSED
-- The builder only exposed Y rotation, making it hard to correct GLB parts with different local orientations.
-- Builder edits were immediate but had no undo path.
-- Repeated underside parts had to be represented as separate slots rather than a quick circular array.
-- Extra candidate GLBs in the selected model folder could not be previewed against an existing slot.
+- The copied layout did not include an array object for undersideLift, so the game/export still represented that slot as one engine.
+- The tuned module placements needed to be made permanent in BRASSWAKE_SLOT_LAYOUT.
 
 FIXES MADE
-- Added RotX and RotZ sliders, numeric inputs, and nudge buttons while preserving RotY behavior.
-- Added Undo, backed by a 25-entry session-local layout snapshot stack.
-- Added circular array controls for selected slots: count 1-10, radius, start angle, angle span, vertical offset, and Face Outward.
-- Array copies now render in both the live builder preview and the main Brasswake model using the same shared placement helper.
-- Array copies use cloned cached GLB scenes or procedural fallbacks; clicking any copy in the preview selects the parent slot.
-- Added variant support for locally selected GLB folders. Extra .glb files whose names start with a part's base filename appear in a Variant GLB selector for that slot.
-- Copy Layout now exports full rotation arrays, optional array objects, and optional variantFile values.
+- Replaced the default slot table with the user's copied layout values.
+- Added array: count 6, radius 1.05, startAngle 0.00, angleSpan 6.28, yOffset 0.00, faceOutward true to undersideLift.
+- Kept the shared array placement helper so the six lift engines render in both the main fortress and builder preview.
 
 MODEL FILES CHECKED
 - Brasswake base platform.glb
@@ -58,7 +51,7 @@ VALIDATION
 - Module script extracted from index.html and syntax checked.
 - Inline onclick handlers checked for missing global functions.
 - Duplicate function declarations checked.
-- Version consistency checked for v0.26.06.22.1900.
+- Version consistency checked for v0.26.06.22.2006.
 - Three.js CDN and matching module GLTFLoader references checked.
 - Model paths checked for assets/models/brasswake/.
 - All 15 Brasswake GLB files confirmed in the asset path.
