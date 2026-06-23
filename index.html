@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.22.2330</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.22.2352</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script type="importmap">
     { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -210,7 +210,7 @@
       position: absolute;
       top: 96px;
       left: 12px;
-      bottom: 180px;
+      bottom: 58px;
       width: 340px;
       z-index: 10;
       display: flex;
@@ -299,6 +299,14 @@
       min-height: 0;
     }
 
+    .selectedPanelShell {
+      min-height: 320px;
+    }
+
+    .leftOrdersPanel {
+      max-height: min(250px, 32vh);
+    }
+
     .statGrid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -361,6 +369,40 @@
     }
 
     .buttonStack { display: flex; flex-direction: column; gap: 7px; }
+
+    .selectedActionCue {
+      border: 1px solid rgba(244,207,120,0.62);
+      background: linear-gradient(180deg, rgba(92,63,26,0.24), rgba(0,0,0,0.16));
+      border-radius: 10px;
+      padding: 8px;
+      margin: 8px 0;
+      color: #fff1c9;
+      font-size: 12px;
+      line-height: 1.32;
+      box-shadow: inset 0 0 0 1px rgba(244,207,120,0.08);
+    }
+
+    .selectedActionCue strong {
+      display: block;
+      color: var(--brass2);
+      font-size: 11px;
+      letter-spacing: 0.55px;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    .selectedActionBlock {
+      margin: 8px 0 10px;
+    }
+
+    .selectedActionBlock .btn {
+      min-height: 40px;
+      font-weight: 850;
+    }
+
+    .selectedDetailsGrid {
+      margin: 10px 0 8px;
+    }
 
     .btn {
       border: 1px solid rgba(244,207,120,0.45);
@@ -1611,7 +1653,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.22.2330</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.22.2352</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1697,7 +1739,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.22.2330 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.22.2352 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
     </div>
   </div>
 </div>
@@ -1708,8 +1750,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.22.2330';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_22_2330';
+const VERSION = 'v0.26.06.22.2352';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_22_2352';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -2307,13 +2349,13 @@ function updateMusicForRightTab(tab) {
 
 function playCombatResultMusic(result) {
   const restoreToken = ++combatResultMusicToken;
-  const resultLoopState = MusicManager.getCurrentState();
+  updateMusicForContext('combat-result-base');
   if (result === 'victory') MusicManager.playStinger('victory', { duck: true });
   else if (result === 'retreat') MusicManager.playStinger('retreat', { duck: true });
   else MusicManager.playStinger('defeat', { duck: true });
   setTimeout(() => {
     if (restoreToken !== combatResultMusicToken) return;
-    if (MusicManager.getCurrentState() !== resultLoopState) return;
+    if (game?.inCombat) return;
     updateMusicForContext('combat-result');
   }, 1700);
 }
@@ -3750,7 +3792,7 @@ function refreshBrasswakeModel(group = fortressGroup) {
 }
 
 function createFortressModel() {
-  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.22.2330.
+  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.22.2352.
   const group = new THREE.Group();
   group.name = 'Brasswake Modular Hex Fortress Marker';
   group.userData.brasswakeMarker = true;
@@ -4396,17 +4438,19 @@ function renderSelectedPanel() {
   const navigatorHtml = !atLoc ? navigatorStatusHTML('selected') : '';
   const routePreview = routePreviewHTML(loc, cur);
   const legend = routeLegendMiniHTML();
+  const actionCueHtml = selectedLocationActionCueHTML(loc, cur, cost, d);
 
   const selectedInnerHTML = `
     <div class="locationName">${loc.name}</div>
     <div class="locationMeta">${statusTags.join('')}</div>
     <div class="desc">${loc.desc}</div>
-    <div class="statGrid" style="margin-bottom:8px;">
+    ${actionCueHtml}
+    ${actionHtml}
+    <div class="statGrid selectedDetailsGrid">
       <div class="statCard"><div class="k">Distance</div><div class="v">${Math.round(d)}</div></div>
       <div class="statCard"><div class="k">${costLabel}</div><div class="v">${costDisplay}</div></div>
     </div>
     ${clearedHtml}
-    ${actionHtml}
     ${routeContextHtml}
     ${navigatorHtml}
     ${routePreview}
@@ -4421,6 +4465,37 @@ function renderSelectedPanel() {
   }
 }
 
+function selectedLocationActionCueHTML(loc, cur, cost, d) {
+  const atLoc = loc.id === cur.id;
+  const route = !atLoc ? getRouteBetween(cur.id, loc.id) : null;
+  const path = !atLoc && !route ? findCurrentRoutePath(cur.id, loc.id) : null;
+  let text = '';
+  if (atLoc) {
+    if (loc.depleted) text = 'This location is resolved. Select another discovered sky mark or return to a service port if Brasswake needs fuel, repairs, or upgrades.';
+    else if (loc.type === 'skyport' || loc.type === 'settlement') {
+      if (loc.id === 'loc_home' && !game.flags?.traveledOnce) text = 'Pick a nearby connected node first. Local contracts unlock after Brasswake completes its first route.';
+      else text = 'Use port services now: buy fuel, repair hull, review local work, or purchase emergency dockyard scrap if steel is blocking repairs.';
+    } else if (loc.type === 'salvage') text = 'Run the salvage action now to turn wreckage into steel, gold, and fuel for the next upgrade cycle.';
+    else if (loc.type === 'resource') text = `Harvest ${loc.resourceKind || 'resources'} now, then convert the reward into upgrades or route safety.`;
+    else if (loc.type === 'storm') text = 'Braving the storm can complete route progress but may damage Brasswake. Repair first if hull is low.';
+    else if (loc.type === 'enemy') text = `Review combat readiness before engaging this Danger ${loc.danger || 1} fleet. Retreat remains available in combat.`;
+    else if (loc.type === 'ruins') text = 'Explore the ruins now to seek route lore, resources, or future tech hooks.';
+    else if (loc.type === 'contract') text = 'Answer the contract beacon now for gold and faction standing progress.';
+    else text = 'Resolve the local action here, then choose the next charted Current.';
+  } else if (route) {
+    const locked = game.plottedRoute?.nextHopId === loc.id;
+    const canTravel = game.resources.fuel >= cost && d <= computeStats().travelRange && !isTraveling;
+    if (locked) text = `Clockwork Navigator has locked this as the next jump toward ${getLocation(game.plottedRoute.targetId)?.name || 'the final destination'}. Ride this Current when ready.`;
+    else text = canTravel ? 'This destination has a charted Current from your current location. Ride the Current to move there now.' : travelBlockReason(cost, d);
+  } else if (path?.nodeIds?.length > 1) {
+    const nextHop = getLocation(path.nodeIds[1]);
+    text = `No direct Current reaches this destination, but the Clockwork Navigator can lock the next jump to ${nextHop?.name || 'the next hop'} while preserving the final destination.`;
+  } else {
+    text = 'No known Current route reaches this destination yet. Explore connected gates first; Storm Keel temporary conduits are still future technology.';
+  }
+  return `<div class="selectedActionCue"><strong>Recommended Next</strong>${text}</div>`;
+}
+
 function locationActionButtons(loc, cur, cost, d) {
   const atLoc = loc.id === cur.id;
   if (!atLoc) {
@@ -4429,14 +4504,14 @@ function locationActionButtons(loc, cur, cost, d) {
     if (!route) {
       const path = findCurrentRoutePath(cur.id, loc.id);
       if (path && path.nodeIds.length > 1) {
-        const nextHop = getLocation(path.nodeIds[1]);
-        return `<div class="primaryActionBlock firstSessionPrimary buttonStack">
+      const nextHop = getLocation(path.nodeIds[1]);
+        return `<div class="primaryActionBlock firstSessionPrimary selectedActionBlock buttonStack">
           <button class="btn blue" onclick="plotRouteTo('${loc.id}')">Plot with Clockwork Navigator</button>
           <div class="smallNote">Plot Capacity: 1 Jump. The automaton will lock the next Current Gate jump to ${nextHop?.name || 'the next hop'} while keeping ${loc.name} as the final destination.</div>
           <button class="btn ghost" onclick="centerCameraOnSelected()">Center Camera</button>
         </div>`;
       }
-      return `<div class="primaryActionBlock firstSessionPrimary buttonStack">
+      return `<div class="primaryActionBlock firstSessionPrimary selectedActionBlock buttonStack">
         <button class="btn" disabled>No Charted Current</button>
         <div class="smallNote">Strategic travel is gate-network locked. Explore connected Current Gates first. Storm Keel temporary conduits remain locked for later progression.</div>
         <button class="btn ghost" onclick="centerCameraOnSelected()">Center Camera</button>
@@ -4445,7 +4520,7 @@ function locationActionButtons(loc, cur, cost, d) {
     const canTravel = game.resources.fuel >= cost && d <= computeStats().travelRange && !isTraveling;
     const label = isLockedNextHop ? `Ride Locked Jump to ${shortName(loc.name)} (${cost} Fuel)` : `Ride Current to ${shortName(loc.name)} (${cost} Fuel)`;
     const note = isLockedNextHop ? 'Clockwork Navigator route active. This is the stored one-jump path toward your final destination.' : 'Current Gate travel is charted and available from your present location.';
-    return `<div class="primaryActionBlock firstSessionPrimary buttonStack">
+    return `<div class="primaryActionBlock firstSessionPrimary selectedActionBlock buttonStack">
       <button class="btn primary" ${canTravel ? '' : 'disabled'} onclick="travelToSelected()">${label}</button>
       ${!canTravel ? `<div class="smallNote">${travelBlockReason(cost, d)}</div>` : `<div class="smallNote">${note}</div>`}
       <button class="btn ghost" onclick="centerCameraOnSelected()">Center Camera</button>
@@ -4478,7 +4553,7 @@ function locationActionButtons(loc, cur, cost, d) {
   if (loc.type === 'ruins') buttons.push(`<button class="btn primary" ${loc.depleted ? 'disabled' : ''} onclick="exploreRuins()">Explore Ruins</button>`);
   if (loc.type === 'contract') buttons.push(`<button class="btn primary" ${loc.depleted ? 'disabled' : ''} onclick="completeContract()">Answer Contract Beacon</button>`);
   buttons.push(`<button class="btn ghost" onclick="emergencyDrift()">Emergency Drift/Scavenge</button>`);
-  return `<div class="primaryActionBlock firstSessionPrimary buttonStack">${buttons.join('')}<div class="smallNote">Emergency drift is a last-resort option for fuel starvation. It damages the fortress but prevents early soft-locks.</div></div>`;
+  return `<div class="primaryActionBlock firstSessionPrimary selectedActionBlock buttonStack">${buttons.join('')}<div class="smallNote">Emergency drift is a last-resort option for fuel starvation. It damages the fortress but prevents early soft-locks.</div></div>`;
 }
 
 function travelBlockReason(cost, d) {
@@ -5125,9 +5200,15 @@ function finishTravel(loc, days, mode) {
 }
 
 function autoLocationPulse(loc) {
-  if (loc.type === 'enemy' && !loc.depleted) showToast('Hostile fleet contact. Prepare for battle.');
-  else if (loc.type === 'storm' && !loc.depleted) showToast('Storm route ahead. Braving it may damage the hull.');
-  else if (!loc.depleted) showToast(`${loc.name} reached. Choose an action.`);
+  if (loc.depleted) return;
+  if (loc.type === 'enemy') showToast(`Arrived at ${loc.name}. Review combat readiness before engaging.`);
+  else if (loc.type === 'storm') showToast(`Arrived at ${loc.name}. Brave the storm only if Brasswake can absorb hull damage.`);
+  else if (loc.type === 'salvage') showToast(`Arrived at ${loc.name}. Salvage the wreck field for upgrade steel.`);
+  else if (loc.type === 'resource') showToast(`Arrived at ${loc.name}. Harvest resources for the next route cycle.`);
+  else if (loc.type === 'ruins') showToast(`Arrived at ${loc.name}. Explore the ruins for rewards and route lore.`);
+  else if (loc.type === 'contract') showToast(`Arrived at ${loc.name}. Answer the contract beacon for gold and standing.`);
+  else if (loc.type === 'skyport' || loc.type === 'settlement') showToast(`Arrived at ${loc.name}. Refuel, repair, or review local work.`);
+  else showToast(`${loc.name} reached. Choose an action.`);
 }
 
 function advanceDay(days = 1) {
@@ -5756,6 +5837,7 @@ function combatSummaryHTML(c, titleText) {
 function endCombat(victory, retreated, destroyed = false) {
   const c = game.combat;
   const modal = document.getElementById('modalOverlay');
+  const resultMusic = victory ? 'victory' : retreated ? 'retreat' : 'defeat';
   if (victory) {
     const steel = 20 + Math.floor(Math.random()*18) + (game.rooms.foundry ? 8 : 0);
     const gold = 18 + Math.floor(Math.random()*22);
@@ -5775,12 +5857,10 @@ function endCombat(victory, retreated, destroyed = false) {
     if ((c.danger || 1) <= 1) setOrderFlag('foughtLowDanger');
     addLog(`Victory over ${c.enemyName}: +${steel} steel, +${gold} gold, +${fuel} fuel.`);
     showResultModal('Victory in the Clouds', combatSummaryHTML(c, `The enemy fleet breaks apart under Brasswake's guns. Salvage crews recover ${steel} steel, ${gold} gold, and ${fuel} fuel.`), 'Continue', closeModal);
-    playCombatResultMusic('victory');
   } else if (retreated) {
     if ((c.danger || 1) <= 1) { setOrderFlag('foughtLowDanger'); setOrderFlag('survivedHostileContact'); }
     addLog(`Brasswake retreated from ${c.enemyName}. Hostile contact survived; repairs recommended.`, 'warn');
     showResultModal('Retreat Successful', combatSummaryHTML(c, 'The fortress escaped into cloud cover. Some gold and momentum were lost, but the campaign continues.'), 'Continue', closeModal);
-    playCombatResultMusic('retreat');
   } else if (destroyed) {
     game.hull = 1;
     const lossGold = Math.min(game.resources.gold, 40);
@@ -5790,14 +5870,13 @@ function endCombat(victory, retreated, destroyed = false) {
     addResource('population', -Math.min(game.resources.population - 1, 5), true);
     addLog(`Near catastrophe against ${c.enemyName}. Brasswake emergency-crashed but survived at 1 hull.`, 'bad');
     showResultModal('Catastrophic Defeat', combatSummaryHTML(c, 'The fortress was nearly destroyed. Emergency ballast kept Brasswake aloft at 1 hull, but resources and crew were lost.'), 'Continue', closeModal);
-    playCombatResultMusic('defeat');
   } else {
     addLog(`Defeat against ${c.enemyName}. The fortress limps away heavily damaged.`, 'bad');
     showResultModal('Defeat', combatSummaryHTML(c, 'The fortress disengages under smoke and broken armor.'), 'Continue', closeModal);
-    playCombatResultMusic('defeat');
   }
   game.inCombat = false;
   game.combat = null;
+  playCombatResultMusic(resultMusic);
   advanceDay(1);
   autoSave('Autosaved after combat');
   modal.classList.add('active');
@@ -6942,12 +7021,12 @@ function showBuildNotes() {
 
 showBuildNotes = function() {
   showModal(`<h1>Build Notes - ${VERSION}</h1>
-    <p><strong>UI regression repair:</strong> restores the newer cleaned-up HUD shell without rolling back recent Brasswake model, builder, route, or upgrade work.</p>
-    <p><strong>Command menu restored:</strong> Save, Load, Help, Builder, Map, Reset, and audio controls are back in a collapsible lower-left Command Menu, freeing the bottom HUD for a wider Fleet Log.</p>
-    <p><strong>Captain's Orders restored:</strong> orders now live in the left column beneath Fortress Status, giving onboarding more room and keeping the selected-location panel readable.</p>
-    <p><strong>Music settings restored:</strong> the music on/off button, volume slider, now-playing label, and debug line are connected to a central singleton MusicManager with persistent volume/mute settings.</p>
-    <p><strong>Audio safety:</strong> music uses one active loop plus one optional fading loop during crossfade; stingers remain non-looping and missing MP3 files log warnings without crashing the game.</p>
-    <p><strong>Recent work preserved:</strong> Fortress Builder RotX/RotY/RotZ controls, Undo Last Change, circular arrays, Copy Layout, GLB variants, live preview, saved underside engine layout, turn-then-move travel facing, and GLB fallback behavior remain in place.</p>
+    <p><strong>Selected Location expansion:</strong> the left HUD column now extends down to the Command Menu button, giving the Selected Location panel more vertical room.</p>
+    <p><strong>Action-first layout:</strong> route/travel and local action buttons now appear above route previews, navigator summaries, and secondary details so available choices are easier to see.</p>
+    <p><strong>Recommended Next:</strong> selected locations now show a compact next-step cue explaining whether to ride a Current, plot with the Clockwork Navigator, salvage, harvest, repair, trade, brave a storm, or review combat readiness.</p>
+    <p><strong>Post-arrival guidance:</strong> arrival toasts now point toward the best local action for salvage, resource, storm, enemy, ruin, contract, and service-port locations.</p>
+    <p><strong>Combat audio fix:</strong> combat state now clears before contextual music restoration, so battle music does not take over non-combat tiles and victory/retreat/defeat stingers can play as one-shots.</p>
+    <p><strong>Recent work preserved:</strong> Command Menu audio controls, singleton MusicManager, Fortress Builder RotX/RotY/RotZ controls, Undo Last Change, circular arrays, Copy Layout, GLB variants, live preview, saved underside engine layout, turn-then-move travel facing, and GLB fallback behavior remain in place.</p>
     <p><strong>Player faction canon:</strong> the captain commands <strong>Brasswake Free Command</strong>, an independent modular flying fortress-city with Steam Marshal infrastructure ties at Brassgate Anchorage but open future alliances and loyalties.</p>
     <p><strong>Preserved:</strong> single-file HTML structure, Three.js CDN map, external GLB/MP3 assets, gate-locked Current Gate / Jet Stream travel, Clockwork Navigator / Celestial Navigation Automaton, Plot Capacity: 1 Jump, Captain's Orders onboarding, route plotting/events, combat balance, music singleton behavior, and save/load compatibility.</p>
     <p><strong>Validation:</strong> JavaScript syntax, module loader syntax, inline button handlers, version strings, GLTFLoader CDN reference, model asset paths, external music paths, and fallback code paths were checked. No embedded playable preview is included.</p>

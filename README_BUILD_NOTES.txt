@@ -1,27 +1,30 @@
 IRON KINGDOMS: SKY FORTRESS COMMAND
-Version: v0.26.06.22.2330
+Version: v0.26.06.22.2352
 
-Focused UI and audio regression repair pass.
+Focused Selected Location readability and early-action guidance pass.
 
 PATCH INTENT
-- Restore the newer cleaned-up HUD layout without rolling back recent Brasswake model/builder work.
-- Move Captain's Orders back into the left panel so the selected-location panel and Fleet Log are easier to read.
-- Restore the collapsible Command Menu with Save, Load, Help, Builder, Map, Reset, and music controls.
-- Restore singleton music playback, mute, and volume persistence.
+- Use the lower-left space recovered by the collapsible Command Menu to expand the Selected Location panel.
+- Make selected-location actions and travel buttons visible earlier in the panel.
+- Add roadmap-aligned first-session and post-arrival guidance so players know what to do next after selecting or reaching a location.
+- Preserve the restored Command Menu, audio controls, Brasswake model/builder work, and current travel rules.
 - Preserve GLB fallbacks, save/load compatibility, gate-locked Current Gate travel, Clockwork Navigator, Plot Capacity: 1 Jump, Captain's Orders, combat balance, and singleton music behavior.
 
 ISSUES ADDRESSED
-- The command controls and Captain's Orders had regressed into the lower HUD layout, crowding the Fleet Log and reducing selected-location readability.
-- Music and volume controls were no longer present in the HUD.
-- The active index.html no longer contained the music manager, volume persistence, or guarded music context hooks.
+- The left panel still stopped above the Fleet Log even though command controls had moved into a collapsible lower-left dock.
+- Selected-location route/details could push the actual action buttons down the panel.
+- Arrival feedback was readable but did not always tell the player which local action to take next.
+- Battle music could remain selected after combat resolution, making non-combat tiles continue to use combat music.
+- Victory stingers could be missed because combat result audio was requested before combat state fully cleared.
 
 FIXES MADE
-- Restored the left-column Captain's Orders panel and expanded bottom Fleet Log layout.
-- Restored the collapsible lower-left Command Menu and kept the recent Fortress Builder button inside it.
-- Restored the music on/off button, music volume slider, now-playing label, and unobtrusive debug line.
-- Reintroduced a central singleton MusicManager using external MP3 paths under assets/audio/music/.
-- Reconnected music context changes for title, campaign start, right-panel tabs, route plotting, travel, arrival, combat, result stingers, modal close, and load game.
-- Preserved the latest Brasswake GLB layout and builder controls, including the saved underside engine ring and turn-engine placement.
+- Extended the left HUD column down to the Command Menu button, giving Selected Location more vertical room.
+- Added a compact Recommended Next cue to the selected-location panel.
+- Moved selected-location action buttons above route previews, navigator summaries, and secondary detail blocks.
+- Added selected-action styling so primary travel/local actions are easier to scan.
+- Added clearer post-arrival toasts for salvage, resource, storm, enemy, ruin, contract, and service-port locations.
+- Adjusted combat result music ordering so combat state clears before contextual music restore and victory/retreat/defeat stingers.
+- Preserved the restored Command Menu/audio controls and the latest Brasswake GLB layout/builder systems.
 
 MODEL FILES CHECKED
 - Brasswake base platform.glb
@@ -56,7 +59,7 @@ VALIDATION
 - Module script extracted from index.html and syntax checked.
 - Inline onclick handlers checked for missing global functions.
 - Duplicate function declarations checked.
-- Version consistency checked for v0.26.06.22.2330.
+- Version consistency checked for v0.26.06.22.2352.
 - Three.js CDN and matching module GLTFLoader references checked.
 - Model paths checked for assets/models/brasswake/.
 - All 15 Brasswake GLB files confirmed in the asset path.
