@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.22.2006</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.22.2325</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script type="importmap">
     { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -1511,7 +1511,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.22.2006</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.22.2325</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1586,7 +1586,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.22.2006 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.22.2325 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
     </div>
   </div>
 </div>
@@ -1597,8 +1597,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.22.2006';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_22_2006';
+const VERSION = 'v0.26.06.22.2325';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_22_2325';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -1734,8 +1734,8 @@ const BRASSWAKE_MODULE_DEFS = {
 const BRASSWAKE_SLOT_LAYOUT = [
   { slot: 'core', part: 'basePlatform', module: 'command', position: [0.00, 0.08, 0.00], rotation: [0.00, 0.00, 0.00], scale: 1.08 },
   { slot: 'bridge', part: 'commandTower', module: 'command', position: [0.00, 1.50, 0.02], rotation: [0.00, 0.00, 0.00], scale: 0.95 },
-  { slot: 'undersideLift', part: 'liftEngine', module: 'lift', position: [0.00, -0.20, 0.00], rotation: [1.60, 0.00, 0.00], scale: 1.00, array: { count: 6, radius: 1.05, startAngle: 0.00, angleSpan: 6.28, yOffset: 0.00, faceOutward: true } },
-  { slot: 'undersideTurn', part: 'turnEngine', module: 'turn', position: [1.65, -0.55, -0.05], rotation: [0.00, 1.60, 0.00], scale: 0.70 },
+  { slot: 'undersideLift', part: 'liftEngine', module: 'lift', position: [0.00, -0.20, 0.00], rotation: [1.60, 0.00, 0.00], scale: 0.47, array: { count: 6, radius: 1.05, startAngle: 0.00, angleSpan: 6.28, yOffset: 0.00, faceOutward: false } },
+  { slot: 'undersideTurn', part: 'turnEngine', module: 'turn', position: [2.80, -0.10, -0.10], rotation: [-1.60, 0.45, 1.60], scale: 0.80 },
   { slot: 'portDock', part: 'dockingArm', module: 'command', position: [0.00, 0.60, 3.00], rotation: [0.00, 1.57, 0.00], scale: 0.76 },
   { slot: 'expansionA', part: 'expansionFrame', module: 'expansion', position: [2.40, 0.20, -1.25], rotation: [0.00, -0.55, 0.00], scale: 1.15 },
   { slot: 'expansionB', part: 'expansionFrame', module: 'expansion', position: [2.40, 0.20, 1.20], rotation: [0.00, 0.65, 0.00], scale: 1.15 },
@@ -3216,7 +3216,7 @@ function refreshBrasswakeModel(group = fortressGroup) {
 }
 
 function createFortressModel() {
-  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.22.2006.
+  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.22.2325.
   const group = new THREE.Group();
   group.name = 'Brasswake Modular Hex Fortress Marker';
   group.userData.brasswakeMarker = true;
@@ -6393,12 +6393,11 @@ function showBuildNotes() {
 
 showBuildNotes = function() {
   showModal(`<h1>Build Notes - ${VERSION}</h1>
-    <p><strong>Fortress builder transform pass:</strong> selected slots now support RotX, RotY, RotZ, position, and scale controls with sliders, numeric inputs, and nudge buttons.</p>
-    <p><strong>Undo:</strong> the Builder now keeps a 25-step session-local undo stack for transforms, reset actions, deck/center helpers, array edits, and variant swaps.</p>
-    <p><strong>Circular arrays:</strong> selected slots can render 1-10 copies in a ring around the slot center, with radius, start angle, angle span, vertical offset, and Face Outward controls. This is intended for underside engine clusters and similar repeated modules.</p>
-    <p><strong>Variant GLBs:</strong> after using Builder -> Load GLB Folder, extra <code>.glb</code> files whose names start with a part's base filename appear in a Variant GLB dropdown for the selected slot.</p>
+    <p><strong>Brasswake underside engine layout refinement:</strong> applies the latest saved Fortress Builder layout for the underside lift ring and turn engine cluster.</p>
+    <p><strong>Lift engine ring:</strong> the underside lift engine now renders as a six-copy circular array with smaller per-engine scale and shared facing, making the underdeck cluster read as a compact lift system instead of a wide outward-facing spray.</p>
+    <p><strong>Turn engine placement:</strong> the underside turn engine cluster now uses the newest all-axis position, rotation, and scale values from the Builder export.</p>
+    <p><strong>Builder continuity:</strong> RotX/RotY/RotZ controls, Undo Last Change, circular arrays, Copy Layout, GLB variants, and the live preview remain available for continued technical-art tuning.</p>
     <p><strong>Turn-move preservation:</strong> Brasswake still rotates in place toward the next Current Gate / Jet Stream hop before moving and keeps that facing after arrival.</p>
-    <p><strong>Builder export:</strong> Copy Layout now includes full rotation arrays, optional circular array data, and optional variant file choices when active.</p>
     <p><strong>Fallback behavior:</strong> if GLTFLoader or a GLB file is unavailable, that slot uses a procedural fallback mesh and the campaign continues without crashing.</p>
     <p><strong>Player faction canon:</strong> the captain commands <strong>Brasswake Free Command</strong>, an independent modular flying fortress-city with Steam Marshal infrastructure ties at Brassgate Anchorage but open future alliances and loyalties.</p>
     <p><strong>Preserved:</strong> single-file HTML structure, Three.js CDN map, external GLB/MP3 assets, gate-locked Current Gate / Jet Stream travel, Clockwork Navigator / Celestial Navigation Automaton, Plot Capacity: 1 Jump, Captain's Orders onboarding, route plotting/events, combat balance, music singleton behavior, and save/load compatibility.</p>
