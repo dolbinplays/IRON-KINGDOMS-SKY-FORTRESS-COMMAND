@@ -1,54 +1,72 @@
-# IRON KINGDOMS: SKY FORTRESS COMMAND - v0.26.06.23.0006
+# IRON KINGDOMS: SKY FORTRESS COMMAND - v0.26.06.24.0001
 
-Focused V3 Inherited Craft Foundation patch.
+Focused V3 cleanup and roadmap foundation patch.
 
 ## Patch Intent
 
-- Reframe the campaign start around the inherited Tier 0 skiff `Brass Minnow`.
-- Add explicit active craft data through `playerShip`, `activeShipId`, and `ownedShips`.
+- Fix the leftover `IRON KINGDOMS: WAR OF BRASS` title-screen kicker.
+- Keep the campaign start centered on `Brass Minnow`, an `Inherited Courier Skiff` and `Tier 0 - Inherited Craft`.
 - Keep Brasswake locked as a future modular flying fortress-city milestone.
-- Preserve the current single-file HTML / JavaScript / Three.js CDN prototype.
+- Clarify prototype-wide Support versus active skiff crew.
+- Add the first lightweight foundation for V3 reputation and career-tagged contracts.
 
 ## Changes Made
 
-- Added starter ship data for `Brass Minnow`, including class, tier, crew berths, cargo capacity, ratings, and Clockwork Navigator details.
-- Added locked `brasswake` milestone state and future `Brasswake Free Command` faction state.
-- Repurposed the left status panel from fortress framing to Ship Status.
-- Updated title screen, opening log, Captain's Orders, roadmap doctrine, selected-location nudges, travel text, and combat labels to support the inherited-craft start.
-- Reframed active upgrades as craft refits while preserving the existing module prototype for testing.
+- Updated version labels, title, `VERSION`, `SAVE_KEY`, manifest, README/build notes, package folder, and ZIP naming to `v0.26.06.24.0001`.
+- Changed the title-screen kicker to `IRON KINGDOMS: SKY FORTRESS COMMAND`.
+- Changed the visible top-bar population label to `Support` while preserving the internal `resources.population` key.
+- Added Ship Status explanatory text: Support is prototype-wide capacity; active skiff crew is shown as `playerShip.crewUsed / playerShip.crewCapacity`.
+- Consolidated duplicate `showBuildNotes()` logic into one authoritative function.
+- Added V3 `reputation` state with Duke, Merchant, Explorer, Military, Freebooter, and per-kingdom reputation tracks.
+- Added reputation tier helpers and a compact Reputation Summary to the Factions tab.
+- Added career-style contract tags and displayed them in selected-location details and settlement contract previews.
+- Added small Fleet Log reputation rewards to existing salvage, resource, contract, trade, repair, exploration, settlement-contract, and combat outcomes.
 
 ## Save Compatibility
 
-- `SAVE_KEY` was bumped to `IK_SKY_FORTRESS_COMMAND_v0_26_06_23_0006`.
-- The bump is intentional because root save data now includes ship progression, Brasswake milestone, and future faction fields.
-- Load normalization also fills missing V3 fields if compatible data is encountered.
+- `SAVE_KEY` was bumped to `IK_SKY_FORTRESS_COMMAND_v0_26_06_24_0001`.
+- The bump is intentional because the campaign root now includes new V3 reputation and contract/career roadmap foundation state.
+- Load normalization also ensures V3 ship, milestone, faction, and reputation fields exist if compatible state is loaded.
 
 ## Systems Intentionally Preserved
 
-- Current Gate / Jet Stream route plotting.
-- Turn-then-move directional travel facing.
+- Single-file HTML structure.
+- Existing Three.js CDN and GLTFLoader approach.
+- Three.js overworld rendering and GLB/model support.
 - Procedural hex-board layout.
-- Captain's Orders panel layout.
+- Current Gate / Jet Stream route plotting.
+- Multi-hop route planner and No Charted Current messaging.
+- Turn-then-move directional travel facing.
+- Captain's Orders panel.
 - Collapsible Command Menu.
 - Expanded Fleet Log.
 - Selected Location panel.
-- Contracts, salvage, harvest, trade, enemies, depleted states, route events, autosave, manual save, reset.
-- Singleton MusicManager and existing external MP3 asset flow.
-- Existing Brasswake GLB/model/builder internals as prototype systems.
+- Existing contracts, salvage, harvest, trade, combat, route events, and depleted states.
+- Fuel, food, steel, gold, and internal population/support behavior.
+- Autosave, manual save, load, and reset.
+- Singleton MusicManager and external MP3 asset flow.
+- Storm Keel, Saint Elmo Navigation Core, and Astrolabe Engine locks.
 
 ## Validation Performed
 
 - JavaScript syntax check.
-- Module script syntax check.
-- Version and save key consistency check.
+- Module wrapper syntax check.
+- Inline handler/global function check.
+- Duplicate `showBuildNotes()` check.
+- Version and save-key consistency check.
 - Route/facing function inspection confirmed no movement rewrite.
+- Music manager inspection confirmed no second manager was added.
 - Package structure checked.
 - No embedded playable preview was created.
 
 ## Manual QA Still Recommended
 
 - Open `index.html` directly in a browser.
-- Start a new campaign and confirm the title/opening log/Ship Status show `Brass Minnow`.
-- Select a nearby node and confirm route preview still works.
-- Travel through a Current Gate / Jet Stream and confirm the craft turns toward the next hop and preserves facing after arrival.
-- Confirm contracts, salvage, harvest, trade, repair/refuel, save/load/reset, and music controls still work.
+- Confirm the title screen says `IRON KINGDOMS: SKY FORTRESS COMMAND`.
+- Start a new campaign and confirm Ship Status shows `Brass Minnow`, `Inherited Courier Skiff`, and `Tier 0 - Inherited Craft`.
+- Confirm the top resource bar says `Support`, not fortress-sized crew.
+- Open the Factions tab and confirm Reputation Summary renders.
+- Select contract/salvage/resource/combat locations and confirm tags display.
+- Complete a salvage or contract action and confirm a Fleet Log reputation line appears.
+- Plot and ride a Current Gate / Jet Stream route and confirm facing behavior is preserved.
+- Confirm save/load/reset and music controls still work.

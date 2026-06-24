@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.23.0006</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.24.0001</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script type="importmap">
     { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -1653,7 +1653,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.23.0006</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.24.0001</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1723,7 +1723,7 @@
 
   <div id="titleScreen">
     <div class="titleCard">
-      <div class="titleKicker">IRON KINGDOMS: WAR OF BRASS</div>
+      <div class="titleKicker">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
       <div class="titleMain">SKY FORTRESS<br/>COMMAND</div>
       <div class="titleSub">
         Inherit the battered skiff <strong>Brass Minnow</strong>, take your first contracts among the shattered skies, and rise toward the distant dream of Brasswake, a future flying fortress-city.
@@ -1739,7 +1739,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Improve engines, armor, weapons, sensors, storage, and repairs while Brasswake remains a locked endgame milestone.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.23.0006 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.24.0001 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
     </div>
   </div>
 </div>
@@ -1750,8 +1750,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.23.0006';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_23_0006';
+const VERSION = 'v0.26.06.24.0001';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_24_0001';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -1775,7 +1775,7 @@ const RESOURCE_META = {
   food: { label: 'Food', color: '#7fd184' },
   steel: { label: 'Steel', color: '#b9c6d0' },
   gold: { label: 'Gold', color: '#ffd56a' },
-  population: { label: 'Crew', color: '#d7c6ff' }
+  population: { label: 'Support', color: '#d7c6ff', note: 'Prototype support capacity; active skiff crew is shown in Ship Status.' }
 };
 
 const ROOM_DATA = {
@@ -1856,6 +1856,70 @@ function createPlayerFactionState() {
   };
 }
 
+function createReputationState() {
+  return {
+    duke: 0,
+    merchant: 0,
+    explorer: 0,
+    military: 0,
+    freebooter: 0,
+    kingdoms: {
+      steam: 0,
+      archmage: 0,
+      sky: 0,
+      priest: 0,
+      thorn: 0,
+      cinder: 0,
+      dusk: 0,
+      frost: 0
+    }
+  };
+}
+
+const REPUTATION_LABELS = {
+  duke: 'Duke',
+  merchant: 'Merchant',
+  explorer: 'Explorer',
+  military: 'Military',
+  freebooter: 'Freebooter'
+};
+
+const CONTRACT_TAG_LABELS = {
+  courier: 'Courier',
+  trade: 'Trade',
+  salvage: 'Salvage',
+  mining: 'Mining',
+  escort: 'Escort',
+  combat: 'Combat',
+  exploration: 'Exploration',
+  relief: 'Relief',
+  diplomacy: 'Diplomacy',
+  smuggling: 'Smuggling',
+  privateer: 'Privateer'
+};
+
+const CONTRACT_TAGS_BY_LOCATION = {
+  skyport: ['trade', 'courier', 'escort'],
+  settlement: ['trade', 'relief', 'courier'],
+  salvage: ['salvage', 'exploration'],
+  resource: ['mining', 'trade'],
+  storm: ['exploration'],
+  enemy: ['combat', 'escort'],
+  ruins: ['exploration', 'salvage'],
+  contract: ['courier', 'trade']
+};
+
+const CONTRACT_TAGS_BY_CONTRACT = {
+  escort: ['escort', 'combat'],
+  salvage: ['salvage'],
+  relief: ['relief', 'trade'],
+  patrol: ['escort', 'combat'],
+  courier: ['courier', 'trade'],
+  diplomacy: ['diplomacy', 'courier'],
+  smuggling: ['smuggling', 'trade'],
+  privateer: ['privateer', 'combat']
+};
+
 function ensureV3CampaignState(state) {
   if (!state) return state;
   state.activeShipId = state.activeShipId || 'ship_brass_minnow';
@@ -1864,11 +1928,82 @@ function ensureV3CampaignState(state) {
   state.ownedShips = Array.isArray(state.ownedShips) && state.ownedShips.length ? state.ownedShips : [state.playerShip.id || 'ship_brass_minnow'];
   state.brasswake = Object.assign(createLockedBrasswakeMilestone(), state.brasswake || {});
   state.playerFaction = Object.assign(createPlayerFactionState(), state.playerFaction || {});
+  ensureReputationState(state);
   return state;
 }
 
 function activeCraftName(state = game) {
   return ensureV3CampaignState(state)?.playerShip?.name || 'Brass Minnow';
+}
+
+function ensureReputationState(state = game) {
+  if (!state) return null;
+  const base = createReputationState();
+  const existing = state.reputation || {};
+  state.reputation = Object.assign(base, existing);
+  state.reputation.kingdoms = Object.assign(base.kingdoms, existing.kingdoms || {});
+  return state.reputation;
+}
+
+function reputationTier(value) {
+  const score = Number(value) || 0;
+  if (score <= -75) return 'Hated';
+  if (score <= -45) return 'Hostile';
+  if (score <= -15) return 'Wary';
+  if (score < 0) return 'Unknown';
+  if (score < 10) return 'Neutral';
+  if (score < 25) return 'Recognized';
+  if (score < 45) return 'Trusted';
+  if (score < 65) return 'Honored';
+  if (score < 90) return 'Allied';
+  return 'Legendary';
+}
+
+function formatReputationKey(key) {
+  if (!key) return 'Reputation';
+  if (key.startsWith('kingdoms.')) {
+    const factionKey = key.split('.')[1];
+    return `${FACTIONS[factionKey]?.name || factionKey} Reputation`;
+  }
+  return `${REPUTATION_LABELS[key] || key} Reputation`;
+}
+
+function adjustReputation(key, amount, reason = '') {
+  if (!game || !key || !amount) return 0;
+  const rep = ensureReputationState(game);
+  let next = 0;
+  if (key.startsWith('kingdoms.')) {
+    const factionKey = key.split('.')[1];
+    if (!Object.prototype.hasOwnProperty.call(rep.kingdoms, factionKey)) return 0;
+    rep.kingdoms[factionKey] = clamp((rep.kingdoms[factionKey] || 0) + amount, -100, 100);
+    next = rep.kingdoms[factionKey];
+  } else if (Object.prototype.hasOwnProperty.call(rep, key)) {
+    rep[key] = clamp((rep[key] || 0) + amount, -100, 100);
+    next = rep[key];
+  } else {
+    return 0;
+  }
+  const delta = amount > 0 ? `+${amount}` : String(amount);
+  addLog(`Reputation: ${formatReputationKey(key)} ${delta} — ${reason || 'standing changed'} (${reputationTier(next)}).`);
+  return next;
+}
+
+function adjustKingdomReputation(factionKey, amount, reason = '') {
+  if (!factionKey || factionKey === 'pirates') return 0;
+  return adjustReputation(`kingdoms.${factionKey}`, amount, reason);
+}
+
+function contractTagsForLocation(loc) {
+  if (!loc) return [];
+  const base = [...(CONTRACT_TAGS_BY_LOCATION[loc.type] || [])];
+  if (loc.contract && CONTRACT_TAGS_BY_CONTRACT[loc.contract]) base.push(...CONTRACT_TAGS_BY_CONTRACT[loc.contract]);
+  if (loc.type === 'resource' && loc.resourceKind === 'steel') base.push('mining');
+  return [...new Set(base)];
+}
+
+function contractTagsHTML(tags) {
+  if (!tags?.length) return '';
+  return `<div class="locationMeta">${tags.map(tag => `<span class="tag blue">${CONTRACT_TAG_LABELS[tag] || tag}</span>`).join('')}</div>`;
 }
 
 const LOCATION_COLORS = {
@@ -2578,6 +2713,7 @@ function createNewState() {
     ownedShips: ['ship_brass_minnow'],
     brasswake: createLockedBrasswakeMilestone(),
     playerFaction: createPlayerFactionState(),
+    reputation: createReputationState(),
     rooms: { bridge: 1, engine: 1, barracks: 1, workshop: 1, storage: 1, hydroponics: 0, foundry: 0, radar: 0, hangar: 0, hospital: 0 },
     upgrades: { engines: 0, armor: 0, weapons: 0, storage: 0, sensors: 0, repairs: 0, hangarCap: 0 },
     modules: {},
@@ -3893,7 +4029,7 @@ function refreshBrasswakeModel(group = fortressGroup) {
 }
 
 function createFortressModel() {
-  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.23.0006.
+  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.24.0001.
   const group = new THREE.Group();
   group.name = 'Brasswake Modular Hex Fortress Marker';
   group.userData.brasswakeMarker = true;
@@ -4485,8 +4621,9 @@ function renderResources() {
     const pct = clamp((val / cap) * 100, 0, 100);
     const chip = document.createElement('div');
     chip.className = 'resChip';
+    if (RESOURCE_META[key].note) chip.title = RESOURCE_META[key].note;
     chip.innerHTML = `<div class="resLabel"><span>${RESOURCE_META[key].label}</span><span>${val}/${cap}</span></div>
-      <div class="resValue">${val}</div><div class="meter"><div class="meterFill" style="width:${pct}%; background:${resourceGradient(key)}"></div></div>`;
+      <div class="resValue">${val}</div><div class="meter"><div class="meterFill" style="width:${pct}%; background:${resourceGradient(key)}"></div></div>${RESOURCE_META[key].note ? '<div class="smallNote" style="font-size:9px; margin-top:2px;">Prototype</div>' : ''}`;
     bar.appendChild(chip);
   });
 }
@@ -4509,7 +4646,7 @@ function renderFortressStats() {
   ];
   const milestone = game.brasswake?.unlocked ? 'Brasswake unlocked' : 'Brasswake locked: future fortress-city milestone';
   document.getElementById('fortressStats').innerHTML = entries.map(([k,v]) => `<div class="statCard"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('') +
-    `<div class="smallNote" style="margin-top:8px;">${escapeHTML(ship.origin)}<br/><strong>${escapeHTML(milestone)}</strong></div>`;
+    `<div class="smallNote" style="margin-top:8px;">${escapeHTML(ship.origin)}<br/><strong>${escapeHTML(milestone)}</strong><br/>Support in the top bar is prototype-wide support capacity; active skiff crew is ${ship.crewUsed}/${ship.crewCapacity}.</div>`;
 }
 
 function renderSelectedPanel() {
@@ -4550,9 +4687,11 @@ function renderSelectedPanel() {
   const legend = routeLegendMiniHTML();
   const actionCueHtml = selectedLocationActionCueHTML(loc, cur, cost, d);
 
+  const tagHtml = contractTagsHTML(contractTagsForLocation(loc));
   const selectedInnerHTML = `
     <div class="locationName">${loc.name}</div>
     <div class="locationMeta">${statusTags.join('')}</div>
+    ${tagHtml}
     <div class="desc">${loc.desc}</div>
     ${actionCueHtml}
     ${actionHtml}
@@ -4893,7 +5032,8 @@ function renderTechPanel() {
 
 
 function renderFactionsPanel() {
-  const html = `<h2>Kingdom Relations</h2><p class="smallNote">Phase 1 uses readable standing bands. Trade and aid improve relations; raids and attacks worsen them.</p>` +
+  const html = `${renderReputationSummary()}
+    <h2>Kingdom Relations</h2><p class="smallNote">Phase 1 uses readable standing bands. Trade and aid improve relations; raids and attacks worsen them. V3 reputation is tracked separately above as future career progression groundwork.</p>` +
     Object.entries(FACTIONS).map(([key,f]) => {
       const score = game.relations[key] ?? 0;
       const status = relationStatus(score);
@@ -4903,6 +5043,26 @@ function renderFactionsPanel() {
       </div>`;
     }).join('');
   setRightPanelContent(html);
+}
+
+function renderReputationSummary() {
+  const rep = ensureReputationState(game);
+  const coreRows = ['duke','merchant','explorer','military','freebooter'].map(key => {
+    const value = rep[key] || 0;
+    return `<div class="statCard"><div class="k">${REPUTATION_LABELS[key]}</div><div class="v">${reputationTier(value)}</div></div>`;
+  }).join('');
+  const kingdomRows = Object.entries(rep.kingdoms || {}).map(([key,value]) => {
+    const faction = FACTIONS[key];
+    if (!faction) return '';
+    return `<div class="factionCard" style="border-color:${faction.accent}55">
+      <div class="cardTitle"><span style="color:${faction.accent}">${faction.name}</span><span class="tag blue">${reputationTier(value)}</span></div>
+    </div>`;
+  }).join('');
+  return `<h2>Reputation Summary</h2>
+    <p class="smallNote">V3 roadmap foundation: reputation records career trust and access separately from current route/gate relations.</p>
+    <div class="statGrid">${coreRows}</div>
+    <h3 style="margin-top:10px;">Kingdom Reputation</h3>
+    ${kingdomRows}`;
 }
 
 
@@ -5375,6 +5535,7 @@ function salvageLocation() {
   markEventResolved('salvage');
   setOrderFlag('firstFieldEventComplete');
   addLog(`Salvage crews stripped ${loc.name}: +${steel} steel, +${gold} gold.`);
+  adjustReputation('explorer', 1, 'salvage site charted and stripped');
 
   if (firstField) {
     addLog('Scavenger lanterns flicker at the edge of the wreck field, but the first salvage run stays clear of combat.');
@@ -5463,6 +5624,8 @@ function harvestLocation() {
   markEventResolved('harvest');
   addLog(`${loc.name} secured: +${amount} ${kind}.`);
   improveRelation(loc.faction, 3);
+  adjustReputation(kind === 'steel' ? 'merchant' : 'explorer', 1, `${kind} resource site secured`);
+  adjustKingdomReputation(loc.faction, 1, 'local resource work completed');
   advanceDay(1);
   autoSave('Autosaved after harvest');
   showPostRewardNudge();
@@ -5486,6 +5649,7 @@ function braveStorm() {
   setOrderFlag('stormRouteExplored');
   markEventResolved('storm');
   addLog(`${activeCraftName()} punched through ${loc.name}: -${actual} hull, +${fuel} fuel, +${gold} gold in storm salvage.`);
+  adjustReputation('explorer', 2, 'dangerous current survived');
   advanceDay(1);
   autoSave('Autosaved after storm');
   rebuildLocationMesh(loc.id);
@@ -5576,6 +5740,7 @@ function exploreRuins() {
     addLog(`Ruins explored cleanly at ${loc.name}: +${steel} steel, +${gold} gold.`);
   }
   if (Math.random() < 0.48) grantCheapestResearchBoost();
+  adjustReputation('explorer', 2, 'ruins explored');
   loc.depleted = true;
   markEventResolved('ruins');
   advanceDay(1);
@@ -5595,6 +5760,10 @@ function completeContract() {
   addResource('gold', rewardGold);
   addResource('fuel', rewardFuel);
   improveRelation(faction, 7);
+  const tags = contractTagsForLocation(loc);
+  if (tags.includes('relief') || tags.includes('trade') || tags.includes('courier')) adjustReputation('merchant', 2, 'contract beacon completed');
+  if (tags.includes('escort') || tags.includes('combat')) adjustReputation('military', 1, 'contract security work completed');
+  adjustKingdomReputation(faction, 1, 'local contract completed');
   setOrderFlag('gateContractComplete');
   loc.depleted = true;
   markEventResolved('contract');
@@ -5620,6 +5789,7 @@ function tradeFuel() {
   spendResources({ gold: 30 });
   addResource('fuel', 25);
   improveRelation(loc.faction, 1);
+  adjustReputation('merchant', 1, 'port trade completed');
   addLog(`Purchased fuel at ${loc.name}: -30 gold, +25 fuel.`);
   if (['skyport','settlement'].includes(loc.type)) setOrderFlag('returnedForService');
   autoSave('Autosaved after refuel');
@@ -5652,6 +5822,7 @@ function repairAtPort() {
   setOrderFlag('upgradedOrRepaired');
   setOrderFlag('returnedForService');
   addLog(`Port repairs complete at ${loc.name}: +${Math.round(quote.repair)} hull.`);
+  adjustReputation('duke', 1, 'kept a small captain solvent through port services');
   autoSave('Autosaved after repair');
   renderUI();
 }
@@ -5704,8 +5875,10 @@ function reviewSettlementContract() {
     return;
   }
   const p = settlementContractPreview(loc);
+  const tags = contractTagsHTML(safeSettlementContractTags(loc));
   showModal(`<h1>${p.title}</h1>
     <p class="smallNote">${loc.name} offers paid work for independent crews.</p>
+    ${tags}
     <div class="statGrid" style="margin:10px 0;">
       <div class="statCard"><div class="k">Reward</div><div class="v" style="font-size:14px;">${p.reward}</div></div>
       <div class="statCard"><div class="k">Risk</div><div class="v">${p.risk}</div></div>
@@ -5729,12 +5902,17 @@ function takeSettlementContract(force = false) {
     const dmg = safeIntro && Math.random() < 0.35 ? Math.floor(Math.random()*5) : 0;
     if (dmg) game.hull = clamp(game.hull - dmg, 1, computeStats().maxHull);
     addLog(`${safeIntro ? 'Training escort' : 'Local escort'} contract completed for ${FACTIONS[loc.faction].name}: +${reward} gold${dmg ? `, -${dmg} hull` : ''}, relations improved.`);
+    adjustReputation('military', 1, 'escort contract completed');
+    adjustReputation('merchant', 1, 'local route work completed');
+    adjustKingdomReputation(loc.faction, 1, 'settlement contract completed');
   } else {
     const dmg = 5 + Math.floor(Math.random()*10);
     const reward = 24 + Math.floor(Math.random()*28);
     game.hull = clamp(game.hull - dmg, 1, computeStats().maxHull);
     addResource('gold', reward);
     addLog(`Risky patrol paid out but drew cannon fire: +${reward} gold, -${dmg} hull.`);
+    adjustReputation('military', 1, 'risky patrol completed');
+    adjustKingdomReputation(loc.faction, 1, 'risky local patrol completed');
   }
   setOrderFlag('gateContractComplete');
   markEventResolved('contract');
@@ -5742,6 +5920,12 @@ function takeSettlementContract(force = false) {
   autoSave('Autosaved after contract');
   showPostRewardNudge();
   renderUI();
+}
+
+function safeSettlementContractTags(loc) {
+  if (!loc) return ['trade'];
+  if (loc.id === 'loc_home' && game.day <= 3) return ['escort', 'courier'];
+  return loc.type === 'skyport' ? ['escort', 'trade'] : ['relief', 'courier'];
 }
 
 function emergencyDrift() {
@@ -5959,6 +6143,10 @@ function endCombat(victory, retreated, destroyed = false) {
     improveRelation(c.faction, c.faction === 'pirates' ? -2 : -8);
     if (c.faction === 'pirates') {
       Object.keys(game.relations).forEach(f => { if (f !== 'pirates') improveRelation(f, 1, true); });
+      adjustReputation('military', 1, 'freebooter threat defeated');
+      adjustReputation('freebooter', -1, 'freebooter crew defeated');
+    } else {
+      adjustReputation('military', 1, 'hostile fleet defeated');
     }
     if (c.sourceLocationId) {
       const loc = getLocation(c.sourceLocationId);
@@ -7120,34 +7308,19 @@ function showHelp() {
 }
 
 function showBuildNotes() {
-  showModal(`<h1>Build Notes — ${VERSION}</h1>
-    <p><strong>Emergency Steel Recovery / Economy Safety Patch:</strong> adds <strong>Dockyard Scrap Purchase</strong> at skyports and settlements: ${DOCKYARD_SCRAP_PURCHASE_COST.gold} gold → ${DOCKYARD_SCRAP_PURCHASE_STEEL} steel.</p>
-    <p><strong>Economy safety valve:</strong> the purchase is limited to once per campaign day, does not advance time, does not damage hull, autosaves after use, and counts as returning for service. It is intentionally less efficient than normal steel play.</p>
-    <p><strong>Steel economy preserved:</strong> salvage wreck fields, steel resource nodes, ruins, combat victory, Emergency Drift/Scavenge chances, and Foundry steel bonuses remain the primary steel sources. Repairs, room costs, upgrade costs, combat emergency repairs, and Storm Keel research costs were not broadly rebalanced.</p>
-    <p><strong>Roadmap/Bible update:</strong> the Emergency Steel Recovery Valve is now documented as a soft-lock prevention feature. Future tuning can add faction prices, local stock, Foundry conversion bonuses, industrial skyport discounts, hostile blockade markups, or black-market bulk scrap.</p>
-    <p><strong>Preserved:</strong> single-file HTML structure, Three.js CDN map, gate-locked Current Gate / Jet Stream travel, Clockwork Navigator / Celestial Navigation Automaton, Plot Capacity: 1 Jump, Captain's Orders onboarding, modular Brasswake rooms/upgrades/status, route plotting/events, combat balance, and save/load behavior.</p>
-    <p><strong>Validation:</strong> JavaScript syntax, inline button handlers, version strings, save key, new purchase button placement, older-save flag safety, repair/fuel/contract paths, and package structure were checked. No embedded playable preview is included.</p>
+  showModal(`<h1>Build Notes - ${VERSION}</h1>
+    <p><strong>V3 Cleanup + Roadmap Foundation:</strong> updates the title screen to <strong>IRON KINGDOMS: SKY FORTRESS COMMAND</strong>, preserves the Brass Minnow inherited-craft start, and keeps Brasswake locked as a future fortress-city milestone.</p>
+    <p><strong>Starter craft clarity:</strong> Brass Minnow remains an <strong>Inherited Courier Skiff</strong>, <strong>Tier 0 - Inherited Craft</strong>. Brasswake Free Command is recorded as a future faction, not founded at campaign start.</p>
+    <p><strong>Crew Support label:</strong> the top-bar <strong>Support</strong> value preserves the existing internal <code>resources.population</code> system while Ship Status shows the actual active skiff crew as <code>playerShip.crewUsed / playerShip.crewCapacity</code>.</p>
+    <p><strong>Roadmap foundation:</strong> added lightweight V3 <code>reputation</code> state, reputation tiers, a Factions-tab Reputation Summary, career-style contract tags, and small reputation rewards for existing salvage, resource, contract, trade, repair, exploration, and combat outcomes.</p>
+    <p><strong>Preserved:</strong> single-file HTML structure, Three.js CDN map, external GLB/MP3 assets, procedural hex-board layout, Current Gate / Jet Stream route plotting, multi-hop route planner, no-charted-current messaging, turn-then-move route-facing behavior, Captain's Orders, Command Menu, Fleet Log, selected location panel, contracts, salvage/harvest/trade, combat, future tech locks, singleton MusicManager, and save/load/reset behavior.</p>
+    <p><strong>Save compatibility:</strong> <code>SAVE_KEY</code> was bumped because this patch adds roadmap foundation state for reputation and contract/career metadata.</p>
+    <p><strong>Validation:</strong> JavaScript syntax, module wrapper syntax, inline handlers, duplicate build-notes definitions, version strings, save key, route/facing function preservation, and package structure were checked. No embedded playable preview is included.</p>
     ${roadmapDoctrineHTML()}
     ${nextCampaignGoalsHTML()}
     ${balanceRoadmapHTML()}
     <button class="btn primary" onclick="closeModal()">Close</button>`);
 }
-
-showBuildNotes = function() {
-  showModal(`<h1>Build Notes - ${VERSION}</h1>
-    <p><strong>V3 Inherited Craft Foundation:</strong> new campaigns now begin aboard the inherited Tier 0 skiff <strong>Brass Minnow</strong>, not Brasswake.</p>
-    <p><strong>New campaign data:</strong> added <code>playerShip</code>, <code>activeShipId</code>, <code>ownedShips</code>, locked <code>brasswake</code> milestone state, and future <code>Brasswake Free Command</code> faction state.</p>
-    <p><strong>Ship Status:</strong> the left status panel now shows active craft name, tier, class, hull, crew berths, cargo, Clockwork Navigator, plot capacity, and locked Brasswake milestone text.</p>
-    <p><strong>Canon reframing:</strong> title screen, opening log, Captain's Orders, route travel copy, roadmap notes, and upgrade/module framing now support the inherited-craft start while preserving Brasswake as an endgame fortress-city.</p>
-    <p><strong>Preserved:</strong> single-file HTML structure, Three.js CDN map, external GLB/MP3 assets, gate-locked Current Gate / Jet Stream travel, turn-then-move travel facing, Clockwork Navigator / Celestial Navigation Automaton, Plot Capacity: 1 Jump, contracts, salvage/harvest/trade, route events, combat balance, singleton MusicManager, and save/load/reset behavior.</p>
-    <p><strong>Save compatibility:</strong> <code>SAVE_KEY</code> was bumped because the campaign root state now includes ship progression and Brasswake milestone fields.</p>
-    <p><strong>Validation:</strong> JavaScript syntax, module loader syntax, version strings, save key, route/facing function preservation, and package structure were checked. No embedded playable preview is included.</p>
-    ${roadmapDoctrineHTML()}
-    ${nextCampaignGoalsHTML()}
-    ${balanceRoadmapHTML()}
-    <button class="btn primary" onclick="closeModal()">Close</button>`);
-};
-
 // =============================================================
 // THREE.JS INTERACTION AND ANIMATION
 // =============================================================
