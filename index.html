@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.23.0005</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.23.0006</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script type="importmap">
     { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -1653,7 +1653,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.23.0005</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.23.0006</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1661,7 +1661,7 @@
 
   <div class="leftColumn hidden" id="hudLeft">
     <div class="panel" style="flex:0 0 auto;">
-      <h2>Fortress Status</h2>
+      <h2>Ship Status</h2>
       <div id="fortressStats" class="statGrid"></div>
     </div>
     <div class="panel panelShell ordersPanel leftOrdersPanel" style="flex:0 0 auto;">
@@ -1726,7 +1726,7 @@
       <div class="titleKicker">IRON KINGDOMS: WAR OF BRASS</div>
       <div class="titleMain">SKY FORTRESS<br/>COMMAND</div>
       <div class="titleSub">
-        Command a brass-and-steel flying fortress across the shattered skies. Salvage wrecks, brave storm routes, battle hostile fleets, and build the first playable foundation of a future Iron Kingdoms sky campaign.
+        Inherit the battered skiff <strong>Brass Minnow</strong>, take your first contracts among the shattered skies, and rise toward the distant dream of Brasswake, a future flying fortress-city.
       </div>
       <div class="titleButtons">
         <button class="btn primary" onclick="startNewGame()">New Campaign</button>
@@ -1735,11 +1735,11 @@
       </div>
       <div class="miniLegend">
         <div class="legendCard"><strong>Explore</strong>Select sky nodes and travel between floating settlements, ruins, storms, wreck fields, and patrol routes.</div>
-        <div class="legendCard"><strong>Gather</strong>Fuel, food, steel, gold, and population keep your fortress alive and moving.</div>
+        <div class="legendCard"><strong>Gather</strong>Fuel, food, steel, gold, and crew support keep your inherited craft alive and moving.</div>
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
-        <div class="legendCard"><strong>Upgrade</strong>Build rooms and improve engines, armor, weapons, sensors, storage, repairs, and hangars.</div>
+        <div class="legendCard"><strong>Upgrade</strong>Improve engines, armor, weapons, sensors, storage, and repairs while Brasswake remains a locked endgame milestone.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.23.0005 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.23.0006 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
     </div>
   </div>
 </div>
@@ -1750,8 +1750,8 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.23.0005';
-const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_23_0005';
+const VERSION = 'v0.26.06.23.0006';
+const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_23_0006';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
 const HEX_SIZE = 8.5;
@@ -1775,7 +1775,7 @@ const RESOURCE_META = {
   food: { label: 'Food', color: '#7fd184' },
   steel: { label: 'Steel', color: '#b9c6d0' },
   gold: { label: 'Gold', color: '#ffd56a' },
-  population: { label: 'Population', color: '#d7c6ff' }
+  population: { label: 'Crew', color: '#d7c6ff' }
 };
 
 const ROOM_DATA = {
@@ -1804,6 +1804,72 @@ const UPGRADE_DATA = {
 const STORM_KEEL_RESEARCH_COST = { steel: 120, gold: 140 };
 const DOCKYARD_SCRAP_PURCHASE_COST = { gold: 20 };
 const DOCKYARD_SCRAP_PURCHASE_STEEL = 10;
+
+const STARTER_SHIP_CLASS = {
+  id: 'inherited_courier_skiff',
+  name: 'Inherited Courier Skiff',
+  tier: 0,
+  tierName: 'Tier 0 - Inherited Craft',
+  role: 'A cramped starter skiff for local contracts, safe currents, and first repairs.'
+};
+
+function createStarterPlayerShip() {
+  return {
+    id: 'ship_brass_minnow',
+    name: 'Brass Minnow',
+    classId: STARTER_SHIP_CLASS.id,
+    className: STARTER_SHIP_CLASS.name,
+    tier: STARTER_SHIP_CLASS.tier,
+    tierName: STARTER_SHIP_CLASS.tierName,
+    origin: 'A tiny inherited craft with patched brass plates, stubborn lift engines, and just enough hold space to begin a captain career.',
+    cargoUsed: 0,
+    cargoCapacity: 12,
+    crewUsed: 3,
+    crewCapacity: 5,
+    engineRating: 1,
+    navigationRating: 1,
+    weaponRating: 1,
+    installedUpgrades: [],
+    navigationSystem: {
+      formalName: 'Celestial Navigation Automaton',
+      commonName: 'Clockwork Navigator',
+      model: 'Patchwork Gate-Reader',
+      maxStoredHops: 1
+    }
+  };
+}
+
+function createLockedBrasswakeMilestone() {
+  return {
+    unlocked: false,
+    operational: false,
+    status: 'Locked Future Milestone',
+    note: 'Brasswake is an endgame modular flying fortress-city to be earned later through major progression.'
+  };
+}
+
+function createPlayerFactionState() {
+  return {
+    founded: false,
+    name: 'Brasswake Free Command',
+    note: 'Eventual independent player faction. Not founded at campaign start.'
+  };
+}
+
+function ensureV3CampaignState(state) {
+  if (!state) return state;
+  state.activeShipId = state.activeShipId || 'ship_brass_minnow';
+  state.playerShip = Object.assign(createStarterPlayerShip(), state.playerShip || {});
+  state.playerShip.navigationSystem = Object.assign(createStarterPlayerShip().navigationSystem, state.playerShip.navigationSystem || {});
+  state.ownedShips = Array.isArray(state.ownedShips) && state.ownedShips.length ? state.ownedShips : [state.playerShip.id || 'ship_brass_minnow'];
+  state.brasswake = Object.assign(createLockedBrasswakeMilestone(), state.brasswake || {});
+  state.playerFaction = Object.assign(createPlayerFactionState(), state.playerFaction || {});
+  return state;
+}
+
+function activeCraftName(state = game) {
+  return ensureV3CampaignState(state)?.playerShip?.name || 'Brass Minnow';
+}
 
 const LOCATION_COLORS = {
   skyport: 0xd9a441,
@@ -2507,6 +2573,11 @@ function createNewState() {
     day: 1,
     resources: { fuel: 100, food: 88, steel: 72, gold: 136, population: 54 },
     hull: 100,
+    activeShipId: 'ship_brass_minnow',
+    playerShip: createStarterPlayerShip(),
+    ownedShips: ['ship_brass_minnow'],
+    brasswake: createLockedBrasswakeMilestone(),
+    playerFaction: createPlayerFactionState(),
     rooms: { bridge: 1, engine: 1, barracks: 1, workshop: 1, storage: 1, hydroponics: 0, foundry: 0, radar: 0, hangar: 0, hospital: 0 },
     upgrades: { engines: 0, armor: 0, weapons: 0, storage: 0, sensors: 0, repairs: 0, hangarCap: 0 },
     modules: {},
@@ -2554,10 +2625,10 @@ function createNewState() {
   state.currentRoutes = generateCurrentRoutes(rng, state.locations);
   state.aiFleets = generateAIFleets(rng, state.locations);
   syncBrasswakeModulesFromProgress(state);
-  state.log.push({ day: 1, text: 'The fortress-crown <strong>Brasswake</strong> takes command at Brassgate Anchorage.' });
-  state.log.push({ day: 1, text: 'Captain’s Orders: complete a safe contract or salvage run, then upgrade or repair before taking bigger fights.' });
+  state.log.push({ day: 1, text: 'You inherit the tiny skycraft <strong>Brass Minnow</strong> at Brassgate Anchorage. Brasswake remains a distant fortress-city dream.' });
+  state.log.push({ day: 1, text: 'Captain\'s Orders: take a safe local contract, salvage run, or harvest route to begin earning your captain\'s name.' });
   revealNearby(state);
-  return state;
+  return ensureV3CampaignState(state);
 }
 
 function generateLocations(rng) {
@@ -3141,14 +3212,15 @@ function roadmapDoctrineHTML(compact = false) {
   const cls = compact ? 'roadmapDoctrineCard compact' : 'roadmapDoctrineCard';
   return `<div class="${cls}"><strong>Navigation Doctrine / Roadmap Bible</strong>
     <ul>
-      <li><strong>Player Faction:</strong> Brasswake Free Command. The captain commands an independent modular flying fortress-city, not Steam Marshal, Archmage, Sky Admiral, Iron Priest, Thorn Regent, Cinder Khan, Dusk Corsair, Frost Matriarch, or Freebooter Clans.</li>
-      <li>Brasswake begins at Brassgate Anchorage with practical Steam Marshal infrastructure ties and positive early relations, but alliances, contracts, routes, and loyalties should remain campaign choices.</li>
+      <li><strong>V3 Start:</strong> the captain begins independent aboard the inherited skiff <strong>Brass Minnow</strong>, not aboard Brasswake.</li>
+      <li><strong>Future Faction:</strong> Brasswake Free Command is the eventual independent player faction, founded after fortress-class progression rather than at campaign start.</li>
+      <li><strong>Brasswake:</strong> locked endgame milestone, modular flying fortress-city, mobile headquarters, and future political symbol.</li>
       <li><strong>Celestial Navigation Automaton</strong> is the official system name; <strong>Clockwork Navigator</strong> is the common nickname.</li>
       <li>Starting Plot Capacity is <strong>1 Current Gate jump</strong>. The automaton locks the next jump while the captain keeps final-destination context.</li>
       <li>Future upgrades can increase plot capacity and add stronger route-memory, risk prediction, and faction gate handling.</li>
       <li><strong>Saint Elmo Navigation Core</strong> is a future advanced component; <strong>Astrolabe Engine</strong> is a future built-in alternate navigation system.</li>
       <li><strong>Storm Keel Engine</strong> remains locked mid/late-game technology for temporary currents and conduits.</li>
-      <li><strong>Brasswake</strong> should keep evolving into a modular flying fortress/city with room and module visual links.</li>
+      <li>The current 3D command marker is a prototype representation; future patches can replace the starter craft art without changing route/facing systems.</li>
       <li><strong>Emergency Steel Recovery Valve:</strong> skyports and settlements can offer limited dockyard scrap purchases so repairs/upgrades do not soft-lock when steel runs low.</li>
       <li>Future faction-gate gameplay should include permits, inspections, tolls, blockades, favored routes, and smuggler alternatives.</li>
     </ul>
@@ -3821,7 +3893,7 @@ function refreshBrasswakeModel(group = fortressGroup) {
 }
 
 function createFortressModel() {
-  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.23.0005.
+  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.23.0006.
   const group = new THREE.Group();
   group.name = 'Brasswake Modular Hex Fortress Marker';
   group.userData.brasswakeMarker = true;
@@ -4381,7 +4453,7 @@ function startNewGame() {
   centerCameraOnCurrent();
   renderUI();
   autoSave('Autosaved Day 1');
-  showToast('Campaign started. Brasswake awaits orders.');
+  showToast('Campaign started. Brass Minnow awaits orders.');
 }
 
 function showHUD(show) {
@@ -4428,12 +4500,16 @@ function resourceGradient(key) {
 
 function renderFortressStats() {
   const stats = computeStats();
+  const ship = ensureV3CampaignState(game).playerShip;
+  const nav = ship.navigationSystem || {};
   const hullPct = Math.round(game.hull) + '/' + stats.maxHull;
   const entries = [
-    ['Hull', hullPct], ['Armor', stats.armor], ['Weapons', stats.weaponPower], ['Crew Power', stats.crewPower],
-    ['Fuel Cost', stats.fuelCostMod.toFixed(2) + '×'], ['Range', Math.round(stats.travelRange)], ['Sensors', Math.round(stats.sensorRadius)], ['Repair', stats.repairPower]
+    ['Craft', ship.name], ['Tier', ship.tierName || `Tier ${ship.tier}`], ['Class', ship.className || STARTER_SHIP_CLASS.name], ['Hull', hullPct],
+    ['Crew Berths', `${ship.crewUsed}/${ship.crewCapacity}`], ['Cargo', `${ship.cargoUsed}/${ship.cargoCapacity}`], ['Navigator', nav.commonName || 'Clockwork Navigator'], ['Plot Cap', `${nav.maxStoredHops || 1} Jump`]
   ];
-  document.getElementById('fortressStats').innerHTML = entries.map(([k,v]) => `<div class="statCard"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  const milestone = game.brasswake?.unlocked ? 'Brasswake unlocked' : 'Brasswake locked: future fortress-city milestone';
+  document.getElementById('fortressStats').innerHTML = entries.map(([k,v]) => `<div class="statCard"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('') +
+    `<div class="smallNote" style="margin-top:8px;">${escapeHTML(ship.origin)}<br/><strong>${escapeHTML(milestone)}</strong></div>`;
 }
 
 function renderSelectedPanel() {
@@ -4505,13 +4581,13 @@ function selectedLocationActionCueHTML(loc, cur, cost, d) {
   const path = !atLoc && !route ? findCurrentRoutePath(cur.id, loc.id) : null;
   let text = '';
   if (atLoc) {
-    if (loc.depleted) text = 'This location is resolved. Select another discovered sky mark or return to a service port if Brasswake needs fuel, repairs, or upgrades.';
+    if (loc.depleted) text = `This location is resolved. Select another discovered sky mark or return to a service port if ${activeCraftName()} needs fuel, repairs, or upgrades.`;
     else if (loc.type === 'skyport' || loc.type === 'settlement') {
-      if (loc.id === 'loc_home' && !game.flags?.traveledOnce) text = 'Pick a nearby connected node first. Local contracts unlock after Brasswake completes its first route.';
+      if (loc.id === 'loc_home' && !game.flags?.traveledOnce) text = `Pick a nearby connected node first. Local contracts unlock after ${activeCraftName()} completes its first route.`;
       else text = 'Use port services now: buy fuel, repair hull, review local work, or purchase emergency dockyard scrap if steel is blocking repairs.';
     } else if (loc.type === 'salvage') text = 'Run the salvage action now to turn wreckage into steel, gold, and fuel for the next upgrade cycle.';
     else if (loc.type === 'resource') text = `Harvest ${loc.resourceKind || 'resources'} now, then convert the reward into upgrades or route safety.`;
-    else if (loc.type === 'storm') text = 'Braving the storm can complete route progress but may damage Brasswake. Repair first if hull is low.';
+    else if (loc.type === 'storm') text = `Braving the storm can complete route progress but may damage ${activeCraftName()}. Repair first if hull is low.`;
     else if (loc.type === 'enemy') text = `Review combat readiness before engaging this Danger ${loc.danger || 1} fleet. Retreat remains available in combat.`;
     else if (loc.type === 'ruins') text = 'Explore the ruins now to seek route lore, resources, or future tech hooks.';
     else if (loc.type === 'contract') text = 'Answer the contract beacon now for gold and faction standing progress.';
@@ -4698,7 +4774,7 @@ function brasswakeModuleSummaryHTML() {
     }).join('') + `</div>`;
   }).join('');
   return `<h2>Brasswake Modules</h2>
-    <p class="smallNote"><strong>Player Faction:</strong> Brasswake Free Command. You are an independent modular flying fortress-city, not one of the major factions. Brassgate Anchorage gives practical Steam Marshal infrastructure ties and positive early relations, but alliances and loyalties remain campaign choices.</p>
+    <p class="smallNote"><strong>Future Faction:</strong> Brasswake Free Command is not founded at campaign start. These prototype module cards preserve existing systems while V3 progression starts aboard ${activeCraftName()} and treats Brasswake as a locked fortress-city milestone.</p>
     ${cards}`;
 }
 
@@ -4708,8 +4784,8 @@ function renderUpgradePanel() {
   const recommended = affordable[0] || null;
   const headerTag = recommended ? (showUpgradeEmphasis ? `<span class="tag good">Recommended: ${UPGRADE_DATA[recommended].name}</span>` : '<span class="tag warn">Optional Preparation</span>') : '';
   const recommendedBox = recommended && showUpgradeEmphasis ? `<div class="recommendedUpgradeBox"><strong>Recommended Upgrade:</strong> ${UPGRADE_DATA[recommended].name}. ${UPGRADE_DATA[recommended].benefit}. Other refits remain available, but this is the clearest next improvement.</div>` : '';
-  const html = `<h2>Fortress Upgrades ${headerTag}</h2>
-    <p class="smallNote">Upgrade choices strengthen Brasswake, but route planning now drives exploration. Use the Tech tab to review locked travel breakthroughs.</p>
+  const html = `<h2>Craft Refits ${headerTag}</h2>
+    <p class="smallNote">Upgrade choices strengthen ${activeCraftName()} for the early captain loop. Brasswake remains a locked endgame fortress-city milestone.</p>
     <div class="techTeaserCard"><strong>Travel Tech:</strong> Storm Keel is locked mid/late-game technology. <button class="btn ghost" style="margin-top:6px; width:100%;" onclick="setRightTab('tech')">View Tech</button></div>
     ${recommendedBox}` +
     Object.entries(UPGRADE_DATA).map(([key,u]) => {
@@ -4756,7 +4832,7 @@ function stormKeelCardHTML() {
   const status = installed ? '<span class="tag good">Prototype Installed</span>' : (canResearchStormKeel() ? '<span class="tag good">Research Ready</span>' : '<span class="tag warn">Mid/Late Unlock</span>');
   return `<div class="stormKeelCard ${installed ? '' : 'locked'}">
     <div class="cardTitle"><span>Storm Keel Engine ${status}</span><span class="cost">${installed ? 'INSTALLED' : formatCost(STORM_KEEL_RESEARCH_COST)}</span></div>
-    <div class="smallNote"><strong style="color:var(--brass2)">Gate bypass technology.</strong> This mid-to-late-game engine will eventually let Brasswake open temporary currents and conduits. Until then, strategic travel depends on known Current Gates.</div>
+    <div class="smallNote"><strong style="color:var(--brass2)">Gate bypass technology.</strong> This mid-to-late-game breakthrough will eventually let advanced ships or Brasswake open temporary currents and conduits. Until then, strategic travel depends on known Current Gates.</div>
     <ul class="requirementList">${reqHtml}</ul>
     <button class="btn blue" style="margin-top:8px; width:100%;" ${canResearchStormKeel() ? '' : 'disabled'} onclick="researchStormKeel()">${installed ? 'Prototype Installed' : 'Research Storm Keel Prototype'}</button>
     <div class="smallNote" style="margin-top:6px;">Full temporary current creation is a future patch. This research only records the prototype milestone.</div>
@@ -4774,7 +4850,7 @@ function researchStormKeel() {
 }
 
 function renderRoomsPanel() {
-  const html = `<h2>Fortress Rooms</h2><p class="smallNote">Starting rooms are already installed. Buildable rooms provide real Phase 1 bonuses. Built modules now appear on Brasswake when their GLB parts are available, with procedural fallbacks if files are missing.</p>` +
+  const html = `<h2>Prototype Modules</h2><p class="smallNote">This tab preserves the existing module/upgrades prototype for testing. V3 canon treats true Brasswake rooms as future fortress-city systems unlocked after the player earns Brasswake.</p>` +
     Object.entries(ROOM_DATA).map(([key,r]) => {
       const level = game.rooms[key] || 0;
       const built = level > 0;
@@ -4808,7 +4884,7 @@ function renderTechPanel() {
     <div class="techChainCard locked"><strong>Saint Elmo Navigation Core</strong> <span class="tag warn">Locked Component</span><br/>
       Advanced navigation component for improving a Celestial Navigation Automaton or future Astrolabe Engine. Recovery/install content is planned for later roadmap work.</div>
     <div class="techChainCard locked"><strong>Astrolabe Engine</strong> <span class="tag warn">Future Alternate System</span><br/>
-      Built-in navigation alternative for craft that do not rely on an onboard automaton. Not installed in Brasswake yet.</div>` + stormKeelCardHTML() +
+      Built-in navigation alternative for craft that do not rely on an onboard automaton. Not installed on ${activeCraftName()}.</div>` + stormKeelCardHTML() +
     `<div class="smallNote">Future tech will add route plot capacity upgrades, Saint Elmo Core installation, alternate Astrolabe navigation, and eventually Storm Keel temporary current creation with cost, risk, cooldowns, and failure events. This patch keeps Storm Keel locked.</div>${roadmapDoctrineHTML()}${nextCampaignGoalsHTML()}${balanceRoadmapHTML()}`;
   setRightPanelContent(html);
 }
@@ -4850,10 +4926,10 @@ function tutorialSteps() {
     { key: 'selectedFirst', label: 'Select a nearby salvage, resource, or contract tile.', hint: 'Recommended: choose a safe tile connected to Brassgate by a visible current.' },
     { key: 'traveledOnce', label: 'Travel through a sky current to the selected location.', hint: 'Use the route preview to see fuel, risk, and travel time.' },
     { key: 'resolvedEvent', label: 'Resolve the local event.', hint: 'Salvage, harvest, answer a contract beacon, or explore safely.' },
-    { key: 'earnedReward', label: 'Earn resources for the fortress.', hint: 'Steel and gold become upgrades; fuel keeps the route network open.' },
-    { key: 'upgradedOrRepaired', label: 'Improve the fortress with an upgrade or repair.', hint: 'Engines, armor, or weapons are good first upgrades.' },
+    { key: 'earnedReward', label: 'Earn resources for your inherited craft.', hint: 'Steel and gold become refits; fuel keeps the route network open.' },
+    { key: 'upgradedOrRepaired', label: 'Improve Brass Minnow with a refit or repair.', hint: 'Engines, armor, or weapons are good first upgrades.' },
     { key: 'foughtLowDanger', label: 'Survive or win a low-danger hostile contact.', hint: 'Choose a Danger 1 enemy when ready, or escape an ambush and repair before trying again.' },
-    { key: 'returnedForService', label: 'Return to a settlement to repair or refuel.', hint: 'Port services keep Brasswake from entering a death spiral.' }
+    { key: 'returnedForService', label: 'Return to a settlement to repair or refuel.', hint: 'Port services keep a tiny starter craft from entering a death spiral.' }
   ];
 }
 
@@ -4902,7 +4978,7 @@ function captainWingsHTML(alert, compact) {
   return `<div class="captainWingsPanel ${alert ? 'hasAlert' : ''}">
     <div class="captainWingsHeader"><span>Captain's Wings Earned</span><span>Open Command</span></div>
     <div class="captainWingsTitle">First command cycle complete.</div>
-    <div class="captainWingsSub">Brasswake recognizes your command. Tutorial orders are complete.</div>
+    <div class="captainWingsSub">Brass Minnow is still small, but your captaincy has begun. Tutorial orders are complete.</div>
     <div class="captainWingsMessage">
       ${alert ? alertHTML : `<div><div class="captainWingsSuggestion">Open Command: ${suggestion}</div>${nextCampaignGoalsHTML(true)}</div>`}
     </div>
@@ -4937,7 +5013,7 @@ function renderOrdersPanel() {
 function openCommandSuggestion() {
   const hullPct = game.hull / computeStats().maxHull;
   if (hullPct < 0.65) return 'Repair at a settlement before seeking another battle.';
-  if (affordableUpgradeKeys().length) return `Upgrade ${UPGRADE_DATA[affordableUpgradeKeys()[0]].name} or build a new room aboard Brasswake.`;
+  if (affordableUpgradeKeys().length) return `Refit ${UPGRADE_DATA[affordableUpgradeKeys()[0]].name} or prepare Brass Minnow for a longer route.`;
   const danger2 = game.locations.find(l => game.discovered[l.id] && l.type === 'enemy' && !l.depleted && (l.danger || 1) >= 2);
   if (danger2) return `Prepare for a Danger ${danger2.danger} fleet near ${danger2.name}.`;
   return 'Explore another Current route and chart the nearby sky lanes.';
@@ -4990,7 +5066,7 @@ function getNextActionNudge() {
   const combatNudge = combatTutorialRouteNudgeHTML();
   if (combatNudge) return combatNudge;
   const up = affordableUpgradeKeys();
-  if (up.length && (game.flags?.earnedReward || game.flags?.resolvedEvent || game.flags?.upgradedOrRepaired)) return `<strong>Upgrade Recommended:</strong> Brasswake can afford ${UPGRADE_DATA[up[0]].name}. Improving ${UPGRADE_DATA[up[0]].name.toLowerCase()} makes future routes and fights safer.`;
+  if (up.length && (game.flags?.earnedReward || game.flags?.resolvedEvent || game.flags?.upgradedOrRepaired)) return `<strong>Refit Recommended:</strong> Brass Minnow can afford ${UPGRADE_DATA[up[0]].name}. Improving ${UPGRADE_DATA[up[0]].name.toLowerCase()} makes future routes and fights safer.`;
   if (current && ['skyport','settlement'].includes(current.type) && game.resources.fuel < 45 && canAfford({ gold: 30 })) return '<strong>Fuel Low:</strong> buy fuel before pushing deeper into the sky lanes.';
   return '';
 }
@@ -5056,7 +5132,7 @@ function travelToSelected(forceDirect = false, forceRoute = false) {
   const policy = routeGatePolicy(route);
   if (policy.toll > 0) spendResources({ gold: policy.toll });
   game.lastRouteTaken = { ...route, paidToll: policy.toll, policyAtDeparture: policy };
-  addLog(`Brasswake enters ${route.name}. Fuel spent: ${cost}${policy.toll ? `, gate toll: ${policy.toll} gold` : ''}.`);
+  addLog(`${activeCraftName()} enters ${route.name}. Fuel spent: ${cost}${policy.toll ? `, gate toll: ${policy.toll} gold` : ''}.`);
   beginCurrentTravel(route, loc, cost);
   renderUI();
 }
@@ -5090,7 +5166,7 @@ function shouldConfirmDirectTravel(cur, loc, cost) {
 function confirmDirectTravel(cur, loc, cost) {
   const strain = directTravelStrainPreview(cur, loc);
   const hullPct = game.hull / computeStats().maxHull;
-  const hullWarn = hullPct < 0.35 ? '<div class="warningBox danger"><strong>Critical Hull:</strong> Brasswake is badly damaged. Long direct travel may leave the fortress vulnerable before the next battle.</div>' : hullPct < 0.65 ? '<div class="warningBox danger"><strong>Damaged Hull:</strong> direct travel may strain already weakened plates.</div>' : '';
+  const hullWarn = hullPct < 0.35 ? `<div class="warningBox danger"><strong>Critical Hull:</strong> ${activeCraftName()} is badly damaged. Long direct travel may leave the craft vulnerable before the next battle.</div>` : hullPct < 0.65 ? '<div class="warningBox danger"><strong>Damaged Hull:</strong> direct travel may strain already weakened plates.</div>' : '';
   showModal(`<h1>Confirm Direct Engine Travel</h1>
     <p>No charted Current reaches <strong>${loc.name}</strong> from <strong>${cur.name}</strong>.</p>
     <div class="statGrid" style="margin:10px 0;">
@@ -5113,18 +5189,19 @@ function confirmCurrentGateTravel(route, loc, policy, cost) {
 
 function showRouteTollFallback(route, loc, policy, cost) {
   showModal(`<h1>Gate Toll Required</h1>
-    <p>${route.name} requires a ${policy.toll} gold toll, but Brasswake cannot afford it.</p>
+    <p>${route.name} requires a ${policy.toll} gold toll, but ${activeCraftName()} cannot afford it.</p>
     <p class="smallNote">Earn gold, improve relations for a discount, or plot another connected Current route. Direct inter-section bypass is locked until future Storm Keel technology.</p>
     <div class="buttonGrid"><button class="btn primary" onclick="closeModal()">Choose Another Route</button></div>`);
 }
 
 function currentTravelText(route, from, to) {
   const owner = FACTIONS[route.owner]?.name || 'uncharted wardens';
-  if (route.type === 'safe') return `The gate vanes at ${from.name} align. Brasswake slips into a stable blue-white sky current toward ${to.name}, brass rails humming under arc-wind pressure.`;
-  if (route.type === 'trade') return `Signal bells ring along ${owner} pylons as Brasswake joins ${route.name}, a busy trade current of gold-lit clouds and disciplined lantern beacons.`;
-  if (route.type === 'storm') return `Violet stormlight crawls over the hull as Brasswake dives into ${route.name}. Thunderheads fold around the fortress while the pressure stream claws toward ${to.name}.`;
-  if (route.type === 'pirate') return `Lanterns are doused. Brasswake enters a hidden teal slipstream known to smugglers and raiders, riding muffled wind toward ${to.name}.`;
-  return `Brasswake enters ${route.name}, engines braced against storm clouds and arcane wind.`;
+  const craft = activeCraftName();
+  if (route.type === 'safe') return `The gate vanes at ${from.name} align. ${craft} slips into a stable blue-white sky current toward ${to.name}, brass rails humming under arc-wind pressure.`;
+  if (route.type === 'trade') return `Signal bells ring along ${owner} pylons as ${craft} joins ${route.name}, a busy trade current of gold-lit clouds and disciplined lantern beacons.`;
+  if (route.type === 'storm') return `Violet stormlight crawls over the hull as ${craft} dives into ${route.name}. Thunderheads fold around the little craft while the pressure stream claws toward ${to.name}.`;
+  if (route.type === 'pirate') return `Lanterns are doused. ${craft} enters a hidden teal slipstream known to smugglers and raiders, riding muffled wind toward ${to.name}.`;
+  return `${craft} enters ${route.name}, engines braced against storm clouds and arcane wind.`;
 }
 
 function beginCurrentTravel(route, loc, cost) {
@@ -5162,7 +5239,7 @@ function resolveCurrentRouteEvent(destination) {
     text = `${factionName} blockade pressure near ${route.name}: inspection fire and violent crosswinds cause -${dmg} hull.`;
   } else if (owner === 'steam' && roll < 0.22) {
     improveRelation(owner, 1, true);
-    text = `Steam Marshal checkpoint crews stamp Brasswake's passage papers through ${route.name}. Relations +1.`;
+    text = `Steam Marshal checkpoint crews stamp ${activeCraftName()}'s passage papers through ${route.name}. Relations +1.`;
   } else if (owner === 'sky' && roll < 0.24) {
     addResource('fuel', 3);
     improveRelation(owner, 1, true);
@@ -5184,10 +5261,10 @@ function resolveCurrentRouteEvent(destination) {
     text = `Dusk Corsair smugglers reveal a hidden shortcut cache: +${gold} gold.`;
   } else if (owner === 'frost' && roll < 0.28) {
     if (route.type === 'storm') {
-      text = `Frost Matriarch charts guide Brasswake through the ice-current. Storm turbulence avoided.`;
+      text = `Frost Matriarch charts guide ${activeCraftName()} through the ice-current. Storm turbulence avoided.`;
     } else {
       const delay = Math.random() < 0.4;
-      text = delay ? `Frozen gate traffic delays Brasswake, but no damage is taken.` : `Frost Matriarch signal lamps mark a safe cold-current passage.`;
+      text = delay ? `Frozen gate traffic delays ${activeCraftName()}, but no damage is taken.` : `Frost Matriarch signal lamps mark a safe cold-current passage.`;
     }
   } else if (route.type === 'trade' && roll < 0.34) {
     improveRelation(owner, 1, true);
@@ -5203,7 +5280,7 @@ function resolveCurrentRouteEvent(destination) {
     addResource('steel', steel);
     text = `Salvage glimpse in the current: crews hook drifting plate fragments for +${steel} steel.`;
   } else {
-    text = `${routeCleanPassageLabel(route)}: ${route.name} carried Brasswake cleanly to ${destination.name}.`;
+    text = `${routeCleanPassageLabel(route)}: ${route.name} carried ${activeCraftName()} cleanly to ${destination.name}.`;
   }
   addLog(text);
   game.lastRouteTaken = null;
@@ -5236,7 +5313,7 @@ function finishTravel(loc, days, mode) {
 function autoLocationPulse(loc) {
   if (loc.depleted) return;
   if (loc.type === 'enemy') showToast(`Arrived at ${loc.name}. Review combat readiness before engaging.`);
-  else if (loc.type === 'storm') showToast(`Arrived at ${loc.name}. Brave the storm only if Brasswake can absorb hull damage.`);
+  else if (loc.type === 'storm') showToast(`Arrived at ${loc.name}. Brave the storm only if ${activeCraftName()} can absorb hull damage.`);
   else if (loc.type === 'salvage') showToast(`Arrived at ${loc.name}. Salvage the wreck field for upgrade steel.`);
   else if (loc.type === 'resource') showToast(`Arrived at ${loc.name}. Harvest resources for the next route cycle.`);
   else if (loc.type === 'ruins') showToast(`Arrived at ${loc.name}. Explore the ruins for rewards and route lore.`);
@@ -5281,7 +5358,7 @@ function showPostRewardNudge() {
   const up = affordableUpgradeKeys();
   if (up.length && !game.flags?.manualUpgradePrompted) {
     game.flags.manualUpgradePrompted = true;
-    return showToast(`${UPGRADE_DATA[up[0]].name} upgrade is affordable. Strengthen Brasswake before deeper routes.`);
+    return showToast(`${UPGRADE_DATA[up[0]].name} upgrade is affordable. Strengthen ${activeCraftName()} before deeper routes.`);
   }
   if (game.resources.fuel < 35) return showToast('Fuel low: buy fuel or plan a safe return route.');
 }
@@ -5332,7 +5409,7 @@ function showSalvageAmbushChoice(sourceLocationId, danger = 1) {
       <div class="statCard"><div class="k">Est. Weapons</div><div class="v">${enemyWeapons}</div></div>
       <div class="statCard"><div class="k">Advice</div><div class="v" style="font-size:13px;">Retreat is valid</div></div>
     </div>
-    <div class="warningBox">Early ambushes are capped at Danger 1 until Brasswake survives a first hostile contact. Retreating will count as surviving contact and keep the tutorial moving.</div>
+    <div class="warningBox">Early ambushes are capped at Danger 1 until ${activeCraftName()} survives a first hostile contact. Retreating will count as surviving contact and keep the tutorial moving.</div>
     <div class="buttonGrid">
       <button class="btn red" onclick="resolveSalvageAmbush('engage')">Engage</button>
       <button class="btn ghost" onclick="resolveSalvageAmbush('retreat')">Retreat Before Contact (${retreatFuel} Fuel)</button>
@@ -5365,7 +5442,7 @@ function resolveSalvageAmbush(choice) {
     addResource('fuel', -cost, true);
     setOrderFlag('foughtLowDanger');
     setOrderFlag('survivedHostileContact');
-    addLog(`Brasswake cut salvage lines and retreated before contact: -${cost} fuel. Hostile contact survived.`);
+    addLog(`${activeCraftName()} cut salvage lines and retreated before contact: -${cost} fuel. Hostile contact survived.`);
   }
   advanceDay(1);
   autoSave('Autosaved after ambush escape');
@@ -5408,7 +5485,7 @@ function braveStorm() {
   loc.depleted = true;
   setOrderFlag('stormRouteExplored');
   markEventResolved('storm');
-  addLog(`Brasswake punched through ${loc.name}: -${actual} hull, +${fuel} fuel, +${gold} gold in storm salvage.`);
+  addLog(`${activeCraftName()} punched through ${loc.name}: -${actual} hull, +${fuel} fuel, +${gold} gold in storm salvage.`);
   advanceDay(1);
   autoSave('Autosaved after storm');
   rebuildLocationMesh(loc.id);
@@ -5424,7 +5501,7 @@ function startCombatAtLocation(force = false) {
   if (!force && ((loc.danger || 1) >= 2 || preview.hullWarning)) {
     showModal(`<h1>Combat Warning: ${loc.name}</h1>
       ${combatReadinessHTML(loc)}
-      <p class="smallNote">You may proceed, but this fight could badly damage or cripple Brasswake.</p>
+      <p class="smallNote">You may proceed, but this fight could badly damage or cripple ${activeCraftName()}.</p>
       <div class="buttonGrid"><button class="btn red" onclick="closeModal(); startCombatAtLocation(true)">Engage Anyway</button><button class="btn ghost" onclick="closeModal()">Stand Down</button></div>`);
     return;
   }
@@ -5467,7 +5544,7 @@ function combatReadinessHTML(loc) {
   return `<div class="readinessBox warningBox ${r.cls === 'danger' ? 'danger' : r.cls === 'good' ? 'good' : ''}">
     <strong>Combat Readiness: ${r.status}</strong><br/>
     Enemy Danger ${loc.danger || 1} · Est. Hull ${r.enemyHull} · Est. Weapons ${r.enemyWeapons}<br/>
-    Brasswake Rating ${r.playerScore} vs Enemy Rating ${r.enemyScore}<br/>
+    ${activeCraftName()} Rating ${r.playerScore} vs Enemy Rating ${r.enemyScore}<br/>
     ${hullText}
   </div>${tutorialWarn}`;
 }
@@ -5477,9 +5554,9 @@ function getLocationNudgeHTML(loc) {
   const stats = computeStats();
   const hullPct = game.hull / stats.maxHull;
   if (loc.type === 'enemy' && hullPct < 0.65) return `<div class="warningBox danger">${hullPct < 0.35 ? '<strong>Critical Hull:</strong>' : '<strong>Repairs Recommended:</strong>'} return to a settlement before another fight if possible.</div>`;
-  if (['skyport','settlement'].includes(loc.type) && hullPct < 0.65) return `<div class="warningBox">Repair services are available here. Patch Brasswake before pushing deeper into hostile skies.</div>`;
+  if (['skyport','settlement'].includes(loc.type) && hullPct < 0.65) return `<div class="warningBox">Repair services are available here. Patch ${activeCraftName()} before pushing deeper into hostile skies.</div>`;
   const upgrades = affordableUpgradeKeys();
-  if (upgrades.length && (game.flags?.earnedReward || game.flags?.resolvedEvent || game.flags?.upgradedOrRepaired)) return `<div class="warningBox good"><strong>Upgrade Recommended:</strong> ${UPGRADE_DATA[upgrades[0]].name} is affordable. This is the best next way to strengthen Brasswake.</div>`;
+  if (upgrades.length && (game.flags?.earnedReward || game.flags?.resolvedEvent || game.flags?.upgradedOrRepaired)) return `<div class="warningBox good"><strong>Upgrade Recommended:</strong> ${UPGRADE_DATA[upgrades[0]].name} is affordable. This is the best next way to strengthen ${activeCraftName()}.</div>`;
   return '';
 }
 
@@ -5628,7 +5705,7 @@ function reviewSettlementContract() {
   }
   const p = settlementContractPreview(loc);
   showModal(`<h1>${p.title}</h1>
-    <p class="smallNote">${loc.name} offers paid work for Brasswake crews.</p>
+    <p class="smallNote">${loc.name} offers paid work for independent crews.</p>
     <div class="statGrid" style="margin:10px 0;">
       <div class="statCard"><div class="k">Reward</div><div class="v" style="font-size:14px;">${p.reward}</div></div>
       <div class="statCard"><div class="k">Risk</div><div class="v">${p.risk}</div></div>
@@ -5718,10 +5795,10 @@ function openCombatModal() {
   const content = document.getElementById('modalContent');
   content.innerHTML = `
     <h1>Battle: ${c.enemyName}</h1>
-    <p class="smallNote">${FACTIONS[c.faction]?.name || 'Unknown'} forces engage the Brasswake. Round ${c.round}. Choose an action.</p>
+    <p class="smallNote">${FACTIONS[c.faction]?.name || 'Unknown'} forces engage ${activeCraftName()}. Round ${c.round}. Choose an action.</p>
     <div class="combatGrid">
       <div class="combatSide">
-        <h2>Brasswake</h2>
+        <h2>${activeCraftName()}</h2>
         ${combatBar('Hull', game.hull, stats.maxHull, 'good')}
         <div class="statGrid">
           <div class="statCard"><div class="k">Armor</div><div class="v">${stats.armor}</div></div>
@@ -5890,10 +5967,10 @@ function endCombat(victory, retreated, destroyed = false) {
     markEventResolved('combat');
     if ((c.danger || 1) <= 1) setOrderFlag('foughtLowDanger');
     addLog(`Victory over ${c.enemyName}: +${steel} steel, +${gold} gold, +${fuel} fuel.`);
-    showResultModal('Victory in the Clouds', combatSummaryHTML(c, `The enemy fleet breaks apart under Brasswake's guns. Salvage crews recover ${steel} steel, ${gold} gold, and ${fuel} fuel.`), 'Continue', closeModal);
+    showResultModal('Victory in the Clouds', combatSummaryHTML(c, `The enemy fleet breaks apart under ${activeCraftName()}'s guns. Salvage crews recover ${steel} steel, ${gold} gold, and ${fuel} fuel.`), 'Continue', closeModal);
   } else if (retreated) {
     if ((c.danger || 1) <= 1) { setOrderFlag('foughtLowDanger'); setOrderFlag('survivedHostileContact'); }
-    addLog(`Brasswake retreated from ${c.enemyName}. Hostile contact survived; repairs recommended.`, 'warn');
+    addLog(`${activeCraftName()} retreated from ${c.enemyName}. Hostile contact survived; repairs recommended.`, 'warn');
     showResultModal('Retreat Successful', combatSummaryHTML(c, 'The fortress escaped into cloud cover. Some gold and momentum were lost, but the campaign continues.'), 'Continue', closeModal);
   } else if (destroyed) {
     game.hull = 1;
@@ -5902,8 +5979,8 @@ function endCombat(victory, retreated, destroyed = false) {
     addResource('gold', -lossGold, true);
     addResource('steel', -lossSteel, true);
     addResource('population', -Math.min(game.resources.population - 1, 5), true);
-    addLog(`Near catastrophe against ${c.enemyName}. Brasswake emergency-crashed but survived at 1 hull.`, 'bad');
-    showResultModal('Catastrophic Defeat', combatSummaryHTML(c, 'The fortress was nearly destroyed. Emergency ballast kept Brasswake aloft at 1 hull, but resources and crew were lost.'), 'Continue', closeModal);
+    addLog(`Near catastrophe against ${c.enemyName}. ${activeCraftName()} emergency-crashed but survived at 1 hull.`, 'bad');
+    showResultModal('Catastrophic Defeat', combatSummaryHTML(c, `The craft was nearly destroyed. Emergency ballast kept ${activeCraftName()} aloft at 1 hull, but resources and crew were lost.`), 'Continue', closeModal);
   } else {
     addLog(`Defeat against ${c.enemyName}. The fortress limps away heavily damaged.`, 'bad');
     showResultModal('Defeat', combatSummaryHTML(c, 'The fortress disengages under smoke and broken armor.'), 'Continue', closeModal);
@@ -6698,7 +6775,7 @@ function buildRoom(key) {
   setOrderFlag('upgradedOrRepaired');
   syncBrasswakeModulesFromProgress();
   refreshBrasswakeModel();
-  addLog(`${room.name} constructed aboard Brasswake. ${room.benefit}.`);
+  addLog(`${room.name} prototype module recorded for future Brasswake systems. ${room.benefit}.`);
   showToast(`${room.name} built.`);
   revealNearby();
   buildWorldMeshes();
@@ -6811,6 +6888,7 @@ function loadGame(fromTitle = false) {
 
 function normalizeLoadedGame() {
   game.version = game.version || VERSION;
+  ensureV3CampaignState(game);
   game.flags = Object.assign({
     tutorialSeen: false,
     selectedFirst: false,
@@ -7057,13 +7135,13 @@ function showBuildNotes() {
 
 showBuildNotes = function() {
   showModal(`<h1>Build Notes - ${VERSION}</h1>
-    <p><strong>Brasswake artifact cleanup:</strong> imported GLB parts are now sanitized before placement so embedded cameras, lights, helper objects, debug icons, or named icon/helper meshes cannot appear in the main fortress model.</p>
-    <p><strong>Intentional bow details preserved:</strong> the procedural bow and nose lanterns are explicitly marked as decorative fallback geometry, while imported camera/light/helper artifacts are stripped from cloned GLB scenes.</p>
-    <p><strong>Builder separation:</strong> Fortress Builder selection highlights remain builder-only and are not allowed to bleed into the main Brasswake assembly.</p>
-    <p><strong>Recent work preserved:</strong> Command Menu audio controls, singleton MusicManager, Fortress Builder RotX/RotY/RotZ controls, Undo Last Change, circular arrays, Copy Layout, GLB variants, live preview, saved underside engine layout, turn-then-move travel facing, and GLB fallback behavior remain in place.</p>
-    <p><strong>Player faction canon:</strong> the captain commands <strong>Brasswake Free Command</strong>, an independent modular flying fortress-city with Steam Marshal infrastructure ties at Brassgate Anchorage but open future alliances and loyalties.</p>
-    <p><strong>Preserved:</strong> single-file HTML structure, Three.js CDN map, external GLB/MP3 assets, gate-locked Current Gate / Jet Stream travel, Clockwork Navigator / Celestial Navigation Automaton, Plot Capacity: 1 Jump, Captain's Orders onboarding, route plotting/events, combat balance, music singleton behavior, and save/load compatibility.</p>
-    <p><strong>Validation:</strong> JavaScript syntax, module loader syntax, inline button handlers, duplicate function declarations, version strings, GLTFLoader CDN reference, model asset paths, external music paths, and fallback code paths were checked. No embedded playable preview is included.</p>
+    <p><strong>V3 Inherited Craft Foundation:</strong> new campaigns now begin aboard the inherited Tier 0 skiff <strong>Brass Minnow</strong>, not Brasswake.</p>
+    <p><strong>New campaign data:</strong> added <code>playerShip</code>, <code>activeShipId</code>, <code>ownedShips</code>, locked <code>brasswake</code> milestone state, and future <code>Brasswake Free Command</code> faction state.</p>
+    <p><strong>Ship Status:</strong> the left status panel now shows active craft name, tier, class, hull, crew berths, cargo, Clockwork Navigator, plot capacity, and locked Brasswake milestone text.</p>
+    <p><strong>Canon reframing:</strong> title screen, opening log, Captain's Orders, route travel copy, roadmap notes, and upgrade/module framing now support the inherited-craft start while preserving Brasswake as an endgame fortress-city.</p>
+    <p><strong>Preserved:</strong> single-file HTML structure, Three.js CDN map, external GLB/MP3 assets, gate-locked Current Gate / Jet Stream travel, turn-then-move travel facing, Clockwork Navigator / Celestial Navigation Automaton, Plot Capacity: 1 Jump, contracts, salvage/harvest/trade, route events, combat balance, singleton MusicManager, and save/load/reset behavior.</p>
+    <p><strong>Save compatibility:</strong> <code>SAVE_KEY</code> was bumped because the campaign root state now includes ship progression and Brasswake milestone fields.</p>
+    <p><strong>Validation:</strong> JavaScript syntax, module loader syntax, version strings, save key, route/facing function preservation, and package structure were checked. No embedded playable preview is included.</p>
     ${roadmapDoctrineHTML()}
     ${nextCampaignGoalsHTML()}
     ${balanceRoadmapHTML()}

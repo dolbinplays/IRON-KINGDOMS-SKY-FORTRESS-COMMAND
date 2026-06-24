@@ -1,5 +1,5 @@
 {
-  "version": "v0.26.06.23.0005",
+  "version": "v0.26.06.23.0006",
   "copied_count": 96,
   "missing": [],
   "tracks": {
@@ -13,15 +13,15 @@
       ]
     },
     "newCampaign": {
-      "name": "New Captain of Brasswake",
+      "name": "New Captain of Brass Minnow",
       "files": [
         {
           "src": "assets/audio/music/loops/music_02_new_captain_brasswake_loop.mp3",
-          "title": "New Captain of Brasswake"
+          "title": "New Captain of Brass Minnow"
         },
         {
           "src": "assets/audio/music/loops/music_02_new_captain_brasswake_alt_loop.mp3",
-          "title": "New Captain of Brasswake (Alt)"
+          "title": "New Captain of Brass Minnow (Alt)"
         }
       ]
     },
