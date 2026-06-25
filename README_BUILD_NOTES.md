@@ -1,32 +1,23 @@
-# IRON KINGDOMS: SKY FORTRESS COMMAND - v0.26.06.24.0001
+# IRON KINGDOMS: SKY FORTRESS COMMAND - v0.26.06.24.0003
 
-Focused V3 cleanup and roadmap foundation patch.
+Focused left HUD hierarchy cleanup patch.
 
 ## Patch Intent
 
-- Fix the leftover `IRON KINGDOMS: WAR OF BRASS` title-screen kicker.
-- Keep the campaign start centered on `Brass Minnow`, an `Inherited Courier Skiff` and `Tier 0 - Inherited Craft`.
-- Keep Brasswake locked as a future modular flying fortress-city milestone.
-- Clarify prototype-wide Support versus active skiff crew.
-- Add the first lightweight foundation for V3 reputation and career-tagged contracts.
+- Make Selected Location feel more important than Ship Status.
+- Keep the active craft readable at a glance without letting ship metadata crowd out available actions.
+- Preserve all route, action, save, music, and V3 progression systems.
 
 ## Changes Made
 
-- Updated version labels, title, `VERSION`, `SAVE_KEY`, manifest, README/build notes, package folder, and ZIP naming to `v0.26.06.24.0001`.
-- Changed the title-screen kicker to `IRON KINGDOMS: SKY FORTRESS COMMAND`.
-- Changed the visible top-bar population label to `Support` while preserving the internal `resources.population` key.
-- Added Ship Status explanatory text: Support is prototype-wide capacity; active skiff crew is shown as `playerShip.crewUsed / playerShip.crewCapacity`.
-- Consolidated duplicate `showBuildNotes()` logic into one authoritative function.
-- Added V3 `reputation` state with Duke, Merchant, Explorer, Military, Freebooter, and per-kingdom reputation tracks.
-- Added reputation tier helpers and a compact Reputation Summary to the Factions tab.
-- Added career-style contract tags and displayed them in selected-location details and settlement contract previews.
-- Added small Fleet Log reputation rewards to existing salvage, resource, contract, trade, repair, exploration, settlement-contract, and combat outcomes.
-
-## Save Compatibility
-
-- `SAVE_KEY` was bumped to `IK_SKY_FORTRESS_COMMAND_v0_26_06_24_0001`.
-- The bump is intentional because the campaign root now includes new V3 reputation and contract/career roadmap foundation state.
-- Load normalization also ensures V3 ship, milestone, faction, and reputation fields exist if compatible state is loaded.
+- Updated version labels, title, `VERSION`, README/build notes, package folder, ZIP naming, and manifest to `v0.26.06.24.0003`.
+- Kept `SAVE_KEY` at `IK_SKY_FORTRESS_COMMAND_v0_26_06_24_0001` because this is a layout-only patch and should preserve existing test saves.
+- Reordered the left HUD to place Selected Location directly below compact Ship Status and above Captain's Orders.
+- Changed Ship Status to default to only craft name and hull health.
+- Moved tier, class, crew, cargo, navigator, plot capacity, Brasswake milestone text, and Support clarification behind an expandable `Craft Details` section.
+- Increased the Selected Location panel minimum height so available buttons and route/action context have more room.
+- Reduced the Captain's Orders maximum height so it remains useful without competing for the main interaction space.
+- Updated in-game build notes to describe the hierarchy change and save-key decision.
 
 ## Systems Intentionally Preserved
 
@@ -37,10 +28,10 @@ Focused V3 cleanup and roadmap foundation patch.
 - Current Gate / Jet Stream route plotting.
 - Multi-hop route planner and No Charted Current messaging.
 - Turn-then-move directional travel facing.
-- Captain's Orders panel.
+- Captain's Orders logic.
 - Collapsible Command Menu.
-- Expanded Fleet Log.
-- Selected Location panel.
+- Fleet Log scrolling behavior.
+- Selected Location actions and route/action button generation.
 - Existing contracts, salvage, harvest, trade, combat, route events, and depleted states.
 - Fuel, food, steel, gold, and internal population/support behavior.
 - Autosave, manual save, load, and reset.
@@ -49,24 +40,21 @@ Focused V3 cleanup and roadmap foundation patch.
 
 ## Validation Performed
 
-- JavaScript syntax check.
-- Module wrapper syntax check.
-- Inline handler/global function check.
+- Version string check by inspection/counts.
 - Duplicate `showBuildNotes()` check.
-- Version and save-key consistency check.
-- Route/facing function inspection confirmed no movement rewrite.
+- Save-key decision checked: unchanged intentionally for compatibility.
+- Route/facing function preservation check by inspection.
 - Music manager inspection confirmed no second manager was added.
 - Package structure checked.
+- JavaScript execution/syntax checks could not be run because Node is not available on PATH in this shell.
 - No embedded playable preview was created.
 
 ## Manual QA Still Recommended
 
 - Open `index.html` directly in a browser.
-- Confirm the title screen says `IRON KINGDOMS: SKY FORTRESS COMMAND`.
-- Start a new campaign and confirm Ship Status shows `Brass Minnow`, `Inherited Courier Skiff`, and `Tier 0 - Inherited Craft`.
-- Confirm the top resource bar says `Support`, not fortress-sized crew.
-- Open the Factions tab and confirm Reputation Summary renders.
-- Select contract/salvage/resource/combat locations and confirm tags display.
-- Complete a salvage or contract action and confirm a Fleet Log reputation line appears.
+- Load the existing save and confirm Ship Status shows only Brass Minnow and hull by default.
+- Expand Craft Details and confirm tier, class, crew, cargo, navigator, plot capacity, and Support clarification are still available.
+- Select a nearby location and confirm travel/action buttons are visible higher in the Selected Location panel.
+- Confirm Captain's Orders still scrolls/renders and remains readable below Selected Location.
 - Plot and ride a Current Gate / Jet Stream route and confirm facing behavior is preserved.
 - Confirm save/load/reset and music controls still work.

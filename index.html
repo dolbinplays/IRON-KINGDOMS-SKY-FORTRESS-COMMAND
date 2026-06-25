@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.24.0001</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.24.0003</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script type="importmap">
     { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -223,7 +223,7 @@
       position: absolute;
       top: 96px;
       right: 12px;
-      bottom: 180px;
+      bottom: 150px;
       width: 388px;
       z-index: 10;
       display: flex;
@@ -300,11 +300,11 @@
     }
 
     .selectedPanelShell {
-      min-height: 320px;
+      min-height: 390px;
     }
 
     .leftOrdersPanel {
-      max-height: min(250px, 32vh);
+      max-height: min(180px, 24vh);
     }
 
     .statGrid {
@@ -321,7 +321,104 @@
     }
 
     .statCard .k { color: var(--muted); font-size: 11px; text-transform: uppercase; }
-    .statCard .v { color: var(--ink); font-size: 17px; font-weight: 800; margin-top: 2px; }
+        .statCard .v { color: var(--ink); font-size: 17px; font-weight: 800; margin-top: 2px; }
+
+    .shipStatusPanel {
+      padding: 9px 10px;
+      max-height: 185px;
+    }
+    .shipStatusPanel h2 { margin-bottom: 6px; font-size: 16px; }
+    .shipStatusContent { display: flex; flex-direction: column; gap: 6px; }
+    .shipStatusSummary {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 6px;
+    }
+    .shipStatusPanel .statGrid { gap: 6px; }
+    .shipStatusPanel .statCard {
+      min-height: 48px;
+      padding: 6px 8px;
+      border-radius: 8px;
+    }
+    .shipStatusPanel .statCard .k { font-size: 10px; letter-spacing: 0.45px; }
+    .shipStatusPanel .statCard .v {
+      font-size: 15px;
+      line-height: 1.12;
+      overflow-wrap: anywhere;
+    }
+    .shipStatusDetails {
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 4px;
+    }
+    .shipStatusDetails summary {
+      cursor: pointer;
+      color: var(--brass2);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.55px;
+      list-style-position: inside;
+    }
+    .shipStatusDetails[open] {
+      max-height: 110px;
+      overflow-y: auto;
+      padding-right: 4px;
+      scrollbar-width: thin;
+    }
+    .shipStatusDetailsGrid {
+      margin-top: 6px;
+      grid-template-columns: 1fr 1fr;
+    }
+    .shipStatusNote {
+      margin-top: 6px;
+      font-size: 10.5px;
+      line-height: 1.22;
+    }
+
+    .reputationSummaryCard {
+      border: 1px solid rgba(244,207,120,0.38);
+      background: rgba(0,0,0,0.16);
+      border-radius: 10px;
+      padding: 8px;
+      margin-bottom: 8px;
+    }
+    .reputationSummaryCard h2 { font-size: 15px; margin-bottom: 5px; }
+    .reputationSummaryCard .smallNote { font-size: 10.5px; line-height: 1.2; margin-bottom: 6px; }
+    .repChipGrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 5px;
+    }
+    .repChip {
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.035);
+      border-radius: 8px;
+      padding: 5px 6px;
+      min-width: 0;
+    }
+    .repChip .k {
+      color: var(--muted);
+      font-size: 9.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.42px;
+    }
+    .repChip .v {
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 900;
+      margin-top: 1px;
+    }
+    .kingdomRelationsHeader {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: baseline;
+      margin-top: 8px;
+    }
+    .kingdomRelationsHeader h2 { font-size: 15px; margin: 0; }
+    .factionCard.compactFaction { padding: 7px 8px; margin-bottom: 6px; border-radius: 8px; }
+    .factionCard.compactFaction .cardTitle { margin-bottom: 2px; align-items: center; }
+    .factionCard.compactFaction .smallNote { font-size: 10.5px; line-height: 1.18; }
 
     .locationName {
       font-size: 18px;
@@ -490,7 +587,7 @@
       left: 364px;
       right: 12px;
       bottom: 12px;
-      height: 156px;
+      height: 128px;
       z-index: 10;
       display: grid;
       grid-template-columns: minmax(280px, 1fr);
@@ -1615,6 +1712,12 @@
 
     .hidden { display: none !important; }
 
+    @media (max-height: 760px) and (min-width: 761px) {
+      .selectedPanelShell { min-height: 260px; }
+      .leftOrdersPanel { max-height: min(130px, 20vh); }
+      .shipStatusPanel { max-height: 150px; }
+      .shipStatusDetails[open] { max-height: 76px; }
+    }
     @media (max-width: 1120px) {
       .topbar { grid-template-columns: 1fr; right: 12px; }
       .resourcesBar { grid-template-columns: repeat(5, 1fr); }
@@ -1653,24 +1756,24 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.24.0001</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.24.0003</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
   </div>
 
   <div class="leftColumn hidden" id="hudLeft">
-    <div class="panel" style="flex:0 0 auto;">
+    <div class="panel shipStatusPanel" style="flex:0 0 auto;">
       <h2>Ship Status</h2>
-      <div id="fortressStats" class="statGrid"></div>
-    </div>
-    <div class="panel panelShell ordersPanel leftOrdersPanel" style="flex:0 0 auto;">
-      <div class="panelHeader"><h2>Captain's Orders</h2></div>
-      <div id="ordersList" class="ordersList"></div>
+      <div id="fortressStats" class="shipStatusContent"></div>
     </div>
     <div class="panel panelShell selectedPanelShell" style="flex:1 1 auto; min-height:0;">
       <div class="panelHeader"><h2>Selected Location</h2></div>
       <div id="selectedPanel" class="panelBody panelScroll"></div>
+    </div>
+    <div class="panel panelShell ordersPanel leftOrdersPanel" style="flex:0 0 auto;">
+      <div class="panelHeader"><h2>Captain's Orders</h2></div>
+      <div id="ordersList" class="ordersList"></div>
     </div>
   </div>
 
@@ -1739,7 +1842,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Improve engines, armor, weapons, sensors, storage, and repairs while Brasswake remains a locked endgame milestone.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.24.0001 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.24.0003 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
     </div>
   </div>
 </div>
@@ -1750,7 +1853,7 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.24.0001';
+const VERSION = 'v0.26.06.24.0003';
 const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_24_0001';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
@@ -4029,7 +4132,7 @@ function refreshBrasswakeModel(group = fortressGroup) {
 }
 
 function createFortressModel() {
-  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.24.0001.
+  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.24.0003.
   const group = new THREE.Group();
   group.name = 'Brasswake Modular Hex Fortress Marker';
   group.userData.brasswakeMarker = true;
@@ -4640,13 +4743,20 @@ function renderFortressStats() {
   const ship = ensureV3CampaignState(game).playerShip;
   const nav = ship.navigationSystem || {};
   const hullPct = Math.round(game.hull) + '/' + stats.maxHull;
-  const entries = [
-    ['Craft', ship.name], ['Tier', ship.tierName || `Tier ${ship.tier}`], ['Class', ship.className || STARTER_SHIP_CLASS.name], ['Hull', hullPct],
-    ['Crew Berths', `${ship.crewUsed}/${ship.crewCapacity}`], ['Cargo', `${ship.cargoUsed}/${ship.cargoCapacity}`], ['Navigator', nav.commonName || 'Clockwork Navigator'], ['Plot Cap', `${nav.maxStoredHops || 1} Jump`]
+  const summaryEntries = [['Craft', ship.name], ['Hull', hullPct]];
+  const detailEntries = [
+    ['Tier', ship.tierName || `Tier ${ship.tier}`], ['Class', ship.className || STARTER_SHIP_CLASS.name],
+    ['Crew Berths', `${ship.crewUsed}/${ship.crewCapacity}`], ['Cargo', `${ship.cargoUsed}/${ship.cargoCapacity}`],
+    ['Navigator', nav.commonName || 'Clockwork Navigator'], ['Plot Cap', `${nav.maxStoredHops || 1} Jump`]
   ];
   const milestone = game.brasswake?.unlocked ? 'Brasswake unlocked' : 'Brasswake locked: future fortress-city milestone';
-  document.getElementById('fortressStats').innerHTML = entries.map(([k,v]) => `<div class="statCard"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('') +
-    `<div class="smallNote" style="margin-top:8px;">${escapeHTML(ship.origin)}<br/><strong>${escapeHTML(milestone)}</strong><br/>Support in the top bar is prototype-wide support capacity; active skiff crew is ${ship.crewUsed}/${ship.crewCapacity}.</div>`;
+  document.getElementById('fortressStats').innerHTML = `
+    <div class="shipStatusSummary">${summaryEntries.map(([k,v]) => `<div class="statCard"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('')}</div>
+    <details class="shipStatusDetails">
+      <summary>Craft Details</summary>
+      <div class="statGrid shipStatusDetailsGrid">${detailEntries.map(([k,v]) => `<div class="statCard"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('')}</div>
+      <div class="smallNote shipStatusNote">${escapeHTML(ship.origin)}<br/><strong>${escapeHTML(milestone)}</strong><br/>Top-bar Support is prototype-wide capacity; active skiff crew is ${ship.crewUsed}/${ship.crewCapacity}.</div>
+    </details>`;
 }
 
 function renderSelectedPanel() {
@@ -5033,11 +5143,12 @@ function renderTechPanel() {
 
 function renderFactionsPanel() {
   const html = `${renderReputationSummary()}
-    <h2>Kingdom Relations</h2><p class="smallNote">Phase 1 uses readable standing bands. Trade and aid improve relations; raids and attacks worsen them. V3 reputation is tracked separately above as future career progression groundwork.</p>` +
+    <div class="kingdomRelationsHeader"><h2>Kingdom Relations</h2><span class="tag blue">Route Access</span></div>
+    <p class="smallNote">Current route/gate standing remains separate from V3 career reputation. Trade and aid improve relations; raids and attacks worsen them.</p>` +
     Object.entries(FACTIONS).map(([key,f]) => {
       const score = game.relations[key] ?? 0;
       const status = relationStatus(score);
-      return `<div class="factionCard" style="border-color:${f.accent}55">
+      return `<div class="factionCard compactFaction" style="border-color:${f.accent}55">
         <div class="cardTitle"><span style="color:${f.accent}">${f.name}</span><span class="tag ${status === 'Friendly' ? 'good' : status === 'Hostile' ? 'bad' : 'warn'}">${status} ${score}</span></div>
         <div class="smallNote">${f.flavor}</div>
       </div>`;
@@ -5049,25 +5160,16 @@ function renderReputationSummary() {
   const rep = ensureReputationState(game);
   const coreRows = ['duke','merchant','explorer','military','freebooter'].map(key => {
     const value = rep[key] || 0;
-    return `<div class="statCard"><div class="k">${REPUTATION_LABELS[key]}</div><div class="v">${reputationTier(value)}</div></div>`;
+    return `<div class="repChip"><div class="k">${REPUTATION_LABELS[key]}</div><div class="v">${reputationTier(value)}</div></div>`;
   }).join('');
-  const kingdomRows = Object.entries(rep.kingdoms || {}).map(([key,value]) => {
-    const faction = FACTIONS[key];
-    if (!faction) return '';
-    return `<div class="factionCard" style="border-color:${faction.accent}55">
-      <div class="cardTitle"><span style="color:${faction.accent}">${faction.name}</span><span class="tag blue">${reputationTier(value)}</span></div>
-    </div>`;
-  }).join('');
-  return `<h2>Reputation Summary</h2>
-    <p class="smallNote">V3 roadmap foundation: reputation records career trust and access separately from current route/gate relations.</p>
-    <div class="statGrid">${coreRows}</div>
-    <h3 style="margin-top:10px;">Kingdom Reputation</h3>
-    ${kingdomRows}`;
+  const knownKingdoms = Object.values(rep.kingdoms || {}).filter(v => !!v).length;
+  return `<div class="reputationSummaryCard">
+    <h2>Reputation Summary</h2>
+    <p class="smallNote">V3 career trust. Kingdom reputation is tracked quietly until values move.</p>
+    <div class="repChipGrid">${coreRows}</div>
+    <div class="smallNote" style="margin-top:6px;">Kingdom tracks active: ${knownKingdoms}/8</div>
+  </div>`;
 }
-
-
-
-
 function renderLog() {
   const log = game.log.slice(-9).reverse();
   document.getElementById('eventLog').innerHTML = log.map(item => `<div class="logItem"><strong>Day ${item.day}:</strong> ${item.text}</div>`).join('');
@@ -7309,13 +7411,13 @@ function showHelp() {
 
 function showBuildNotes() {
   showModal(`<h1>Build Notes - ${VERSION}</h1>
-    <p><strong>V3 Cleanup + Roadmap Foundation:</strong> updates the title screen to <strong>IRON KINGDOMS: SKY FORTRESS COMMAND</strong>, preserves the Brass Minnow inherited-craft start, and keeps Brasswake locked as a future fortress-city milestone.</p>
-    <p><strong>Starter craft clarity:</strong> Brass Minnow remains an <strong>Inherited Courier Skiff</strong>, <strong>Tier 0 - Inherited Craft</strong>. Brasswake Free Command is recorded as a future faction, not founded at campaign start.</p>
-    <p><strong>Crew Support label:</strong> the top-bar <strong>Support</strong> value preserves the existing internal <code>resources.population</code> system while Ship Status shows the actual active skiff crew as <code>playerShip.crewUsed / playerShip.crewCapacity</code>.</p>
-    <p><strong>Roadmap foundation:</strong> added lightweight V3 <code>reputation</code> state, reputation tiers, a Factions-tab Reputation Summary, career-style contract tags, and small reputation rewards for existing salvage, resource, contract, trade, repair, exploration, and combat outcomes.</p>
-    <p><strong>Preserved:</strong> single-file HTML structure, Three.js CDN map, external GLB/MP3 assets, procedural hex-board layout, Current Gate / Jet Stream route plotting, multi-hop route planner, no-charted-current messaging, turn-then-move route-facing behavior, Captain's Orders, Command Menu, Fleet Log, selected location panel, contracts, salvage/harvest/trade, combat, future tech locks, singleton MusicManager, and save/load/reset behavior.</p>
-    <p><strong>Save compatibility:</strong> <code>SAVE_KEY</code> was bumped because this patch adds roadmap foundation state for reputation and contract/career metadata.</p>
-    <p><strong>Validation:</strong> JavaScript syntax, module wrapper syntax, inline handlers, duplicate build-notes definitions, version strings, save key, route/facing function preservation, and package structure were checked. No embedded playable preview is included.</p>
+    <p><strong>Left HUD Hierarchy Cleanup:</strong> gives Selected Location more weight as the main decision surface while keeping Ship Status available as compact reference information.</p>
+    <p><strong>Ship Status:</strong> defaults to only the active craft name and hull health. Tier, class, crew, cargo, navigator, plot capacity, and the support/crew note now live behind an expandable <strong>Craft Details</strong> row.</p>
+    <p><strong>Selected Location:</strong> moves directly below Ship Status and receives a stronger minimum height so route, contract, salvage, harvest, trade, and combat buttons have more room to appear without immediately fighting the lower panels.</p>
+    <p><strong>Captain's Orders:</strong> remains visible as a tutorial/objective reminder, but it is capped lower so it no longer competes with Selected Location for primary interaction space.</p>
+    <p><strong>Preserved:</strong> single-file HTML structure, Three.js CDN map, external GLB/MP3 assets, procedural hex-board layout, Current Gate / Jet Stream route plotting, multi-hop route planner, no-charted-current messaging, turn-then-move route-facing behavior, Captain's Orders logic, Command Menu, Fleet Log, selected-location actions, contracts, salvage/harvest/trade, combat, future tech locks, singleton MusicManager, and save/load/reset behavior.</p>
+    <p><strong>Save compatibility:</strong> <code>SAVE_KEY</code> intentionally remains <code>${SAVE_KEY}</code>; this patch changes layout and presentation only, so existing v0.26.06.24.0001 saves should remain available.</p>
+    <p><strong>Validation:</strong> version strings, duplicate build-notes definitions, singleton MusicManager, route/facing function preservation, and package structure were checked by inspection. JavaScript execution/syntax checks could not be run here because Node is not available on PATH. No embedded playable preview is included.</p>
     ${roadmapDoctrineHTML()}
     ${nextCampaignGoalsHTML()}
     ${balanceRoadmapHTML()}
