@@ -1,23 +1,25 @@
-IRON KINGDOMS: SKY FORTRESS COMMAND - v0.26.06.24.0003
+IRON KINGDOMS: SKY FORTRESS COMMAND - v0.26.06.26.0001
 
-Focused left HUD hierarchy cleanup patch.
+Focused Brass Minnow starter craft visual patch.
 
 #Patch Intent
 
-- Make Selected Location feel more important than Ship Status.
-- Keep the active craft readable at a glance without letting ship metadata crowd out available actions.
+- Replace the older fortress-style active craft marker with a small starter-skiff visual.
+- Make Brass Minnow read as a tiny inherited courier/utility craft from the strategy camera.
+- Keep the model deliberately simple and placeholder-friendly.
 - Preserve all route, action, save, music, and V3 progression systems.
 
 #Changes Made
 
-- Updated version labels, title, VERSION, README/build notes, package folder, ZIP naming, and manifest to v0.26.06.24.0003.
-- Kept SAVE_KEY at IK_SKY_FORTRESS_COMMAND_v0_26_06_24_0001 because this is a layout-only patch and should preserve existing test saves.
-- Reordered the left HUD to place Selected Location directly below compact Ship Status and above Captain's Orders.
-- Changed Ship Status to default to only craft name and hull health.
-- Moved tier, class, crew, cargo, navigator, plot capacity, Brasswake milestone text, and Support clarification behind an expandable Craft Details section.
-- Increased the Selected Location panel minimum height so available buttons and route/action context have more room.
-- Reduced the Captain's Orders maximum height so it remains useful without competing for the main interaction space.
-- Updated in-game build notes to describe the hierarchy change and save-key decision.
+- Updated version labels, title, VERSION, README/build notes, package folder, ZIP naming, and manifest to v0.26.06.26.0001.
+- Kept SAVE_KEY at IK_SKY_FORTRESS_COMMAND_v0_26_06_24_0001 because this is a visual/model patch and should preserve existing test saves.
+- Added createBrassMinnowModel() as the active player craft factory.
+- Added modular helper functions for Minnow materials, main hull, rear engine block, left/right lift pods, tail assembly, top deck/cargo plate, small utility arm, and patch plates.
+- Replaced startup active craft creation with the Brass Minnow skiff model.
+- Added a guard so Brasswake model refreshes do not attach fortress modules to the active starter craft.
+- Preserved legacy/future Brasswake GLB/procedural tooling for later fortress-city milestones.
+- Updated travel modal wording to refer to the active craft instead of the fortress.
+- Updated in-game build notes to describe the skiff visual and save-key decision.
 
 #Systems Intentionally Preserved
 
@@ -28,10 +30,11 @@ Focused left HUD hierarchy cleanup patch.
 - Current Gate / Jet Stream route plotting.
 - Multi-hop route planner and No Charted Current messaging.
 - Turn-then-move directional travel facing.
-- Captain's Orders logic.
+- Captain's Orders panel.
+- Ship Status panel.
+- Selected Location panel and route/action button generation.
 - Collapsible Command Menu.
 - Fleet Log scrolling behavior.
-- Selected Location actions and route/action button generation.
 - Existing contracts, salvage, harvest, trade, combat, route events, and depleted states.
 - Fuel, food, steel, gold, and internal population/support behavior.
 - Autosave, manual save, load, and reset.
@@ -41,6 +44,8 @@ Focused left HUD hierarchy cleanup patch.
 #Validation Performed
 
 - Version string check by inspection/counts.
+- Active craft startup path check: startup now calls createBrassMinnowModel().
+- Brasswake refresh guard check: active Brass Minnow groups are skipped.
 - Duplicate showBuildNotes() check.
 - Save-key decision checked: unchanged intentionally for compatibility.
 - Route/facing function preservation check by inspection.
@@ -52,9 +57,8 @@ Focused left HUD hierarchy cleanup patch.
 #Manual QA Still Recommended
 
 - Open index.html directly in a browser.
-- Load the existing save and confirm Ship Status shows only Brass Minnow and hull by default.
-- Expand Craft Details and confirm tier, class, crew, cargo, navigator, plot capacity, and Support clarification are still available.
-- Select a nearby location and confirm travel/action buttons are visible higher in the Selected Location panel.
-- Confirm Captain's Orders still scrolls/renders and remains readable below Selected Location.
-- Plot and ride a Current Gate / Jet Stream route and confirm facing behavior is preserved.
-- Confirm save/load/reset and music controls still work.
+- Start a new campaign and confirm the active craft reads as a small skiff, not a fortress.
+- Load the existing save and confirm Ship Status still shows Brass Minnow details.
+- Rotate/observe the map enough to confirm the bow, rear engine block, side lift pods, tail fin, and deck/cargo plate are readable.
+- Plot and ride a Current Gate / Jet Stream route and confirm the craft turns before travel and preserves facing after arrival.
+- Confirm Selected Location, Captain's Orders, Fleet Log, contracts, salvage, harvest, trade, music, save/load, and reset still work.

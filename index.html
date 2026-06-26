@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.24.0003</title>
+  <title>IRON KINGDOMS: SKY FORTRESS COMMAND v0.26.06.26.0001</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script type="importmap">
     { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -1756,7 +1756,7 @@
   <div class="topbar hidden" id="hudTop">
     <div class="brandBox">
       <div class="brandTitle">IRON KINGDOMS: SKY FORTRESS COMMAND</div>
-      <div class="brandSub"><span id="versionLabel">v0.26.06.24.0003</span><span id="saveStatus">No Campaign</span></div>
+      <div class="brandSub"><span id="versionLabel">v0.26.06.26.0001</span><span id="saveStatus">No Campaign</span></div>
     </div>
     <div class="resourcesBar" id="resourcesBar"></div>
     <div class="dayBox"><span>Campaign Day</span><strong id="dayLabel">1</strong><span id="currentLocMini">Home Skyport</span></div>
@@ -1842,7 +1842,7 @@
         <div class="legendCard"><strong>Fight</strong>Turn-based airship combat with guns, bracing, repairs, skiff launches, and retreat attempts.</div>
         <div class="legendCard"><strong>Upgrade</strong>Improve engines, armor, weapons, sensors, storage, and repairs while Brasswake remains a locked endgame milestone.</div>
       </div>
-      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.24.0003 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
+      <p class="smallNote" style="margin-top:18px;">Version v0.26.06.26.0001 · Single-file HTML · Three.js CDN + GLTFLoader module build</p>
     </div>
   </div>
 </div>
@@ -1853,7 +1853,7 @@
 // =============================================================
 // CONSTANTS
 // =============================================================
-const VERSION = 'v0.26.06.24.0003';
+const VERSION = 'v0.26.06.26.0001';
 const SAVE_KEY = 'IK_SKY_FORTRESS_COMMAND_v0_26_06_24_0001';
 const WORLD_RADIUS = 74;
 const LOCATION_COUNT = 34;
@@ -2743,7 +2743,7 @@ function setupThree() {
   scene.add(worldGroup, hexGroup, lineGroup, locationGroup, aiFleetGroup);
 
   createBackgroundWorld();
-  fortressGroup = createFortressModel();
+  fortressGroup = createBrassMinnowModel();
   fortressGroup.visible = false;
   scene.add(fortressGroup);
 
@@ -4096,7 +4096,7 @@ function addBrasswakeBuilderHighlight(parent, slot, placement = null) {
 }
 
 function refreshBrasswakeModel(group = fortressGroup) {
-  if (!group) return;
+  if (!group || group.userData?.brassMinnowActiveCraft) return;
   syncBrasswakeModulesFromProgress();
   const old = group.getObjectByName('Brasswake GLB Modular Assembly');
   if (old) group.remove(old);
@@ -4131,8 +4131,249 @@ function refreshBrasswakeModel(group = fortressGroup) {
   });
 }
 
+function createMinnowMaterials() {
+  return {
+    agedBrass: new THREE.MeshStandardMaterial({ color: 0xb07a2f, metalness: 0.68, roughness: 0.54, emissive: 0x211104, emissiveIntensity: 0.045 }),
+    fadedBrass: new THREE.MeshStandardMaterial({ color: 0x8f6d34, metalness: 0.56, roughness: 0.70, emissive: 0x120b03, emissiveIntensity: 0.025 }),
+    darkIron: new THREE.MeshStandardMaterial({ color: 0x252a2e, metalness: 0.62, roughness: 0.64, emissive: 0x050608, emissiveIntensity: 0.02 }),
+    wornIron: new THREE.MeshStandardMaterial({ color: 0x454a4e, metalness: 0.46, roughness: 0.78, emissive: 0x050505, emissiveIntensity: 0.015 }),
+    soot: new THREE.MeshStandardMaterial({ color: 0x151719, metalness: 0.34, roughness: 0.86 }),
+    wornWood: new THREE.MeshStandardMaterial({ color: 0x654629, metalness: 0.12, roughness: 0.82 }),
+    fadedPaint: new THREE.MeshStandardMaterial({ color: 0x35566a, metalness: 0.28, roughness: 0.72, emissive: 0x031015, emissiveIntensity: 0.025 }),
+    patchRed: new THREE.MeshStandardMaterial({ color: 0x7b3a2b, metalness: 0.34, roughness: 0.76 }),
+    lanternGlow: new THREE.MeshBasicMaterial({ color: 0xffd06a }),
+    liftGlow: new THREE.MeshBasicMaterial({ color: 0x80eaff, transparent: true, opacity: 0.70, side: THREE.DoubleSide }),
+    liftCore: new THREE.MeshBasicMaterial({ color: 0xc8fbff, transparent: true, opacity: 0.88 })
+  };
+}
+
+function markMinnowMesh(mesh) {
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
+function createMinnowHull(mat) {
+  const hull = new THREE.Group();
+  hull.name = 'Brass Minnow Main Hull';
+
+  const body = markMinnowMesh(new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.32, 0.58), mat.fadedBrass));
+  body.position.set(-0.12, 0.02, 0);
+  hull.add(body);
+
+  const bow = markMinnowMesh(new THREE.Mesh(new THREE.ConeGeometry(0.36, 0.72, 4), mat.agedBrass));
+  bow.name = 'Brass Minnow Pointed Bow';
+  bow.position.set(-1.12, 0.03, 0);
+  bow.rotation.z = Math.PI / 2;
+  bow.rotation.y = Math.PI / 4;
+  hull.add(bow);
+
+  const keel = markMinnowMesh(new THREE.Mesh(new THREE.BoxGeometry(1.62, 0.08, 0.12), mat.darkIron));
+  keel.position.set(-0.06, -0.22, 0);
+  hull.add(keel);
+
+  [-0.34, 0.34].forEach(z => {
+    const rail = markMinnowMesh(new THREE.Mesh(new THREE.BoxGeometry(1.34, 0.045, 0.045), mat.agedBrass));
+    rail.position.set(-0.08, 0.25, z);
+    hull.add(rail);
+  });
+
+  const bowLamp = new THREE.Mesh(new THREE.SphereGeometry(0.065, 10, 8), mat.lanternGlow);
+  bowLamp.name = 'Brass Minnow Bow Lantern';
+  bowLamp.position.set(-1.52, 0.18, 0);
+  bowLamp.userData.windowGlow = true;
+  hull.add(bowLamp);
+  const lampLight = new THREE.PointLight(0xffc45a, 0.35, 2.2);
+  lampLight.position.copy(bowLamp.position);
+  hull.add(lampLight);
+
+  return hull;
+}
+
+function createMinnowDeckPlate(mat) {
+  const deck = new THREE.Group();
+  deck.name = 'Brass Minnow Top Deck Cargo Plate';
+
+  const plate = markMinnowMesh(new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.055, 0.42), mat.wornWood));
+  plate.position.set(-0.22, 0.30, 0);
+  deck.add(plate);
+
+  const hatch = markMinnowMesh(new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.035, 0.22), mat.darkIron));
+  hatch.position.set(-0.38, 0.36, -0.02);
+  hatch.rotation.y = 0.18;
+  deck.add(hatch);
+
+  const crate = markMinnowMesh(new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.16, 0.18), mat.fadedPaint));
+  crate.position.set(0.06, 0.40, 0.12);
+  crate.rotation.y = -0.22;
+  deck.add(crate);
+
+  const patch = markMinnowMesh(new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.026, 0.16), mat.patchRed));
+  patch.position.set(-0.68, 0.38, 0.18);
+  patch.rotation.y = -0.32;
+  deck.add(patch);
+
+  return deck;
+}
+
+function createMinnowEngineBlock(mat) {
+  const engine = new THREE.Group();
+  engine.name = 'Brass Minnow Rear Engine Block';
+
+  const boiler = markMinnowMesh(new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.38, 0.46), mat.darkIron));
+  boiler.position.set(0.68, 0.20, 0);
+  engine.add(boiler);
+
+  const rearCap = markMinnowMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.48, 12), mat.wornIron));
+  rearCap.rotation.x = Math.PI / 2;
+  rearCap.position.set(0.98, 0.20, 0);
+  engine.add(rearCap);
+
+  const stack = markMinnowMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 0.54, 10), mat.soot));
+  stack.name = 'Brass Minnow Small Smokestack';
+  stack.position.set(0.54, 0.66, -0.12);
+  engine.add(stack);
+
+  const stackBand = markMinnowMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.035, 10), mat.agedBrass));
+  stackBand.position.y = 0.14;
+  stack.add(stackBand);
+
+  [-0.13, 0.0, 0.13].forEach((z, i) => {
+    const vent = markMinnowMesh(new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.18, 0.035), mat.soot));
+    vent.position.set(0.39 + i * 0.055, 0.43, z);
+    engine.add(vent);
+  });
+
+  return engine;
+}
+
+function createMinnowLiftPod(side, mat) {
+  const podGroup = new THREE.Group();
+  podGroup.name = side < 0 ? 'Brass Minnow Left Lift Pod' : 'Brass Minnow Right Lift Pod';
+  podGroup.position.set(-0.05, -0.06, side * 0.56);
+
+  const strut = markMinnowMesh(new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.06, 0.08), mat.darkIron));
+  strut.position.set(-0.02, 0.09, -side * 0.16);
+  strut.rotation.y = side * 0.10;
+  podGroup.add(strut);
+
+  const pod = markMinnowMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.18, 0.46, 12), mat.wornIron));
+  pod.rotation.z = Math.PI / 2;
+  pod.position.set(0.06, -0.04, 0);
+  podGroup.add(pod);
+
+  const intake = markMinnowMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.035, 12), mat.agedBrass));
+  intake.rotation.z = Math.PI / 2;
+  intake.position.set(-0.19, -0.04, 0);
+  podGroup.add(intake);
+
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.23, 0.018, 8, 24), mat.liftGlow.clone());
+  ring.rotation.x = Math.PI / 2;
+  ring.position.set(0.06, -0.31, 0);
+  ring.userData.arcLiftRing = true;
+  ring.userData.baseOpacity = 0.64;
+  ring.userData.spin = 1.15 + Math.abs(side) * 0.12;
+  podGroup.add(ring);
+
+  const core = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), mat.liftCore.clone());
+  core.position.set(0.06, -0.31, 0);
+  core.userData.arcLiftGlow = true;
+  podGroup.add(core);
+
+  const light = new THREE.PointLight(0x80eaff, 0.22, 2.0);
+  light.position.set(0.06, -0.32, 0);
+  podGroup.add(light);
+
+  return podGroup;
+}
+
+function createMinnowTailAssembly(mat) {
+  const tail = new THREE.Group();
+  tail.name = 'Brass Minnow Tail Fin Rudder Assembly';
+
+  const boom = markMinnowMesh(new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.12, 0.18), mat.darkIron));
+  boom.position.set(1.15, 0.08, 0);
+  tail.add(boom);
+
+  const verticalFin = markMinnowMesh(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.44, 0.055), mat.fadedPaint));
+  verticalFin.position.set(1.38, 0.34, 0);
+  verticalFin.rotation.z = -0.12;
+  tail.add(verticalFin);
+
+  [-0.16, 0.16].forEach(z => {
+    const stabilizer = markMinnowMesh(new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.045, 0.12), mat.agedBrass));
+    stabilizer.position.set(1.26, 0.10, z);
+    stabilizer.rotation.y = z > 0 ? -0.18 : 0.18;
+    tail.add(stabilizer);
+  });
+
+  return tail;
+}
+
+function createMinnowUtilityArm(mat) {
+  const arm = new THREE.Group();
+  arm.name = 'Brass Minnow Small Utility Arm';
+
+  const mount = markMinnowMesh(new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, 0.12), mat.darkIron));
+  mount.position.set(-0.34, 0.18, 0.42);
+  arm.add(mount);
+
+  const boom = markMinnowMesh(new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.045, 0.045), mat.agedBrass));
+  boom.position.set(-0.48, 0.15, 0.56);
+  boom.rotation.y = -0.46;
+  boom.rotation.z = -0.12;
+  arm.add(boom);
+
+  const hook = markMinnowMesh(new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.009, 6, 12), mat.soot));
+  hook.position.set(-0.64, 0.09, 0.70);
+  hook.rotation.x = Math.PI / 2;
+  arm.add(hook);
+
+  return arm;
+}
+
+function addMinnowPatchPlates(group, mat) {
+  const plates = [
+    { x: -0.20, y: 0.205, z: -0.33, sx: 0.28, sz: 0.06, r: 0.04, material: mat.agedBrass },
+    { x: 0.28, y: 0.205, z: 0.33, sx: 0.22, sz: 0.06, r: -0.05, material: mat.patchRed },
+    { x: -0.74, y: 0.205, z: 0.20, sx: 0.20, sz: 0.05, r: 0.30, material: mat.wornIron }
+  ];
+  plates.forEach(cfg => {
+    const plate = markMinnowMesh(new THREE.Mesh(new THREE.BoxGeometry(cfg.sx, 0.022, cfg.sz), cfg.material));
+    plate.position.set(cfg.x, cfg.y, cfg.z);
+    plate.rotation.y = cfg.r;
+    group.add(plate);
+  });
+}
+
+function createBrassMinnowModel() {
+  const group = new THREE.Group();
+  group.name = 'Brass Minnow Modular Placeholder Skiff';
+  group.userData.brassMinnowActiveCraft = true;
+  group.userData.activeCraftMarker = true;
+
+  const mat = createMinnowMaterials();
+  group.add(createMinnowHull(mat));
+  group.add(createMinnowEngineBlock(mat));
+  group.add(createMinnowLiftPod(-1, mat));
+  group.add(createMinnowLiftPod(1, mat));
+  group.add(createMinnowTailAssembly(mat));
+  group.add(createMinnowDeckPlate(mat));
+  group.add(createMinnowUtilityArm(mat));
+  addMinnowPatchPlates(group, mat);
+
+  const defensiveStub = markMinnowMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.038, 0.28, 8), mat.darkIron));
+  defensiveStub.name = 'Brass Minnow Tiny Defensive Nose Tube';
+  defensiveStub.rotation.z = Math.PI / 2;
+  defensiveStub.position.set(-0.98, 0.22, -0.18);
+  group.add(defensiveStub);
+
+  group.scale.setScalar(1.18);
+  group.rotation.y = getFortressFacing();
+  return group;
+}
 function createFortressModel() {
-  // Procedural fallback plus GLB modular Brasswake assembly v0.26.06.24.0003.
+  // Legacy future-Brasswake procedural fallback plus GLB modular assembly. Not used for the starter craft.
   const group = new THREE.Group();
   group.name = 'Brasswake Modular Hex Fortress Marker';
   group.userData.brasswakeMarker = true;
@@ -5477,7 +5718,7 @@ function beginCurrentTravel(route, loc, cost) {
     <p><strong>${route.name}</strong> · ${meta.label} · Risk: ${route.risk} · ${cost} Fuel</p>
     <p>${currentTravelText(route, cur, loc)}</p>
     <div class="travelProgress"><div class="travelProgressFill"></div></div>
-    <p class="smallNote">Travel is not instant. The fortress spends fuel, time, and momentum while crossing the living sky-road.</p>`;
+    <p class="smallNote">Travel is not instant. ${activeCraftName()} spends fuel, time, and momentum while crossing the living sky-road.</p>`;
   document.getElementById('modalOverlay').classList.add('active');
   setTimeout(() => {
     document.getElementById('modalOverlay').classList.remove('active');
@@ -7411,13 +7652,13 @@ function showHelp() {
 
 function showBuildNotes() {
   showModal(`<h1>Build Notes - ${VERSION}</h1>
-    <p><strong>Left HUD Hierarchy Cleanup:</strong> gives Selected Location more weight as the main decision surface while keeping Ship Status available as compact reference information.</p>
-    <p><strong>Ship Status:</strong> defaults to only the active craft name and hull health. Tier, class, crew, cargo, navigator, plot capacity, and the support/crew note now live behind an expandable <strong>Craft Details</strong> row.</p>
-    <p><strong>Selected Location:</strong> moves directly below Ship Status and receives a stronger minimum height so route, contract, salvage, harvest, trade, and combat buttons have more room to appear without immediately fighting the lower panels.</p>
-    <p><strong>Captain's Orders:</strong> remains visible as a tutorial/objective reminder, but it is capped lower so it no longer competes with Selected Location for primary interaction space.</p>
-    <p><strong>Preserved:</strong> single-file HTML structure, Three.js CDN map, external GLB/MP3 assets, procedural hex-board layout, Current Gate / Jet Stream route plotting, multi-hop route planner, no-charted-current messaging, turn-then-move route-facing behavior, Captain's Orders logic, Command Menu, Fleet Log, selected-location actions, contracts, salvage/harvest/trade, combat, future tech locks, singleton MusicManager, and save/load/reset behavior.</p>
-    <p><strong>Save compatibility:</strong> <code>SAVE_KEY</code> intentionally remains <code>${SAVE_KEY}</code>; this patch changes layout and presentation only, so existing v0.26.06.24.0001 saves should remain available.</p>
-    <p><strong>Validation:</strong> version strings, duplicate build-notes definitions, singleton MusicManager, route/facing function preservation, and package structure were checked by inspection. JavaScript execution/syntax checks could not be run here because Node is not available on PATH. No embedded playable preview is included.</p>
+    <p><strong>Starter Craft Visual:</strong> the active player craft is now a simple modular <strong>Brass Minnow</strong> placeholder skiff instead of the older fortress-style marker.</p>
+    <p><strong>Readable Skiff Silhouette:</strong> the model uses a compact hull, rear engine block, one smokestack, left/right lift pods, a small tail rudder, top cargo plate, tiny utility arm, bow lantern, modest patch plates, and one minimal defensive nose tube.</p>
+    <p><strong>Future-Friendly Structure:</strong> added separate model helpers for Minnow hull, engine block, lift pods, tail assembly, deck plate, utility arm, materials, and patch plates so later upgrades or cosmetic swaps can build on the placeholder cleanly.</p>
+    <p><strong>Brasswake Separation:</strong> Brasswake GLB/procedural builder systems remain available as future fortress-city tooling, but active startup now creates the Brass Minnow skiff and Brasswake refreshes skip that active craft group.</p>
+    <p><strong>Preserved:</strong> single-file HTML structure, Three.js CDN map, external GLB/MP3 assets, procedural hex-board layout, Current Gate / Jet Stream route plotting, multi-hop route planner, no-charted-current messaging, turn-then-move route-facing behavior, Captain's Orders, Ship Status, Selected Location, Command Menu, Fleet Log, contracts, salvage/harvest/trade, combat, future tech locks, singleton MusicManager, and save/load/reset behavior.</p>
+    <p><strong>Save compatibility:</strong> <code>SAVE_KEY</code> intentionally remains <code>${SAVE_KEY}</code>; this patch changes the active craft visual and presentation code only, so existing v0.26.06.24.0001 saves should remain available.</p>
+    <p><strong>Validation:</strong> version strings, starter craft model path, duplicate build-notes definitions, singleton MusicManager, route/facing function preservation, and package structure were checked by inspection. JavaScript execution/syntax checks could not be run here because Node is not available on PATH. No embedded playable preview is included.</p>
     ${roadmapDoctrineHTML()}
     ${nextCampaignGoalsHTML()}
     ${balanceRoadmapHTML()}
@@ -7446,7 +7687,7 @@ function animate() {
     if (fortressGroup.visible) {
       fortressGroup.position.y = 4.8 + Math.sin(elapsed * 1.6) * 0.18;
       fortressGroup.rotation.y = getFortressFacing();
-      // Subtle in-map life for Brasswake's arc-lift engines; no external assets required.
+      // Subtle in-map life for active craft lift engines; no external assets required.
       fortressGroup.traverse(child => {
         if (child.userData?.arcLiftRing) {
           child.rotation.y += dt * (child.userData.spin || 1.0);
